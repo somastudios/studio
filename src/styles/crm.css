@@ -1,0 +1,1224 @@
+/* El CRM. Mismo universo que la presentación: tinta sobre papel, tipografía condensada,
+   el trazo que hierve y el punto azul como cursor. En celular la navegación baja al pulgar. */
+
+/* ───────────────────────── Marco ───────────────────────── */
+
+.crm {
+  display: grid;
+  grid-template-columns: 252px minmax(0, 1fr);
+  min-height: 100%;
+}
+
+.crm-tope {
+  display: none;
+}
+
+.crm-nav {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding: 24px 16px 20px;
+  border-right: 1.5px solid var(--fg-4);
+}
+
+.crm-marca {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-left: 6px;
+  font-weight: 300;
+  font-size: 16px;
+  text-decoration: none;
+}
+
+.crm-marca svg {
+  width: 30px;
+  height: 30px;
+}
+
+.crm-marca b {
+  font-stretch: 62%;
+  font-weight: 800;
+  font-size: 1.22em;
+  letter-spacing: 0.01em;
+}
+
+/* Nueva visita: el mismo botón de anillo de la presentación, vuelto píldora. */
+.crm-nueva {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 0 18px 0 6px;
+  border-radius: 999px;
+  background: var(--fg);
+  color: var(--bg);
+  font-stretch: 70%;
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition:
+    background 0.3s,
+    transform 0.14s;
+}
+
+.crm-nueva-aro {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  transition: transform 0.7s var(--ease-expo);
+}
+
+.crm-nueva-aro svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.crm-nueva:hover,
+.crm-nueva:focus-visible {
+  background: var(--azul);
+  color: #fff;
+}
+
+.crm-nueva:hover .crm-nueva-aro,
+.crm-nueva:focus-visible .crm-nueva-aro {
+  transform: rotate(90deg);
+}
+
+.crm-nueva:active {
+  transform: scale(0.96);
+}
+
+.crm-secciones {
+  display: grid;
+  gap: 2px;
+}
+
+.crm-secciones a {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 0 10px 0 30px;
+  font-weight: 600;
+  font-size: 15.5px;
+  text-decoration: none;
+  color: var(--fg-3);
+  transition: color 0.35s;
+}
+
+.crm-ancla {
+  position: absolute;
+  left: 9px;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  margin-top: -5px;
+}
+
+.crm-ico {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  transition: transform 0.55s var(--ease-expo);
+}
+
+.crm-ico .ico {
+  width: 100%;
+  height: 100%;
+}
+
+.crm-nombre {
+  transition: transform 0.55s var(--ease-expo);
+}
+
+.crm-secciones a:hover,
+.crm-secciones a:focus-visible {
+  color: var(--fg);
+  outline: none;
+}
+
+.crm-secciones a:hover .crm-nombre,
+.crm-secciones a:focus-visible .crm-nombre {
+  transform: translateX(4px);
+}
+
+.crm-secciones a[aria-current='page'] {
+  color: var(--fg);
+}
+
+.crm-secciones a[aria-current='page'] .crm-ico {
+  transform: scale(1.14);
+}
+
+.crm-secciones a:active .crm-ico {
+  transform: scale(0.88);
+  transition-duration: 0.12s;
+}
+
+/* El punto: uno solo, viaja a la sección abierta. */
+.crm-punto {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 11px;
+  height: 11px;
+  margin: -5.5px 0 0 -5.5px;
+  color: var(--azul);
+  pointer-events: none;
+  opacity: 0;
+  will-change: transform;
+}
+
+.crm-punto.es-puesto {
+  opacity: 1;
+}
+
+.crm-punto svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-origin: 50% 50%;
+}
+
+.crm-cuenta {
+  margin-left: auto;
+  min-width: 22px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--alerta-f);
+  color: var(--alerta);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.crm-pie {
+  margin-top: auto;
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  padding-left: 6px;
+  font-size: 13px;
+}
+
+.crm-sync {
+  cursor: pointer;
+}
+
+.crm-quien {
+  font-weight: 650;
+}
+
+.crm-main {
+  min-width: 0;
+  height: 100dvh;
+  overflow-y: auto;
+  overflow-x: clip;
+}
+
+/* ───────────────────────── Encabezado de sección ───────────────────────── */
+
+.crm-miga {
+  margin-bottom: 10px;
+}
+
+.crm-cab {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'tx emb'
+    'acc acc';
+  align-items: end;
+  gap: 18px 28px;
+  padding-bottom: 24px;
+  margin-bottom: clamp(22px, 3vw, 34px);
+}
+
+.crm-cab-tx {
+  grid-area: tx;
+  min-width: 0;
+}
+
+.crm-cab .a-k {
+  margin-bottom: 10px;
+}
+
+.crm-cab .a-h1 {
+  font-size: clamp(42px, 6.4vw, 84px);
+  line-height: 0.86;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.crm-emblema {
+  grid-area: emb;
+  align-self: center;
+  width: clamp(88px, 9.5vw, 128px);
+}
+
+.crm-emblema:has(.emb--ancho) {
+  width: clamp(128px, 15vw, 204px);
+}
+
+.crm-cab .a-cab-acc {
+  grid-area: acc;
+  align-items: flex-end;
+  justify-content: flex-start;
+}
+
+.crm-regla {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 10px;
+}
+
+/* Estas líneas miden 10 px de alto, igual que su lienzo: el grosor se da en esas unidades.
+   (Con trazo no escalable, el dibujo progresivo se queda corto.) */
+.crm-regla path,
+.crm-embudo-linea path {
+  stroke-width: 1.5;
+}
+
+/* ───────────────────────── Emblemas ───────────────────────── */
+
+.emb {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  color: var(--fg);
+}
+
+.emb text {
+  fill: var(--fg);
+  font-family: var(--font-sans);
+}
+
+.emb-dia {
+  font-stretch: 62%;
+  font-weight: 800;
+  font-size: 50px;
+}
+
+.emb-mes {
+  font-family: var(--font-mono);
+  font-size: 8.4px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.emb-total {
+  font-stretch: 62%;
+  font-weight: 800;
+  font-size: 30px;
+}
+
+.emb-ok {
+  color: var(--fg);
+}
+
+.emb-aviso {
+  color: #d68a10;
+}
+
+.emb-mal {
+  color: var(--mal);
+}
+
+.emb-vacio {
+  color: var(--fg-4);
+}
+
+.emb-nodos circle {
+  fill: var(--fg);
+}
+
+.emb-gira {
+  transform-origin: 0 0;
+  animation: an-giro 34s linear infinite;
+}
+
+.emb-gira--r {
+  animation-direction: reverse;
+  animation-duration: 52s;
+}
+
+/* El engrane chico tiene la mitad de dientes: gira al doble y al revés, así engranan. */
+[data-emb='engranes'] .emb-gira {
+  animation-duration: 28s;
+}
+
+[data-emb='engranes'] .emb-gira--veloz {
+  animation-duration: 14s;
+}
+
+.emb-late {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: emb-late 1.5s ease-in-out infinite;
+}
+
+@keyframes emb-late {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  18% {
+    transform: scale(1.45);
+  }
+  36% {
+    transform: scale(1);
+  }
+}
+
+.emb--giro .ico {
+  width: 100%;
+  height: auto;
+}
+
+.crm-chispa {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  color: #c96442;
+  animation: an-giro 16s linear infinite;
+}
+
+.crm-firma {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 56px;
+  font-size: 13px;
+  color: var(--fg-2);
+}
+
+/* ───────────────────────── Piezas ───────────────────────── */
+
+/* Cifras: la regla de arriba se traza al entrar. */
+.crm-cifras {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px 22px;
+}
+
+.crm .a-cifra {
+  position: relative;
+  border-top: 0;
+}
+
+.crm .a-cifra::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 1.5px;
+  background: var(--fg);
+  transform: scaleX(var(--trazo, 1));
+  transform-origin: left;
+}
+
+/* Renglones: el punto azul señala el que está bajo el cursor. */
+.crm .a-item {
+  position: relative;
+}
+
+.crm button.a-item::before,
+.crm a.a-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  margin-top: -4px;
+  border-radius: 50%;
+  background: var(--azul);
+  transform: scale(0);
+  transition: transform 0.4s var(--ease-expo);
+}
+
+.crm button.a-item:hover,
+.crm a.a-item:hover,
+.crm button.a-item:focus-visible,
+.crm a.a-item:focus-visible {
+  background: none;
+  padding-left: 20px;
+  outline: none;
+}
+
+.crm button.a-item:hover::before,
+.crm a.a-item:hover::before,
+.crm button.a-item:focus-visible::before,
+.crm a.a-item:focus-visible::before {
+  transform: scale(1);
+}
+
+/* Pestañas: un solo subrayado que se desliza. */
+.crm .a-tabs {
+  position: relative;
+}
+
+.crm .a-tab[aria-selected='true']::after {
+  display: none;
+}
+
+.crm .a-tab {
+  transition: color 0.3s;
+}
+
+.a-tabs-ind {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  width: 0;
+  background: var(--azul);
+  pointer-events: none;
+}
+
+/* El embudo: las etapas sobre una línea. Tocar una filtra la lista. */
+.crm-embudo {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  margin: 2px 0 28px;
+}
+
+.crm-embudo-linea {
+  position: absolute;
+  left: 10%;
+  top: 25px;
+  width: 80%;
+  height: 10px;
+  color: var(--fg-3);
+}
+
+.crm-nodo {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 9px;
+  padding: 0 2px;
+  text-align: center;
+  color: var(--fg-2);
+  transition: color 0.3s;
+}
+
+.crm-nodo-aro {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--bg);
+  color: var(--fg);
+  transition:
+    transform 0.45s var(--ease-expo),
+    background 0.3s,
+    color 0.3s;
+}
+
+.crm-nodo-aro svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.crm-nodo-aro b {
+  position: relative;
+  font-stretch: 62%;
+  font-weight: 800;
+  font-size: 26px;
+  line-height: 1;
+}
+
+.crm-nodo .a-k {
+  color: inherit;
+}
+
+.crm-nodo.es-cero .crm-nodo-aro b {
+  color: var(--fg-3);
+}
+
+.crm-nodo:hover,
+.crm-nodo:focus-visible {
+  color: var(--fg);
+  outline: none;
+}
+
+.crm-nodo:hover .crm-nodo-aro,
+.crm-nodo:focus-visible .crm-nodo-aro {
+  transform: scale(1.08);
+}
+
+.crm-nodo:active .crm-nodo-aro {
+  transform: scale(0.94);
+  transition-duration: 0.12s;
+}
+
+.crm-nodo[aria-pressed='true'] {
+  color: var(--fg);
+}
+
+.crm-nodo[aria-pressed='true'] .crm-nodo-aro {
+  background: var(--azul);
+  color: var(--azul);
+}
+
+.crm-nodo[aria-pressed='true'] .crm-nodo-aro b {
+  color: #fff;
+}
+
+/* La semana, de un vistazo. */
+.crm-semana {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.crm-dia-celda {
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  padding: 11px 0 9px;
+  border: 1.5px solid var(--fg-4);
+  border-radius: var(--radio);
+  color: var(--fg-2);
+}
+
+.crm-dia-celda.es-hoy {
+  border-color: var(--fg);
+  color: var(--fg);
+}
+
+.crm-dia-celda .a-k {
+  color: inherit;
+}
+
+.crm-dia-n {
+  font-stretch: 62%;
+  font-weight: 800;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.crm-dia-p {
+  display: flex;
+  gap: 3px;
+  height: 7px;
+}
+
+.crm-dia-p i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--azul);
+}
+
+.crm-dia {
+  margin: 24px 0 2px;
+}
+
+.crm-filtros {
+  justify-content: space-between;
+}
+
+.crm-busca {
+  max-width: 340px;
+}
+
+.crm-f {
+  cursor: pointer;
+  transition:
+    background 0.25s,
+    color 0.25s,
+    border-color 0.25s;
+}
+
+.crm-f[aria-pressed='true'] {
+  background: var(--fg);
+  border-color: var(--fg);
+  color: var(--bg);
+}
+
+.crm-cita {
+  border-bottom: 1px solid var(--fg-4);
+}
+
+.crm-cita .a-item {
+  border-bottom: 0;
+}
+
+.crm-cita-acc {
+  padding: 0 0 10px 100px;
+}
+
+.crm-cita-acc:empty {
+  display: none;
+}
+
+.crm-sistema {
+  padding: 18px 0;
+  border-bottom: 1px solid var(--fg-4);
+}
+
+.crm-cuerpo {
+  padding-top: 26px;
+}
+
+.crm-dos {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(260px, 1fr);
+  gap: 36px;
+  align-items: start;
+}
+
+.crm-etapa {
+  display: grid;
+  gap: 4px;
+}
+
+.crm-etapa .a-in {
+  min-height: 40px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+  border-radius: 999px;
+  background-position:
+    calc(100% - 18px) 17px,
+    calc(100% - 13px) 17px;
+}
+
+.crm-hallazgos {
+  display: grid;
+}
+
+.crm-hallazgos li {
+  display: grid;
+  gap: 4px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--fg-4);
+}
+
+.crm-ruta {
+  font-stretch: 70%;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-size: 14px;
+  color: var(--azul);
+}
+
+.crm-cita-texto {
+  margin-top: 4px;
+  padding-left: 12px;
+  border-left: 2px solid var(--fg-4);
+  color: var(--fg-2);
+}
+
+.crm-visita + .crm-visita {
+  margin-top: 14px;
+}
+
+.crm-puntos {
+  display: grid;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.crm-puntos li {
+  position: relative;
+  padding-left: 18px;
+}
+
+.crm-puntos li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.72em;
+  width: 10px;
+  height: 1.5px;
+  background: currentColor;
+  opacity: 0.5;
+}
+
+.crm-nota {
+  display: flex;
+  gap: 8px;
+}
+
+.crm-bitacora {
+  margin-top: 18px;
+  display: grid;
+}
+
+.crm-bitacora li {
+  display: grid;
+  gap: 2px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--fg-4);
+}
+
+.crm-peligro {
+  margin-top: 56px;
+  font-size: 13px;
+}
+
+.crm-bloque {
+  display: grid;
+  gap: 14px;
+}
+
+.crm-bloque .a-seccion-cab {
+  margin-bottom: 0;
+}
+
+.crm-detalle {
+  max-width: 68ch;
+}
+
+.crm-detalle summary {
+  cursor: pointer;
+  font-weight: 650;
+  min-height: 32px;
+}
+
+.crm-detalle summary:hover {
+  color: var(--azul);
+}
+
+.crm-pasos {
+  list-style: decimal;
+  display: grid;
+  gap: 8px;
+  margin: 10px 0 12px;
+  padding-left: 22px;
+}
+
+.crm-pasos li::marker {
+  font-family: var(--font-mono);
+  font-size: 0.8em;
+  color: var(--fg-2);
+}
+
+.crm-bloque code,
+.dlg code {
+  font: 500 0.88em var(--font-mono);
+}
+
+.crm-codigo {
+  margin: 14px 0 10px;
+  padding: 12px 14px;
+  border-radius: var(--radio);
+  background: var(--color-ink);
+  color: var(--color-paper);
+  font: 500 12px/1.5 var(--font-mono);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.crm-cred {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--fg-4);
+}
+
+.crm-secreto {
+  margin-top: 6px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: var(--fg-4);
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.crm-enlace {
+  display: grid;
+  grid-template-columns: 132px 1fr;
+  gap: 18px;
+  align-items: center;
+}
+
+.crm-qr svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Botones: responden al dedo. */
+.crm .a-btn,
+.dlg .a-btn {
+  transition:
+    background 0.22s,
+    color 0.22s,
+    border-color 0.22s,
+    transform 0.14s;
+}
+
+.crm .a-btn:active,
+.dlg .a-btn:active {
+  transform: scale(0.95);
+}
+
+/* ───────────────────────── Celular y tableta vertical ───────────────────────── */
+
+@media (max-width: 860px) {
+  .crm {
+    display: block;
+    font-size: 16px;
+  }
+
+  .crm-tope {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px 0;
+  }
+
+  .crm-tope .crm-marca {
+    padding-left: 0;
+  }
+
+  .crm-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: auto;
+    bottom: 0;
+    z-index: 20;
+    height: auto;
+    flex-direction: row;
+    gap: 0;
+    padding: 4px 4px calc(4px + env(safe-area-inset-bottom));
+    border-right: 0;
+    border-top: 1.5px solid var(--fg-4);
+    background: var(--bg);
+  }
+
+  .crm-nav > .crm-marca,
+  .crm-pie {
+    display: none;
+  }
+
+  .crm-secciones {
+    flex: 1;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0;
+  }
+
+  .crm-secciones a {
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    min-height: 60px;
+    padding: 13px 0 5px;
+    font-family: var(--font-mono);
+    font-size: 8.6px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .crm-secciones a:hover .crm-nombre {
+    transform: none;
+  }
+
+  .crm-ancla {
+    left: 50%;
+    top: 6px;
+    width: 6px;
+    height: 6px;
+    margin: 0 0 0 -3px;
+  }
+
+  .crm-punto {
+    width: 7px;
+    height: 7px;
+    margin: -3.5px 0 0 -3.5px;
+  }
+
+  .crm-ico {
+    width: 27px;
+    height: 27px;
+  }
+
+  .crm-cuenta {
+    position: absolute;
+    top: 9px;
+    left: calc(50% + 9px);
+    min-width: 17px;
+    margin: 0;
+    padding: 0 4px;
+    font-family: var(--font-sans);
+    font-size: 10.5px;
+    line-height: 17px;
+  }
+
+  /* Nueva visita flota sobre la barra, al alcance del pulgar. */
+  .crm-nueva {
+    position: fixed;
+    right: 14px;
+    bottom: calc(78px + env(safe-area-inset-bottom));
+    z-index: 21;
+    box-shadow: 0 12px 32px -10px rgb(5 5 6 / 0.5);
+  }
+
+  .crm-main {
+    height: auto;
+    overflow: visible;
+  }
+
+  .crm .a-pagina {
+    padding: 18px 16px calc(170px + env(safe-area-inset-bottom));
+  }
+
+  .crm-cab {
+    gap: 14px 14px;
+    padding-bottom: 20px;
+  }
+
+  .crm-cab .a-h1 {
+    font-size: clamp(40px, 12.5vw, 60px);
+  }
+
+  .crm-emblema {
+    width: 78px;
+  }
+
+  .crm-emblema:has(.emb--ancho) {
+    width: 104px;
+  }
+
+  .crm-cab .a-cab-acc .a-btn {
+    flex: 1 1 auto;
+  }
+
+  .crm-cifras {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2px 16px;
+  }
+
+  .crm .a-cifra-n {
+    font-size: 40px;
+  }
+
+  .crm .a-seccion-cab {
+    flex-wrap: wrap;
+    gap: 4px 12px;
+  }
+
+  /* Renglones: el nombre arriba, lo demás se acomoda debajo. */
+  .crm .a-item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 10px;
+    min-height: 0;
+    padding: 14px 2px;
+  }
+
+  .crm .a-item > :first-child {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  .crm .a-item > .a-item-s {
+    flex: 1 1 auto;
+  }
+
+  .crm .a-item-t {
+    font-size: 17px;
+  }
+
+  .crm .a-item-s {
+    font-size: 14px;
+  }
+
+  .crm button.a-item:hover,
+  .crm a.a-item:hover {
+    padding-left: 2px;
+  }
+
+  .crm button.a-item::before,
+  .crm a.a-item::before {
+    display: none;
+  }
+
+  .crm .a-item[data-cita] > :first-child {
+    flex: 0 0 auto;
+    min-width: 84px;
+  }
+
+  .crm .a-item[data-cita] > :nth-child(2) {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .crm-cita-acc {
+    padding-left: 2px;
+  }
+
+  .crm-dos {
+    grid-template-columns: 1fr;
+    gap: 26px;
+  }
+
+  .crm-embudo {
+    margin-bottom: 22px;
+  }
+
+  .crm-embudo-linea {
+    top: 20px;
+  }
+
+  .crm-nodo-aro {
+    width: 50px;
+    height: 50px;
+  }
+
+  .crm-nodo-aro b {
+    font-size: 22px;
+  }
+
+  .crm-nodo .a-k {
+    font-size: 8.4px;
+    letter-spacing: 0.03em;
+  }
+
+  .crm-filtros {
+    gap: 10px;
+  }
+
+  .crm-busca {
+    max-width: none;
+    width: 100%;
+  }
+
+  .crm-semana {
+    gap: 4px;
+  }
+
+  .crm-dia-n {
+    font-size: 22px;
+  }
+
+  .crm-dia-celda .a-k {
+    font-size: 8.4px;
+  }
+
+  .crm-nota {
+    flex-wrap: wrap;
+  }
+
+  .crm-nota .a-in {
+    flex: 1 1 100%;
+  }
+
+  .crm-enlace {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+
+  .crm-qr {
+    width: 150px;
+  }
+
+  .crm .a-datos {
+    grid-template-columns: 1fr;
+    gap: 2px 0;
+  }
+
+  .crm .a-datos dd {
+    margin-bottom: 10px;
+    overflow-wrap: anywhere;
+  }
+
+  .crm-sistema .a-entre {
+    flex-wrap: wrap;
+  }
+
+  .crm-etapa {
+    flex: 1 1 100%;
+  }
+
+  /* Los diálogos suben desde abajo, como una hoja. */
+  .capa-dialogo {
+    place-items: end center;
+    padding: 0;
+  }
+
+  .dlg {
+    width: 100%;
+    max-height: 92dvh;
+    border-radius: 20px 20px 0 0;
+    transform: translateY(48px);
+    font-size: 16px;
+  }
+
+  .dlg-cuerpo {
+    padding-bottom: calc(20px + env(safe-area-inset-bottom));
+  }
+
+  .dlg-pie {
+    padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  }
+
+  .dlg-pie .a-btn {
+    flex: 1 1 auto;
+    min-height: 48px;
+  }
+
+  .dlg .a-seg {
+    display: flex;
+    flex-wrap: wrap;
+    border-radius: 16px;
+  }
+
+  .dlg .a-seg button {
+    flex: 1 1 auto;
+  }
+
+  body[data-modo='app'] #avisos {
+    bottom: calc(92px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .emb-gira,
+  .emb-late,
+  .crm-chispa {
+    animation: none;
+  }
+}
+
+@media (max-width: 860px) {
+  .crm .a-item[data-cita] > .a-chip {
+    margin-left: 94px;
+  }
+
+  .crm .a-item[data-cita] > :nth-child(2) {
+    flex: 1 1 calc(100% - 100px);
+  }
+}

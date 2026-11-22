@@ -5,6 +5,8 @@ import { aviso, leerCampos, dialogo } from '../app/capas.js'
 import { esc, fecha } from '../app/util.js'
 import { AJUSTES_BASE } from '../data/esquema.js'
 import { marco } from './marco.js'
+import { cab } from './vistas.js'
+import { emblemaEngranes, chispa } from './emblemas.js'
 
 // Ajustes: lo que cambia cómo se presenta Soma y cómo se cobra. Cada bloque se guarda por separado.
 
@@ -19,7 +21,7 @@ export function vistaAjustes() {
     const plantillas = store.ajuste('plantillas')
     const st = store.ajuste('stripe') || {}
     main.innerHTML = `
-      <header class="a-cab"><div><p class="a-k">Cómo se presenta Soma y cómo cobra</p><h1 class="a-h1">Ajustes</h1></div></header>
+      ${cab({ k: 'Cómo se presenta Soma y cómo cobra', t: 'Ajustes', emblema: emblemaEngranes() })}
 
       <section class="a-seccion crm-bloque" id="tarjeta"><div class="a-seccion-cab"><h2 class="a-h2">Pagos con tarjeta</h2><span class="a-chip a-chip--${st.conectado ? (st.modo === 'real' ? 'ok' : 'azul') : 'alerta'}">${st.conectado ? (st.modo === 'real' ? 'Conectado · cobros reales' : 'Conectado · modo de prueba') : 'Sin conectar'}</span></div>
         <p class="a-p">Con Stripe conectado, «Registrar pago» puede crear un enlace para que el cliente pague con tarjeta desde su teléfono. Cuando paga, el pago se marca solo y su membresía se extiende. Sin Stripe, todo lo demás funciona igual: transferencia y efectivo.</p>
@@ -82,10 +84,11 @@ export function vistaAjustes() {
       <section class="a-seccion"><div class="a-seccion-cab"><h2 class="a-h2">Equipo y cuenta</h2></div>
         <p class="a-p">${sesion.usuario ? `Sesión iniciada como ${esc(sesion.nombre || 'integrante')}. Lo que registras se sincroniza con el resto del equipo.` : 'Estás trabajando solo en este dispositivo. Inicia sesión para que tus datos se compartan con el equipo y no dependan de este navegador.'}</p>
         <div class="a-fila" style="margin-top:12px">
-          ${sesion.usuario ? '<button type="button" class="a-btn a-btn--ch" data-codigo>Cambiar el código de equipo</button>' : '<a class="a-btn a-btn--ch a-btn--pri" href="#/entrar">Iniciar sesión</a>'}
+          ${sesion.usuario ? '<button type="button" class="a-btn a-btn--ch" data-codigo>Cambiar el código de equipo</button><button type="button" class="a-btn a-btn--ch" data-salir>Cerrar sesión</button>' : '<a class="a-btn a-btn--ch a-btn--pri" href="#/entrar">Iniciar sesión</a>'}
           <a class="a-btn a-btn--ch" href="#/demos">Galería de demos</a><a class="a-btn a-btn--ch" href="#/iconos">Iconos</a><a class="a-btn a-btn--ch" href="#/general">Presentación general</a>
         </div>
-      </section>`
+      </section>
+      <p class="crm-firma">${chispa()}<span>Diseñado y construido con Claude.</span></p>`
   })
 
   const conectarStripe = async (form) => {

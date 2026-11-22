@@ -10,9 +10,11 @@ import { SOL } from '../content/soluciones.js'
 import { AREA } from '../content/base.js'
 import { V1 } from '../content/visita.js'
 import { marco } from './marco.js'
+import { NICHO } from '../content/nichos/index.js'
+import { emblemaGiro } from './emblemas.js'
 import { estadoMembresia, nombreModalidad, precioPlazo, activarMembresia } from './cobranza.js'
 import { editarProspecto, editarCita, avisar, dlgPago, editarMembresia, editarPropuesta, editarSistema } from './dialogos.js'
-import { giro, filaCita, filaSistema, accionesSistema, vacio } from './vistas.js'
+import { giro, filaCita, filaSistema, accionesSistema, vacio, cab } from './vistas.js'
 import { ANIMOS, RESULTADOS } from '../interno/cierre.js'
 
 // El expediente de un prospecto: lo que dijo, lo que se le propuso, lo que tiene y lo que debe.
@@ -186,17 +188,16 @@ export function vistaExpediente({ id, consulta }) {
       ${bitacora.length ? `<ol class="crm-bitacora">${bitacora.map((b) => `<li><span class="a-k">${esc(fecha(b.creado, 'corta'))} · ${esc(fecha(b.creado, 'hora'))}${b.quien ? ` · ${esc(b.quien)}` : ''}</span><p>${esc(b.texto)}</p></li>`).join('')}</ol>` : `<p class="a-p" style="margin-top:16px">Aquí queda el rastro de todo: visitas, avisos, pagos y cambios en sus sistemas.</p>`}`
 
     main.innerHTML = `
-      <p class="a-k"><a class="a-enlace" href="#/crm/prospectos">Prospectos</a> / ${esc(giro(p))}</p>
-      <header class="a-cab" style="margin-top:10px">
-        <div><h1 class="a-h1">${esc(p.negocio)}</h1></div>
-        <div class="a-cab-acc">
-          <label class="crm-etapa"><span class="a-k">Etapa</span><select class="a-in" data-etapa>${ETAPAS.map((e) => `<option value="${e.id}" ${(p.etapa || 'nuevo') === e.id ? 'selected' : ''}>${e.nombre}</option>`).join('')}</select></label>
+      <p class="a-k crm-miga"><a class="a-enlace" href="#/crm/prospectos">Prospectos</a> / ${esc(giro(p))}</p>
+      ${cab({
+        t: esc(p.negocio),
+        emblema: emblemaGiro(NICHO[p.nicho]?.icono || 'general'),
+        acc: `<label class="crm-etapa"><span class="a-k">Etapa</span><select class="a-in" data-etapa>${ETAPAS.map((e) => `<option value="${e.id}" ${(p.etapa || 'nuevo') === e.id ? 'selected' : ''}>${e.nombre}</option>`).join('')}</select></label>
           <button type="button" class="a-btn" data-editar>Editar</button>
-          <a class="a-btn a-btn--pri" href="#/presala?p=${id}">Nueva visita</a>
-        </div>
-      </header>
+          <a class="a-btn a-btn--pri" href="#/presala?p=${id}">Nueva visita</a>`,
+      })}
       <div class="a-tabs" role="tablist">${PESTANAS.map(([k, t]) => `<button type="button" class="a-tab" role="tab" data-tab="${k}" aria-selected="${pestana === k}">${t}</button>`).join('')}</div>
-      <div class="crm-cuerpo">${pestana === 'visitas' ? lasVisitas() : pestana === 'propuesta' ? laPropuesta() : pestana === 'cuenta' ? laCuenta() : pestana === 'bitacora' ? laBitacora() : resumen()}</div>
+      <div class="crm-cuerpo" data-cuerpo>${pestana === 'visitas' ? lasVisitas() : pestana === 'propuesta' ? laPropuesta() : pestana === 'cuenta' ? laCuenta() : pestana === 'bitacora' ? laBitacora() : resumen()}</div>
       <div class="crm-peligro"><button type="button" class="a-enlace a-mudo" data-borrar>Eliminar este prospecto</button></div>`
   })
 
@@ -224,7 +225,7 @@ export function vistaExpediente({ id, consulta }) {
     alTocar(m.main, '[data-tab]', (b) => {
       pestana = b.dataset.tab
       history.replaceState(null, '', `#/crm/prospecto/${id}?t=${pestana}`)
-      m.repinta()
+      m.repinta({ tab: true })
     }),
     alTocar(m.main, '[data-editar]', () => editarProspecto(P())),
     alTocar(m.main, '[data-cita-nueva]', () => editarCita(null, id)),

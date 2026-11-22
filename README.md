@@ -80,9 +80,10 @@ Durante una presentación: `M` abre el índice, `F` pantalla completa, `D` abre 
 - [ ] Revisar el copywriting de todo: los textos de las visitas (`src/content/visita.js`), el catálogo de soluciones, los 22 giros y los textos del CRM. Se escribieron de una pasada y nadie los ha leído con calma.
 
 **Pulido**
-- [ ] Animaciones y vida en el CRM: hoy es funcional y sobrio, sin transiciones entre pantallas, sin el punto azul ni trazos boil.
+- [x] CRM, primera pasada: navegación con iconos boil vivos y el punto azul como cursor, emblemas con datos reales que se dibujan al entrar a cada sección, pestañas con subrayado que se desliza, cifras que cuentan y vista de celular con barra inferior.
+- [ ] CRM, segunda pasada: transición de salida al cambiar de sección, estados vacíos ilustrados, animación al guardar o registrar un pago, y revisar los emblemas con datos reales (muchos prospectos, muchas membresías).
 - [ ] Animaciones de las visitas: revisar ritmo y transiciones escena por escena.
-- [ ] Vista en celular y en vertical de las escenas nuevas: está resuelta de forma básica y no se ha probado.
+- [ ] Vista en celular y en vertical de las escenas de las visitas: está resuelta de forma básica y no se ha probado. (El CRM y la presala ya se revisaron en celular y tableta: `node scripts/desborde.cjs <puerto> <carpeta>`.)
 
 **Por probar con cuenta real** (no se pudo desde el entorno donde se construyó)
 - [ ] Crear cuenta con el código de equipo e iniciar sesión.

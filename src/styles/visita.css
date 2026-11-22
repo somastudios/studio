@@ -164,15 +164,14 @@ textarea.v-in {
 .fl-linea {
   position: absolute;
   left: calc(-100% + var(--u) * 6.2);
-  top: calc(var(--u) * 2.2);
+  top: calc(var(--u) * 2.7 - 5px);
   width: calc(100% - var(--u) * 7);
-  height: calc(var(--u) * 1);
+  height: 10px;
   color: var(--fg-3);
 }
 
 .fl-linea path {
-  vector-effect: non-scaling-stroke;
-  stroke-width: var(--stroke);
+  stroke-width: 1.4;
 }
 
 .fl-t {

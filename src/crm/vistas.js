@@ -6,7 +6,9 @@ import { confirmar, aviso } from '../app/capas.js'
 import { esc, dia, fecha, dinero, relativo, diasPara, enlaceCalendario, agrupar, copiar } from '../app/util.js'
 import { ETAPAS, METODOS } from '../data/esquema.js'
 import { NICHO } from '../content/nichos/index.js'
+import { boil, P } from '../core/boil.js'
 import { marco } from './marco.js'
+import { emblemaReloj, emblemaOrbita, emblemaHoja, emblemaDona, emblemaPulso } from './emblemas.js'
 import { estadoMembresia, requiereAtencion, resumenCobranza, nombreModalidad, confirmarPago } from './cobranza.js'
 import { editarProspecto, editarCita, avisar, dlgPago, editarMembresia, editarSistema, dlgConectar, dlgCredenciales, TIPOS_CITA } from './dialogos.js'
 
@@ -18,7 +20,20 @@ const giro = (p) => p?.nicho_otro || NICHO[p?.nicho]?.nombre || 'Giro sin defini
 const negocio = (id) => store.uno('prospectos', id)?.negocio || 'Sin prospecto'
 const tipoCita = (t) => TIPOS_CITA.find(([k]) => k === t)?.[1] || 'Cita'
 const vacio = (t, d, accion = '') => `<div class="a-vacio"><p class="a-vacio-t">${t}</p><p class="a-p">${d}</p>${accion}</div>`
-const cifra = (n, e) => `<div class="a-cifra"><p class="a-cifra-n">${n}</p><p class="a-cifra-e">${e}</p></div>`
+const cifra = (n, e, f = 'num') => `<div class="a-cifra"><p class="a-cifra-n a-num" data-n="${Number(n) || 0}" data-f="${f}">${f === 'dinero' ? dinero(n) : n}</p><p class="a-cifra-e">${e}</p></div>`
+
+// La regla bajo cada encabezado: un trazo a mano que se dibuja al entrar.
+const REGLA = `<svg class="crm-regla" viewBox="0 0 1000 10" preserveAspectRatio="none" aria-hidden="true">${boil(P.line(0, 5, 1000, 5, 22), { amp: 1.3, cls: 'draw', seed: 700 })}</svg>`
+
+/** Encabezado de sección: rótulo, título, emblema a la derecha y acciones debajo. */
+export const cab = ({ k = '', t, acc = '', emblema = '', extra = '' }) => `<header class="a-cab crm-cab">
+  <div class="crm-cab-tx">${k ? `<p class="a-k">${k}</p>` : ''}<h1 class="a-h1">${t}</h1>${extra}</div>
+  ${emblema ? `<div class="crm-emblema" aria-hidden="true">${emblema}</div>` : ''}
+  ${acc ? `<div class="a-cab-acc">${acc}</div>` : ''}
+  ${REGLA}
+</header>`
+
+const CORTO = { nuevo: 'Por visitar', visitado: 'Visitado', demo: 'Demo', propuesta: 'Propuesta', cliente: 'Cliente' }
 
 const filaCita = (c) => `<button type="button" class="a-item" style="--cols:92px 1fr auto" data-cita="${c.id}">
   <span class="a-num a-fuerte">${c.inicio ? esc(fecha(c.inicio, 'hora')) : 'Por acordar'}</span>
@@ -70,14 +85,11 @@ export function vistaHoy() {
     const total = store.lista('prospectos').length
     const porDia = [...agrupar(citas, (c) => (c.inicio ? dia(c.inicio) : 'por-acordar'))]
     main.innerHTML = `
-      <header class="a-cab">
-        <div><p class="a-k">${esc(fecha(new Date(), 'larga'))}</p><h1 class="a-h1">${sesion.nombre ? `Hola, ${esc(sesion.nombre.split(' ')[0])}` : 'Hoy'}</h1></div>
-        <div class="a-cab-acc"><a class="a-btn a-btn--pri" href="#/presala">Nueva visita</a><button type="button" class="a-btn" data-nueva-cita>Nueva cita</button></div>
-      </header>
-      <div class="a-rejilla">
+      ${cab({ k: esc(fecha(new Date(), 'larga')), t: sesion.nombre ? `Hola, ${esc(sesion.nombre.split(' ')[0])}` : 'Hoy', emblema: emblemaReloj(), acc: '<button type="button" class="a-btn" data-nueva-cita>Nueva cita</button>' })}
+      <div class="a-rejilla crm-cifras">
         ${cifra(total - store.lista('prospectos', (p) => ['cliente', 'perdido'].includes(p.etapa)).length, 'Prospectos en proceso')}
         ${cifra(store.lista('prospectos', { etapa: 'cliente' }).length, 'Clientes')}
-        ${cifra(dinero(r.cobradoMes), 'Cobrado este mes')}
+        ${cifra(r.cobradoMes, 'Cobrado este mes', 'dinero')}
         ${cifra(r.vencidas.length + r.porVencer.length, 'Por cobrar o por vencer')}
       </div>
       ${
@@ -123,20 +135,23 @@ export function vistaProspectos() {
     const previa = main.querySelector('[data-busca]')
     const teniaFoco = previa && document.activeElement === previa
     main.innerHTML = `
-      <header class="a-cab">
-        <div><p class="a-k">${todos.length} en total</p><h1 class="a-h1">Prospectos</h1></div>
-        <div class="a-cab-acc"><button type="button" class="a-btn" data-nuevo>Agregar sin visita</button><a class="a-btn a-btn--pri" href="#/presala">Nueva visita</a></div>
-      </header>
+      ${cab({ k: `${todos.length} en total`, t: 'Prospectos', emblema: emblemaOrbita(todos.filter((p) => !['cliente', 'perdido', 'pausa'].includes(p.etapa)).length), acc: '<button type="button" class="a-btn" data-nuevo>Agregar sin visita</button>' })}
+      <div class="crm-embudo" role="group" aria-label="Filtrar por etapa">
+        <svg class="crm-embudo-linea" viewBox="0 0 1000 10" preserveAspectRatio="none" aria-hidden="true">${boil(P.line(0, 5, 1000, 5, 18), { amp: 1.4, seed: 710 })}</svg>
+        ${ETAPAS.slice(0, 5)
+          .map((e, i) => `<button type="button" class="crm-nodo ${cuenta(e.id) ? '' : 'es-cero'}" data-f="${e.id}" aria-pressed="${filtro === e.id}"><span class="crm-nodo-aro"><svg viewBox="0 0 48 48" aria-hidden="true">${boil(P.circle(24, 24, 21, 14), { amp: 0.45, attrs: 'stroke-width="1.7"', seed: 720 + i })}</svg><b class="a-num">${cuenta(e.id)}</b></span><span class="a-k">${CORTO[e.id]}</span></button>`)
+          .join('')}
+      </div>
       <div class="a-fila crm-filtros">
         <input class="a-in crm-busca" data-busca type="search" placeholder="Buscar por negocio, contacto o giro" value="${esc(busca)}" />
         <div class="a-fila">
-          <button type="button" class="a-chip a-chip--liso crm-f" data-f="" aria-pressed="${!filtro}">Todos</button>
-          ${ETAPAS.filter((e) => cuenta(e.id)).map((e) => `<button type="button" class="a-chip a-chip--liso crm-f" data-f="${e.id}" aria-pressed="${filtro === e.id}">${e.nombre} · ${cuenta(e.id)}</button>`).join('')}
+          <button type="button" class="a-chip a-chip--liso crm-f" data-f="" aria-pressed="${!filtro}">Todos · ${todos.length}</button>
+          ${ETAPAS.slice(5).filter((e) => cuenta(e.id)).map((e) => `<button type="button" class="a-chip a-chip--liso crm-f" data-f="${e.id}" aria-pressed="${filtro === e.id}">${e.nombre} · ${cuenta(e.id)}</button>`).join('')}
         </div>
       </div>
       ${
         lista.length
-          ? `<div class="a-lista" style="margin-top:14px">${lista
+          ? `<div class="a-lista" data-cuerpo style="margin-top:14px">${lista
               .map((p) => {
                 const cita = store.lista('citas', (c) => c.prospecto_id === p.id && c.estado !== 'cancelada' && c.estado !== 'hecha' && c.inicio && dia(c.inicio) >= dia()).sort((a, b) => a.inicio.localeCompare(b.inicio))[0]
                 return `<a class="a-item" style="--cols:1.5fr 1fr auto" href="#/crm/prospecto/${p.id}">
@@ -170,8 +185,8 @@ export function vistaProspectos() {
   m.main.addEventListener('input', alEscribir)
   const q = [
     alTocar(m.main, '[data-f]', (b) => {
-      filtro = b.dataset.f
-      m.repinta()
+      filtro = filtro === b.dataset.f ? '' : b.dataset.f
+      m.repinta({ tab: true })
     }),
     alTocar(m.main, '[data-nuevo]', async () => {
       const p = await editarProspecto()
@@ -208,7 +223,13 @@ export function vistaAgenda() {
         )
         .join('')
     main.innerHTML = `
-      <header class="a-cab"><div><p class="a-k">${proximas.length} por venir</p><h1 class="a-h1">Agenda</h1></div><div class="a-cab-acc"><button type="button" class="a-btn a-btn--pri" data-nueva-cita>Nueva cita</button></div></header>
+      ${cab({ k: `${proximas.length} por venir`, t: 'Agenda', emblema: emblemaHoja(), acc: '<button type="button" class="a-btn a-btn--pri" data-nueva-cita>Nueva cita</button>' })}
+      <div class="crm-semana" aria-hidden="true">${Array.from({ length: 7 }, (_, k) => {
+        const d = new Date()
+        d.setDate(d.getDate() + k)
+        const n = proximas.filter((c) => dia(c.inicio) === dia(d)).length
+        return `<div class="crm-dia-celda ${k === 0 ? 'es-hoy' : ''}"><span class="a-k">${esc(fecha(d, 'media').split(' ')[0])}</span><b class="crm-dia-n a-num">${d.getDate()}</b><span class="crm-dia-p">${'<i></i>'.repeat(Math.min(3, n))}</span></div>`
+      }).join('')}</div>
       ${proximas.length ? grupo(proximas) : vacio('No hay citas por venir', 'Las que apartes al final de una visita llegan aquí solas. También puedes crear una a mano.')}
       ${sinFecha.length ? `<section class="a-seccion"><div class="a-seccion-cab"><h2 class="a-h2">Por acordar por mensaje</h2></div><div class="a-lista">${sinFecha.map(filaCita).join('')}</div></section>` : ''}
       ${pasadas.length ? `<section class="a-seccion"><div class="a-seccion-cab"><h2 class="a-h2">Anteriores</h2></div>${grupo(pasadas)}</section>` : ''}`
@@ -241,11 +262,10 @@ export function vistaCobranza() {
     const pagos = store.lista('pagos').sort((a, b) => (b.fecha || b.creado || '').localeCompare(a.fecha || a.creado || ''))
     const metodo = (id) => METODOS.find((x) => x.id === id)?.nombre || id || ''
     main.innerHTML = `
-      <header class="a-cab"><div><p class="a-k">Membresía Soma y pagos únicos</p><h1 class="a-h1">Cobranza</h1></div>
-        <div class="a-cab-acc">${store.ajuste('stripe')?.conectado ? `<span class="a-chip a-chip--${store.ajuste('stripe').modo === 'real' ? 'ok' : 'azul'}">Tarjeta: ${store.ajuste('stripe').modo === 'real' ? 'conectada' : 'en modo de prueba'}</span>` : `<a class="a-btn a-btn--ch" href="#/crm/ajustes?tarjeta">Conectar pagos con tarjeta</a>`}</div></header>
-      <div class="a-rejilla">
-        ${cifra(dinero(r.cobradoMes), 'Cobrado este mes')}
-        ${cifra(dinero(r.mensualRecurrente), 'Ingreso mensual por membresías')}
+      ${cab({ k: 'Membresía Soma y pagos únicos', t: 'Cobranza', emblema: emblemaDona({ ok: r.alCorriente.length + r.enPrueba.length, aviso: r.porVencer.length, mal: r.vencidas.length }), acc: store.ajuste('stripe')?.conectado ? `<span class="a-chip a-chip--${store.ajuste('stripe').modo === 'real' ? 'ok' : 'azul'}">Tarjeta: ${store.ajuste('stripe').modo === 'real' ? 'conectada' : 'en modo de prueba'}</span>` : `<a class="a-btn a-btn--ch" href="#/crm/ajustes?tarjeta">Conectar pagos con tarjeta</a>` })}
+      <div class="a-rejilla crm-cifras">
+        ${cifra(r.cobradoMes, 'Cobrado este mes', 'dinero')}
+        ${cifra(r.mensualRecurrente, 'Ingreso mensual por membresías', 'dinero')}
         ${cifra(r.porVencer.length, 'Por vencer')}
         ${cifra(r.vencidas.length, 'Vencidas o por cobrar')}
       </div>
@@ -253,7 +273,7 @@ export function vistaCobranza() {
         <button type="button" class="a-tab" role="tab" data-tab="membresias" aria-selected="${pestana === 'membresias'}">Membresías · ${mem.length}</button>
         <button type="button" class="a-tab" role="tab" data-tab="pagos" aria-selected="${pestana === 'pagos'}">Pagos · ${pagos.length}</button>
       </div>
-      ${
+      <div data-cuerpo>${
         pestana === 'membresias'
           ? mem.length
             ? `<div class="a-lista">${mem.map((x) => filaMembresia(x).replace('<button type="button" class="a-btn a-btn--ch" data-avisar>', '<button type="button" class="a-btn a-btn--ch a-btn--fantasma" data-editar-membresia>Editar</button><button type="button" class="a-btn a-btn--ch" data-avisar>').replace('--cols:1.4fr 1fr auto auto', '--cols:1.4fr 1fr auto auto auto')).join('')}</div>`
@@ -280,13 +300,13 @@ export function vistaCobranza() {
                 )
                 .join('')
             : vacio('Todavía no hay pagos', 'Cada pago que registres, por transferencia, en efectivo o con tarjeta, queda aquí con su fecha y quién lo recibió.')
-      }`
+      }</div>`
   })
   const q = [
     ...acciones(m.main),
     alTocar(m.main, '[data-tab]', (b) => {
       pestana = b.dataset.tab
-      m.repinta()
+      m.repinta({ tab: true })
     }),
     alTocar(m.main, '[data-copia-enlace]', async (b) => aviso((await copiar(store.uno('pagos', b.closest('[data-pago]').dataset.pago).enlace)) ? 'Enlace copiado.' : 'No se pudo copiar.')),
     alTocar(m.main, '[data-confirma]', async (b) => {
@@ -346,7 +366,7 @@ export function vistaSistemas() {
   const m = marco('sistemas', (main) => {
     const L = store.lista('sistemas').sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '', 'es'))
     main.innerHTML = `
-      <header class="a-cab"><div><p class="a-k">Lo que hemos entregado</p><h1 class="a-h1">Sistemas</h1><p class="a-p" style="margin-top:10px">Cada sistema enlazado avisa aquí que está vivo y obedece a su membresía: si vence, muestra un aviso o se pausa.</p></div><div class="a-cab-acc"><button type="button" class="a-btn a-btn--pri" data-nuevo-sistema>Nuevo sistema</button></div></header>
+      ${cab({ k: 'Lo que hemos entregado', t: 'Sistemas', emblema: emblemaPulso(L.filter((s) => s.ultima_senal && Date.now() - new Date(s.ultima_senal) < 26 * 36e5).length), extra: '<p class="a-p" style="margin-top:12px">Cada sistema enlazado avisa aquí que está vivo y obedece a su membresía: si vence, muestra un aviso o se pausa.</p>', acc: '<button type="button" class="a-btn a-btn--pri" data-nuevo-sistema>Nuevo sistema</button>' })}
       ${L.length ? L.map(filaSistema).join('') : vacio('Todavía no hay sistemas', 'Cuando entregues uno, regístralo aquí. Te da una línea para pegar en el sistema y, desde entonces, lo administras a distancia: su estado, sus accesos y su membresía.')}`
   })
   const q = [...accionesSistema(m.main), alTocar(m.main, '[data-nuevo-sistema]', () => editarSistema())]

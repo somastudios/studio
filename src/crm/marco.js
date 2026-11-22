@@ -1,22 +1,31 @@
+import gsap from 'gsap'
 import { abrirApp } from '../app/vista.js'
 import { store } from '../data/store.js'
 import { sesion, salir } from '../app/sesion.js'
 import { ir, rutaActual } from '../app/router.js'
 import { confirmar } from '../app/capas.js'
-import { esc, fecha } from '../app/util.js'
+import { boil, P } from '../core/boil.js'
+import { icoNicho } from '../icons/render.js'
+import { esc, fecha, dinero } from '../app/util.js'
 import { resumenCobranza } from './cobranza.js'
+import { animaEmblema, ponHora } from './emblemas.js'
 
-// El marco del CRM: navegación a la izquierda, contenido a la derecha.
-// Cada vista pide su marco, pinta dentro y se vuelve a pintar cuando cambian los datos.
+// El marco del CRM: la navegación, que no se vuelve a dibujar al cambiar de sección, y el
+// contenido, que entra con su propia coreografía. El punto azul es el cursor: viaja a la
+// sección abierta, igual que en la presentación viaja de escena en escena.
 
 const SECCIONES = [
-  { id: 'hoy', ruta: '/crm', nombre: 'Hoy' },
-  { id: 'prospectos', ruta: '/crm/prospectos', nombre: 'Prospectos' },
-  { id: 'agenda', ruta: '/crm/agenda', nombre: 'Agenda' },
-  { id: 'cobranza', ruta: '/crm/cobranza', nombre: 'Cobranza' },
-  { id: 'sistemas', ruta: '/crm/sistemas', nombre: 'Sistemas' },
-  { id: 'ajustes', ruta: '/crm/ajustes', nombre: 'Ajustes' },
+  { id: 'hoy', ruta: '/crm', nombre: 'Hoy', ico: 'crm-hoy' },
+  { id: 'prospectos', ruta: '/crm/prospectos', nombre: 'Prospectos', ico: 'crm-prospectos' },
+  { id: 'agenda', ruta: '/crm/agenda', nombre: 'Agenda', ico: 'crm-agenda' },
+  { id: 'cobranza', ruta: '/crm/cobranza', nombre: 'Cobranza', ico: 'crm-cobranza' },
+  { id: 'sistemas', ruta: '/crm/sistemas', nombre: 'Sistemas', ico: 'crm-sistemas' },
+  { id: 'ajustes', ruta: '/crm/ajustes', nombre: 'Ajustes', ico: 'crm-ajustes' },
 ]
+
+const reducido = matchMedia('(prefers-reduced-motion: reduce)').matches
+let previa = -1
+const tabsPrevias = {}
 
 function estadoSync() {
   const e = store.estado
@@ -29,62 +38,34 @@ function estadoSync() {
   return { t: e.ultima ? `Al día · ${fecha(e.ultima, 'hora')}` : 'Al día', c: 'ok' }
 }
 
-/**
- * Abre el marco y devuelve { main, alCerrar }.
- * `pintar` se llama ahora y cada vez que cambian los datos (salvo que se esté escribiendo).
- */
-export function marco(activa, pintar) {
-  const app = abrirApp({ tema: 'paper', titulo: 'Soma CRM' })
-  const porCobrar = () => {
-    const r = resumenCobranza()
-    return r.vencidas.length + r.porVencer.length
-  }
+const MARCA = `<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="24" fill="none" stroke="currentColor" stroke-width="6.4"/><circle cx="32" cy="32" r="9.4" fill="#216fff"/></svg>`
+
+/** Construye la navegación una sola vez. Vive mientras se esté dentro del CRM. */
+function construir(app) {
   app.innerHTML = `
     <div class="crm">
+      <header class="crm-tope"><a class="crm-marca" href="#/crm">${MARCA}<span><b>SOMA</b> CRM</span></a><button type="button" class="a-chip crm-sync" data-sync></button></header>
       <nav class="crm-nav" aria-label="Secciones">
-        <a class="crm-marca" href="#/crm"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="24" fill="none" stroke="currentColor" stroke-width="6.4"/><circle cx="32" cy="32" r="9.4" fill="#216fff"/></svg><span><b>SOMA</b> CRM</span></a>
-        <a class="a-btn a-btn--pri crm-nueva" href="#/presala">Nueva visita</a>
+        <a class="crm-marca" href="#/crm">${MARCA}<span><b>SOMA</b> CRM</span></a>
+        <a class="crm-nueva" href="#/presala"><span class="crm-nueva-aro"><svg viewBox="0 0 48 48" aria-hidden="true">${boil(P.circle(24, 24, 21.6, 14), { amp: 0.45, attrs: 'stroke-width="1.6"' })}${boil([P.line(24, 15, 24, 33, 3), P.line(15, 24, 33, 24, 3)], { amp: 0.3, attrs: 'stroke-width="2"' })}</svg></span><span>Nueva visita</span></a>
         <ul class="crm-secciones">
-          ${SECCIONES.map((s) => `<li><a href="#${s.ruta}" ${s.id === activa ? 'aria-current="page"' : ''}><i></i>${s.nombre}${s.id === 'cobranza' ? '<span class="crm-cuenta" data-cobrar></span>' : ''}</a></li>`).join('')}
+          ${SECCIONES.map((s) => `<li><a href="#${s.ruta}" data-seccion="${s.id}"><i class="crm-ancla"></i><span class="crm-ico">${icoNicho(s.ico)}</span><span class="crm-nombre">${s.nombre}</span>${s.id === 'cobranza' ? '<span class="crm-cuenta" data-cobrar hidden></span>' : ''}</a></li>`).join('')}
         </ul>
+        <i class="crm-punto" aria-hidden="true"><svg viewBox="-100 -100 200 200">${boil(P.circle(0, 0, 98.5, 30), { amp: 0.6, cls: 'dot-shape' })}</svg></i>
         <div class="crm-pie">
           <button type="button" class="a-chip crm-sync" data-sync></button>
-          <p class="crm-quien">${esc(sesion.nombre || 'Sin nombre')}</p>
-          <button type="button" class="a-enlace crm-salir" data-salir>${sesion.usuario ? 'Cerrar sesión' : 'Iniciar sesión'}</button>
+          <p class="crm-quien" data-quien></p>
+          <button type="button" class="a-enlace crm-salir" data-salir></button>
         </div>
       </nav>
       <main class="crm-main"><div class="a-pagina"></div></main>
     </div>`
-  const main = app.querySelector('.a-pagina')
-  const sync = app.querySelector('[data-sync]')
-  const cobrar = app.querySelector('[data-cobrar]')
-  const marcas = () => {
-    const e = estadoSync()
-    sync.textContent = e.t
-    sync.className = `a-chip crm-sync a-chip--${e.c}`
-    const n = porCobrar()
-    cobrar.textContent = n || ''
-    cobrar.hidden = !n
-  }
-  let raf = 0
-  const repinta = () => {
-    cancelAnimationFrame(raf)
-    raf = requestAnimationFrame(() => {
-      marcas()
-      const foco = document.activeElement
-      if (foco && main.contains(foco) && /INPUT|TEXTAREA|SELECT/.test(foco.tagName)) return
-      const y = app.querySelector('.crm-main').scrollTop
-      pintar(main)
-      app.querySelector('.crm-main').scrollTop = y
-    })
-  }
-  marcas()
-  pintar(main)
-  const off = store.alCambiar(repinta)
-  const clic = async (e) => {
+  const crm = app.querySelector('.crm')
+
+  crm.addEventListener('click', async (e) => {
     if (e.target.closest('[data-sync]')) {
       await store.sincronizar()
-      marcas()
+      crm.marcas?.()
     } else if (e.target.closest('[data-salir]')) {
       if (!sesion.usuario) return ir('/entrar')
       const ok = await confirmar({ titulo: '¿Cerrar sesión?', texto: store.estado.pendientes ? `Hay ${store.estado.pendientes} cambios que no han subido. Si cierras sesión ahora, se pierden.` : 'La copia de este dispositivo se borra. Todo sigue guardado en la nube.', si: 'Cerrar sesión', peligro: !!store.estado.pendientes })
@@ -92,17 +73,175 @@ export function marco(activa, pintar) {
       await salir()
       ir('/entrar')
     }
+  })
+  // Los iconos cobran vida al pasar por encima; el de la sección abierta siempre está vivo.
+  const vivo = (e, si) => {
+    const a = e.target.closest?.('.crm-secciones a')
+    if (a && !a.hasAttribute('aria-current')) a.classList.toggle('vivo', si)
   }
-  app.addEventListener('click', clic)
+  crm.addEventListener('pointerover', (e) => vivo(e, true))
+  crm.addEventListener('pointerout', (e) => vivo(e, false))
+
+  const alRedimensionar = () => crm.isConnected && ponPunto(crm, false)
+  addEventListener('resize', alRedimensionar)
+  const reloj = setInterval(() => (crm.isConnected ? ponHora(crm) : (clearInterval(reloj), removeEventListener('resize', alRedimensionar))), 20000)
+  return crm
+}
+
+/** Lleva el punto a la sección abierta. */
+function ponPunto(crm, animar) {
+  const punto = crm.querySelector('.crm-punto')
+  const ancla = crm.querySelector('.crm-secciones a[aria-current] .crm-ancla')
+  const nav = crm.querySelector('.crm-nav')
+  if (!ancla || !punto) return
+  const a = ancla.getBoundingClientRect()
+  const n = nav.getBoundingClientRect()
+  const x = a.left - n.left + a.width / 2
+  const y = a.top - n.top + a.height / 2
+  gsap.killTweensOf(punto)
+  if (animar && !reducido) {
+    gsap.to(punto, { x, y, duration: 0.75, ease: 'expo.inOut' })
+    gsap.fromTo(punto.firstElementChild, { scale: 1 }, { scale: 1.5, duration: 0.3, ease: 'power2.out', yoyo: true, repeat: 1, delay: 0.42 })
+  } else gsap.set(punto, { x, y })
+  punto.classList.add('es-puesto')
+}
+
+/** El subrayado de las pestañas: uno solo, que se desliza a la elegida. */
+function ponTabs(main, clave, animar) {
+  main.querySelectorAll('.a-tabs').forEach((tabs, k) => {
+    const sel = tabs.querySelector('[aria-selected="true"]')
+    if (!sel) return
+    let ind = tabs.querySelector('.a-tabs-ind')
+    if (!ind) {
+      ind = document.createElement('i')
+      ind.className = 'a-tabs-ind'
+      tabs.appendChild(ind)
+    }
+    const x = sel.offsetLeft + 12
+    const w = Math.max(12, sel.offsetWidth - 24)
+    const id = `${clave}:${k}`
+    const p = tabsPrevias[id]
+    if (animar && p && !reducido) gsap.fromTo(ind, { x: p.x, width: p.w }, { x, width: w, duration: 0.55, ease: 'expo.out' })
+    else gsap.set(ind, { x, width: w })
+    tabsPrevias[id] = { x, w }
+    if (sel.offsetLeft < tabs.scrollLeft || sel.offsetLeft + sel.offsetWidth > tabs.scrollLeft + tabs.clientWidth) tabs.scrollLeft = Math.max(0, sel.offsetLeft - 16)
+  })
+}
+
+/** La entrada de una sección: título, regla, emblema, y el contenido que sube por tandas. */
+function entrada(main, dir) {
+  const tl = gsap.timeline()
+  const h1 = main.querySelector('.a-h1')
+  const k = main.querySelector('.crm-cab .a-k, .crm-miga')
+  if (h1) tl.fromTo(h1, { yPercent: 60, clipPath: 'inset(0% 0% 100% 0%)' }, { yPercent: 0, clipPath: 'inset(-15% -3% -15% -3%)', duration: 0.95, ease: 'expo.out', clearProps: 'transform,clipPath' }, 0)
+  if (k) tl.fromTo(k, { autoAlpha: 0, y: 6 }, { autoAlpha: 1, y: 0, duration: 0.5, ease: 'power2.out', clearProps: 'transform,opacity,visibility' }, 0.12)
+  const regla = main.querySelector('.crm-regla .boil')
+  if (regla) tl.fromTo(regla, { '--draw': 1.06 }, { '--draw': 0, duration: 1.15, ease: 'expo.inOut' }, 0.05)
+  animaEmblema(main.querySelector('.crm-emblema [data-emb]'), tl, 0.1)
+  const acc = main.querySelector('.crm-cab .a-cab-acc')
+  if (acc) tl.fromTo(acc.children, { autoAlpha: 0, y: 8 }, { autoAlpha: 1, y: 0, duration: 0.5, ease: 'expo.out', stagger: 0.05, clearProps: 'transform,opacity,visibility' }, 0.3)
+  const resto = [...main.children].filter((x) => !x.matches('.crm-cab, .crm-miga'))
+  if (resto.length) tl.fromTo(resto, { autoAlpha: 0, y: 22 * dir }, { autoAlpha: 1, y: 0, duration: 0.75, ease: 'expo.out', stagger: 0.07, clearProps: 'transform,opacity,visibility' }, 0.22)
+  const filas = [...main.querySelectorAll('.a-item, .crm-sistema, .crm-nodo, .crm-dia-celda')].slice(0, 14)
+  if (filas.length) tl.fromTo(filas, { autoAlpha: 0, x: -12 }, { autoAlpha: 1, x: 0, duration: 0.55, ease: 'expo.out', stagger: 0.035, clearProps: 'transform,opacity,visibility' }, 0.4)
+  // Las cifras cuentan hasta su valor.
+  main.querySelectorAll('.a-cifra-n[data-n]').forEach((el, i) => {
+    const hasta = Number(el.dataset.n) || 0
+    const esDinero = el.dataset.f === 'dinero'
+    const o = { v: 0 }
+    tl.to(o, { v: hasta, duration: 1.1, ease: 'expo.out', onUpdate: () => (el.textContent = esDinero ? dinero(Math.round(o.v)) : String(Math.round(o.v))) }, 0.3 + i * 0.06)
+  })
+  const reglas = main.querySelectorAll('.a-cifra')
+  if (reglas.length) tl.fromTo(reglas, { '--trazo': 0 }, { '--trazo': 1, duration: 0.9, ease: 'expo.inOut', stagger: 0.07 }, 0.25)
+  return tl
+}
+
+/**
+ * Abre una sección. `pintar(main)` dibuja el contenido; se llama ahora y cada vez que cambian
+ * los datos (salvo que se esté escribiendo). Devuelve { main, repinta({ tab }), cerrar }.
+ */
+export function marco(activa, pintar) {
+  let app = document.getElementById('app')
+  let crm = document.body.dataset.modo === 'app' ? app.querySelector('.crm') : null
+  const nuevo = !crm
+  if (nuevo) {
+    app = abrirApp({ tema: 'paper', titulo: 'Soma CRM' })
+    crm = construir(app)
+  }
+  document.title = `${SECCIONES.find((s) => s.id === activa)?.nombre || 'CRM'} · Soma`
+
+  const i = SECCIONES.findIndex((s) => s.id === activa)
+  const dir = previa < 0 || i >= previa ? 1 : -1
+  crm.querySelectorAll('.crm-secciones a').forEach((a) => {
+    const es = a.dataset.seccion === activa
+    es ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current')
+    a.classList.toggle('vivo', es)
+  })
+  const main = crm.querySelector('.a-pagina')
+  const rueda = crm.querySelector('.crm-main')
+  const marcas = () => {
+    const e = estadoSync()
+    crm.querySelectorAll('[data-sync]').forEach((b) => {
+      b.textContent = e.t
+      b.className = `a-chip crm-sync a-chip--${e.c}`
+    })
+    crm.querySelector('[data-quien]').textContent = sesion.nombre || 'Sin nombre'
+    crm.querySelector('[data-salir]').textContent = sesion.usuario ? 'Cerrar sesión' : 'Iniciar sesión'
+    const r = resumenCobranza()
+    const n = r.vencidas.length + r.porVencer.length
+    const c = crm.querySelector('[data-cobrar]')
+    c.textContent = n || ''
+    c.hidden = !n
+  }
+  crm.marcas = marcas
+
+  gsap.killTweensOf(main.querySelectorAll('*'))
+  main.innerHTML = ''
+  rueda.scrollTop = 0
+  app.scrollTop = 0
+  marcas()
+  pintar(main)
+  ponTabs(main, activa, false)
+  requestAnimationFrame(() => ponPunto(crm, !nuevo && previa !== i))
+  if (!reducido) entrada(main, dir)
+  previa = i
+
+  let raf = 0
+  let vivo = true
+  const repinta = ({ tab = false } = {}) => {
+    cancelAnimationFrame(raf)
+    raf = requestAnimationFrame(() => {
+      if (!vivo) return
+      marcas()
+      const foco = document.activeElement
+      if (!tab && foco && main.contains(foco) && /INPUT|TEXTAREA|SELECT/.test(foco.tagName)) return
+      const y = rueda.scrollTop
+      const y2 = app.scrollTop
+      pintar(main)
+      rueda.scrollTop = y
+      app.scrollTop = y2
+      ponTabs(main, activa, tab)
+      if (tab && !reducido) {
+        const cuerpo = main.querySelector('[data-cuerpo]')
+        if (cuerpo) {
+          gsap.fromTo(cuerpo, { autoAlpha: 0, y: 14 }, { autoAlpha: 1, y: 0, duration: 0.5, ease: 'expo.out', clearProps: 'transform,opacity,visibility' })
+          const filas = [...cuerpo.querySelectorAll('.a-item, .crm-sistema, .a-tarjeta')].slice(0, 12)
+          if (filas.length) gsap.fromTo(filas, { autoAlpha: 0, x: -10 }, { autoAlpha: 1, x: 0, duration: 0.45, ease: 'expo.out', stagger: 0.03, clearProps: 'transform,opacity,visibility' })
+        }
+      }
+    })
+  }
+  const off = store.alCambiar(() => repinta())
   return {
     main,
     repinta,
     cerrar() {
+      vivo = false
       off()
       cancelAnimationFrame(raf)
-      app.removeEventListener('click', clic)
     },
   }
 }
 
 export const enRuta = (r) => rutaActual() === r
+export { esc }
