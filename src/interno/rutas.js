@@ -1,12 +1,19 @@
 import { ruta } from '../app/router.js'
-import { abrirApp } from '../app/vista.js'
+import { vistaEntrar } from './entrar.js'
+import { vistaPresala } from './presala.js'
+import { vistaCierre } from './cierre.js'
+import { vistaVisita1 } from '../visita1/index.js'
+import { vistaVisita2 } from '../visita2/index.js'
+import { registrarCrm } from '../crm/rutas.js'
+import { ir } from '../app/router.js'
 
-// Rutas internas. Provisional: se completa con presala, visitas y CRM.
+// Rutas internas: lo que usa el equipo.
 export function registrarInterno() {
-  const inicio = () => {
-    const app = abrirApp({ tema: 'ink' })
-    app.innerHTML = `<div class="a-pagina"><h1 class="a-h1">Soma</h1><p class="a-p" style="margin-top:12px">En construcción.</p><div class="a-fila" style="margin-top:20px"><a class="a-btn" href="#/general">Presentación general</a><a class="a-btn" href="#/demos">Demos</a><a class="a-btn" href="#/iconos">Iconos</a></div></div>`
-  }
-  ruta('/', inicio)
-  ruta('/entrar', inicio)
+  ruta('/entrar', vistaEntrar)
+  ruta('/', () => void ir('/crm', { reemplazar: true }))
+  ruta('/presala', vistaPresala)
+  ruta('/visita/:id/cierre', vistaCierre)
+  ruta('/visita/:id', vistaVisita1)
+  ruta('/visita2/:id', vistaVisita2)
+  registrarCrm()
 }

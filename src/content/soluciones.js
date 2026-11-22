@@ -70,7 +70,7 @@ export const SOLUCIONES = [
     ['calendario', 'Queda apartado'],
     ['mensaje', 'Recibe confirmación'],
   ]),
-  S('agenda-interna', 'Agenda compartida', 'equipo', 'agenda', 'calendario', 'Una sola agenda para todo el {personal}. Se ve quién está libre, qué sigue y qué se movió.', [
+  S('agenda-interna', 'Agenda compartida', 'equipo', 'agenda', 'calendario', 'Una sola agenda para todo el equipo. Se ve quién está libre, qué sigue y qué se movió.', [
     ['calendario', 'Todo en una vista'],
     ['persona', 'Cada quien ve lo suyo'],
     ['check', 'Sin {citas} encimadas'],
@@ -140,7 +140,7 @@ export const SOLUCIONES = [
     ['check', 'Cuadra o se explica'],
   ]),
   S('fiado', 'Cuentas por cobrar', 'equipo', 'caja', 'fiado', 'Lo fiado y los apartados, cada uno con su saldo y sus abonos. Sin libreta y sin malentendidos.', [
-    ['persona', 'Cuenta de cada {cliente}'],
+    ['persona', 'Una cuenta por persona'],
     ['pluma', 'Abonos anotados'],
     ['mensaje', 'Recordatorio amable'],
   ]),
@@ -156,8 +156,8 @@ export const SOLUCIONES = [
     ['lista', 'Queda en seguimiento'],
     ['campana', 'Aviso para retomarlo'],
   ]),
-  S('base-clientes', 'Base de clientes', 'equipo', 'seguimiento', 'clientes', 'Quién es cada {cliente}, qué ha comprado y cuándo vino por última vez. En un solo lugar.', [
-    ['persona', 'Ficha de cada {cliente}'],
+  S('base-clientes', 'Base de clientes', 'equipo', 'seguimiento', 'clientes', 'Quién es cada persona que le compra, qué ha llevado y cuándo vino por última vez. En un solo lugar.', [
+    ['persona', 'Una ficha por persona'],
     ['lista', 'Su historial'],
     ['lupa', 'Se encuentra en segundos'],
   ]),
@@ -166,7 +166,7 @@ export const SOLUCIONES = [
     ['mensaje', 'Prepara la invitación'],
     ['persona', '{Cliente} regresa'],
   ]),
-  S('tarjeta-lealtad', 'Tarjeta de lealtad digital', 'cliente', 'lealtad', 'tarjeta', 'Sellos en el teléfono, sin cartón que se pierde. Cada visita acerca a {cliente} a su recompensa.', [
+  S('tarjeta-lealtad', 'Tarjeta de lealtad digital', 'cliente', 'lealtad', 'tarjeta', 'Sellos en el teléfono, sin cartón que se pierde. Cada visita lo acerca a su recompensa.', [
     ['qr', 'Muestra su código'],
     ['estrella', 'Suma un sello'],
     ['regalo', 'Gana su recompensa'],

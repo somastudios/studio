@@ -50,14 +50,14 @@ body[data-modo='app'] {
   touch-action: auto;
 }
 
-#app input,
-#app textarea,
-#app select {
+:where(#app) input,
+:where(#app) textarea,
+:where(#app) select {
   font: inherit;
   color: inherit;
 }
 
-#app a {
+:where(#app) a {
   color: inherit;
 }
 
@@ -719,9 +719,9 @@ a.a-item:hover {
   transform: none;
 }
 
-.dlg input,
-.dlg textarea,
-.dlg select {
+:where(.dlg) input,
+:where(.dlg) textarea,
+:where(.dlg) select {
   font: inherit;
   color: inherit;
 }
