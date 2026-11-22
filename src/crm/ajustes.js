@@ -6,7 +6,8 @@ import { esc, fecha } from '../app/util.js'
 import { AJUSTES_BASE } from '../data/esquema.js'
 import { marco } from './marco.js'
 import { cab } from './vistas.js'
-import { emblemaEngranes, chispa } from './emblemas.js'
+import { emblemaEngranes } from './emblemas.js'
+import { firma, montarFirma } from './firma.js'
 
 // Ajustes: lo que cambia cómo se presenta Soma y cómo se cobra. Cada bloque se guarda por separado.
 
@@ -88,7 +89,8 @@ export function vistaAjustes() {
           <a class="a-btn a-btn--ch" href="#/demos">Galería de demos</a><a class="a-btn a-btn--ch" href="#/iconos">Iconos</a><a class="a-btn a-btn--ch" href="#/general">Presentación general</a>
         </div>
       </section>
-      <p class="crm-firma">${chispa()}<span>Diseñado y construido con Claude.</span></p>`
+      ${firma()}`
+    montarFirma(main)
   })
 
   const conectarStripe = async (form) => {
@@ -153,6 +155,7 @@ export function vistaAjustes() {
     m.main.removeEventListener('submit', guardar)
     q()
     q2()
+    montarFirma(null)
     m.cerrar()
   }
 }

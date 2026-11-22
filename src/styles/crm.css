@@ -397,13 +397,46 @@
   animation: an-giro 16s linear infinite;
 }
 
+/* La firma: Claude contesta, trabaja y entrega. */
 .crm-firma {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 56px;
-  font-size: 13px;
-  color: var(--fg-2);
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+  margin-top: 72px;
+  padding-top: 28px;
+  border-top: 1.5px solid var(--fg);
+}
+
+.crm-escena {
+  display: block;
+  width: min(100%, 680px);
+  height: auto;
+  overflow: visible;
+  color: var(--fg);
+}
+
+.crm-escena .es-trazo {
+  stroke-width: 1.5;
+}
+
+.crm-escena .es-tenue {
+  opacity: 0.45;
+}
+
+.crm-firma-t {
+  max-width: 18ch;
+  font-stretch: 62%;
+  font-weight: 800;
+  margin-top: 10px;
+  font-size: clamp(32px, 4.4vw, 54px);
+  line-height: 0.9;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+.crm-firma-t b {
+  font-weight: inherit;
+  color: var(--azul);
 }
 
 /* ───────────────────────── Piezas ───────────────────────── */
