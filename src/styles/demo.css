@@ -192,7 +192,7 @@
   box-sizing: border-box;
 }
 
-.dk button {
+:where(.dk) button {
   font: inherit;
   color: inherit;
   cursor: pointer;
@@ -204,9 +204,9 @@
   border-radius: 6px;
 }
 
-.dk input,
-.dk textarea,
-.dk select {
+:where(.dk) input,
+:where(.dk) textarea,
+:where(.dk) select {
   font: inherit;
   color: inherit;
   user-select: text;
