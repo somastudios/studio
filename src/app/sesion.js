@@ -13,21 +13,27 @@ export const sb = createClient(SUPABASE_URL, SUPABASE_KEY, {
 
 const oyentes = new Set()
 
-// localStorage puede no estar disponible (vistas previas, modo privado): nunca debe tumbar la app.
+// El almacenamiento del navegador puede no estar disponible (vistas previas, modo privado).
+// En ese caso todo sigue funcionando en memoria: se puede entrar y probar, pero nada se conserva
+// al cerrar la pestaña.
+const memoria = new Map()
 const ls = {
   lee: (k) => {
     try {
-      return localStorage.getItem(k)
+      const v = localStorage.getItem(k)
+      return v ?? memoria.get(k) ?? null
     } catch {
-      return null
+      return memoria.get(k) ?? null
     }
   },
   pon: (k, v) => {
+    memoria.set(k, v)
     try {
       localStorage.setItem(k, v)
     } catch {}
   },
   quita: (k) => {
+    memoria.delete(k)
     try {
       localStorage.removeItem(k)
     } catch {}

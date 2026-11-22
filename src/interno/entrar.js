@@ -3,6 +3,7 @@ import { ir } from '../app/router.js'
 import { entrar, crearCuenta, usarSinCuenta, sesion } from '../app/sesion.js'
 import { leerCampos } from '../app/capas.js'
 import { esc } from '../app/util.js'
+import { store } from '../data/store.js'
 
 // Acceso del equipo. Tres caminos: entrar, crear cuenta con el código de equipo,
 // o trabajar solo en este dispositivo sin cuenta.
@@ -32,8 +33,8 @@ export function vistaEntrar() {
         </form>
         <div class="en-local">
           <p class="a-k">Sin cuenta</p>
-          <p class="a-p">Puedes usar todo solo en este dispositivo. Nada sale de aquí hasta que inicies sesión; cuando lo hagas, lo que hayas registrado se sube.</p>
-          <button type="button" class="a-btn" data-local>Usar solo en este dispositivo</button>
+          <p class="a-p">${store.estado.persistente ? 'Puedes usar todo solo en este dispositivo. Nada sale de aquí hasta que inicies sesión; cuando lo hagas, lo que hayas registrado se sube.' : 'Puedes probar todo sin cuenta. Este navegador no deja guardar datos, así que lo que registres aquí se borra al cerrar la página.'}</p>
+          <button type="button" class="a-btn a-btn--pri" data-local>${store.estado.persistente ? 'Usar solo en este dispositivo' : 'Probar sin cuenta'}</button>
           <a class="a-enlace en-gen" href="#/general">Ver la presentación general</a>
         </div>
       </div>`

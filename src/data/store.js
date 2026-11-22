@@ -25,7 +25,17 @@ const leer = (k, def) => {
   }
 }
 
+/** ¿Este navegador deja guardar? En vistas previas y en modo privado a veces no. */
+let persistente = true
+try {
+  localStorage.setItem('soma.prueba', '1')
+  localStorage.removeItem('soma.prueba')
+} catch {
+  persistente = false
+}
+
 const escribir = (k, v) => {
+  if (!persistente) return false
   try {
     localStorage.setItem(k, JSON.stringify(v))
     return true
@@ -137,7 +147,7 @@ export const store = {
   },
 
   get estado() {
-    return { ...estado, pendientes: cola.length, conNube: !!nube?.activo?.() }
+    return { ...estado, pendientes: cola.length, conNube: !!nube?.activo?.(), persistente }
   },
 
   /** Sube lo pendiente y baja lo nuevo. No hace nada sin sesión o sin conexión. */
@@ -199,12 +209,16 @@ export const store = {
   vaciar() {
     for (const t of TABLAS) {
       mem[t] = new Map()
-      localStorage.removeItem(LS + t)
+      try {
+        localStorage.removeItem(LS + t)
+      } catch {}
     }
     cola = []
     marcas = {}
-    localStorage.removeItem('soma.cola')
-    localStorage.removeItem('soma.marcas')
+    try {
+      localStorage.removeItem('soma.cola')
+      localStorage.removeItem('soma.marcas')
+    } catch {}
     emitir('_todo')
   },
 }

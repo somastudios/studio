@@ -20,6 +20,7 @@ const SECCIONES = [
 
 function estadoSync() {
   const e = store.estado
+  if (!e.persistente && !sesion.usuario) return { t: 'Modo de prueba: no se guarda', c: 'alerta' }
   if (!sesion.usuario) return { t: 'Solo en este dispositivo', c: 'mudo' }
   if (!navigator.onLine) return { t: `Sin conexión${e.pendientes ? ` · ${e.pendientes} por subir` : ''}`, c: 'alerta' }
   if (e.sincronizando) return { t: 'Sincronizando…', c: 'azul' }
