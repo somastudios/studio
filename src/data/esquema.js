@@ -85,6 +85,8 @@ export const AJUSTES_BASE = {
   presupuestos: ['Menos de $10 mil', 'De $10 a $25 mil', 'De $25 a $60 mil', 'Más de $60 mil', 'Prefiero una mensualidad'],
   banco: { titular: '', banco: '', clabe: '', cuenta: '' },
   url_publica: '',
+  // Estado de la conexión con Stripe. Lo escribe el servidor al conectar; aquí nunca vive la llave.
+  stripe: { conectado: false },
   dias_aviso: 7,
   plantillas: {
     por_vencer:

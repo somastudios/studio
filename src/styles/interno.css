@@ -550,6 +550,38 @@
   margin-bottom: 0;
 }
 
+.crm-detalle {
+  max-width: 68ch;
+}
+
+.crm-detalle summary {
+  cursor: pointer;
+  font-weight: 650;
+  min-height: 32px;
+}
+
+.crm-detalle summary:hover {
+  color: var(--azul);
+}
+
+.crm-pasos {
+  list-style: decimal;
+  display: grid;
+  gap: 8px;
+  margin: 10px 0 12px;
+  padding-left: 22px;
+}
+
+.crm-pasos li::marker {
+  font-family: var(--font-mono);
+  font-size: 0.8em;
+  color: var(--fg-2);
+}
+
+.crm-bloque code {
+  font: 500 0.88em var(--font-mono);
+}
+
 .crm-codigo {
   margin: 14px 0 10px;
   padding: 12px 14px;

@@ -1,5 +1,5 @@
 // Recibe los avisos de Stripe y deja el CRM al día: marca pagos, extiende membresías y anota la bitácora.
-// Necesita el secreto STRIPE_WEBHOOK_SECRET. Sin firma válida no hace nada.
+// El secreto de firma se guarda solo al conectar Stripe desde Ajustes. Sin firma válida no hace nada.
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 
 const MESES: Record<string, number> = { mensual: 1, semestral: 6, anual: 12 }
@@ -44,13 +44,13 @@ Deno.serve(async (req) => {
       ? pagina('No se hizo ningún cargo', 'Puede cerrar esta página. Si quiere intentarlo de nuevo, use el mismo enlace o escríbanos.')
       : pagina('Pago recibido', 'Gracias. Su pago quedó registrado y en un momento le confirmamos por mensaje. Ya puede cerrar esta página.')
   }
-  const secreto = Deno.env.get('STRIPE_WEBHOOK_SECRET')
+  const sb = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
+  const secreto = Deno.env.get('STRIPE_WEBHOOK_SECRET') || ((await sb.rpc('secreto_servidor', { p_nombre: 'stripe_webhook' })).data as string | null)
   const cuerpo = await req.text()
   if (!secreto || !(await firmaValida(cuerpo, req.headers.get('stripe-signature') || '', secreto))) return new Response('firma inválida', { status: 400 })
 
   const ev = JSON.parse(cuerpo)
   const o = ev.data?.object || {}
-  const sb = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
   const ahora = new Date().toISOString()
   const hoy = hoyMx()
 

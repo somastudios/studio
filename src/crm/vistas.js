@@ -241,7 +241,8 @@ export function vistaCobranza() {
     const pagos = store.lista('pagos').sort((a, b) => (b.fecha || b.creado || '').localeCompare(a.fecha || a.creado || ''))
     const metodo = (id) => METODOS.find((x) => x.id === id)?.nombre || id || ''
     main.innerHTML = `
-      <header class="a-cab"><div><p class="a-k">Membresía Soma y pagos únicos</p><h1 class="a-h1">Cobranza</h1></div></header>
+      <header class="a-cab"><div><p class="a-k">Membresía Soma y pagos únicos</p><h1 class="a-h1">Cobranza</h1></div>
+        <div class="a-cab-acc">${store.ajuste('stripe')?.conectado ? `<span class="a-chip a-chip--${store.ajuste('stripe').modo === 'real' ? 'ok' : 'azul'}">Tarjeta: ${store.ajuste('stripe').modo === 'real' ? 'conectada' : 'en modo de prueba'}</span>` : `<a class="a-btn a-btn--ch" href="#/crm/ajustes?tarjeta">Conectar pagos con tarjeta</a>`}</div></header>
       <div class="a-rejilla">
         ${cifra(dinero(r.cobradoMes), 'Cobrado este mes')}
         ${cifra(dinero(r.mensualRecurrente), 'Ingreso mensual por membresías')}

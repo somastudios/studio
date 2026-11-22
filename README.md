@@ -29,10 +29,7 @@ Funciona sin cuenta («Usar solo en este dispositivo») y sin internet: todo se 
 
 1. **Crear las cuentas.** En `#/entrar`, «Crear una cuenta», con el código de equipo. La primera cuenta queda como administradora y puede cambiar el código en Ajustes.
 2. **Llenar Ajustes.** Contacto de Soma, la línea de cada quien, la cuenta para transferencias y los mensajes de cobro.
-3. **Conectar Stripe (opcional).** Para crear enlaces de pago con tarjeta, en Supabase → Edge Functions → Secrets:
-   - `STRIPE_SECRET_KEY`: la llave secreta de Stripe.
-   - `STRIPE_WEBHOOK_SECRET`: el secreto de firma del webhook `…/functions/v1/stripe-webhook` (ya está creado en modo de prueba; se ve en Stripe → Developers → Webhooks).
-   Sin esto, el CRM sigue registrando pagos por transferencia y en efectivo.
+3. **Conectar Stripe (opcional).** En el CRM, **Ajustes → Pagos con tarjeta**: se pega la llave secreta de Stripe y se toca «Conectar Stripe». Ahí mismo está el tutorial paso a paso. La llave se comprueba contra Stripe en ese momento, se guarda cifrada en el servidor y los avisos de pago (webhook) se activan solos. Necesita sesión iniciada. Sin Stripe, el CRM sigue registrando pagos por transferencia y en efectivo.
 4. **Publicarlo.** Subir `dist/` a un hosting y poner esa dirección en Ajustes → Publicación.
 
 ## Cómo se organiza

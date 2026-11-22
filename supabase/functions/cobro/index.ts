@@ -1,5 +1,5 @@
 // Crea un enlace de pago con tarjeta (Stripe Checkout) para un pago ya registrado en el CRM.
-// Necesita el secreto STRIPE_SECRET_KEY. Solo lo puede llamar alguien del equipo con sesión.
+// Usa la llave de Stripe guardada desde Ajustes → Pagos con tarjeta. Solo lo puede llamar alguien del equipo con sesión.
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 
 const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, apikey, content-type', 'Access-Control-Allow-Methods': 'POST, OPTIONS' }
@@ -17,8 +17,8 @@ Deno.serve(async (req) => {
     const { data: yo } = await sb.from('equipo').select('id').eq('id', u.user.id).maybeSingle()
     if (!yo) return json({ error: 'Solo el equipo puede crear cobros.' }, 403)
 
-    const llave = Deno.env.get('STRIPE_SECRET_KEY')
-    if (!llave) return json({ error: 'Stripe todavía no está conectado: falta guardar la llave secreta en Supabase (STRIPE_SECRET_KEY).' }, 400)
+    const llave = Deno.env.get('STRIPE_SECRET_KEY') || ((await sb.rpc('secreto_servidor', { p_nombre: 'stripe_llave' })).data as string | null)
+    if (!llave) return json({ error: 'Los pagos con tarjeta todavía no están conectados. Se conectan en Ajustes → Pagos con tarjeta.' }, 400)
 
     const { pago_id, recurrente } = await req.json()
     const { data: pago } = await sb.from('pagos').select('*').eq('id', pago_id).is('eliminado', null).maybeSingle()

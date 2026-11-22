@@ -1,8 +1,8 @@
 import { store } from '../data/store.js'
-import { sesion, sb } from '../app/sesion.js'
+import { sesion, sb, funcion } from '../app/sesion.js'
 import { alTocar } from '../app/vista.js'
 import { aviso, leerCampos, dialogo } from '../app/capas.js'
-import { esc } from '../app/util.js'
+import { esc, fecha } from '../app/util.js'
 import { AJUSTES_BASE } from '../data/esquema.js'
 import { marco } from './marco.js'
 
@@ -17,8 +17,38 @@ export function vistaAjustes() {
     const personas = store.ajuste('presentadores')
     const banco = store.ajuste('banco')
     const plantillas = store.ajuste('plantillas')
+    const st = store.ajuste('stripe') || {}
     main.innerHTML = `
       <header class="a-cab"><div><p class="a-k">Cómo se presenta Soma y cómo cobra</p><h1 class="a-h1">Ajustes</h1></div></header>
+
+      <section class="a-seccion crm-bloque" id="tarjeta"><div class="a-seccion-cab"><h2 class="a-h2">Pagos con tarjeta</h2><span class="a-chip a-chip--${st.conectado ? (st.modo === 'real' ? 'ok' : 'azul') : 'alerta'}">${st.conectado ? (st.modo === 'real' ? 'Conectado · cobros reales' : 'Conectado · modo de prueba') : 'Sin conectar'}</span></div>
+        <p class="a-p">Con Stripe conectado, «Registrar pago» puede crear un enlace para que el cliente pague con tarjeta desde su teléfono. Cuando paga, el pago se marca solo y su membresía se extiende. Sin Stripe, todo lo demás funciona igual: transferencia y efectivo.</p>
+        ${st.conectado ? `<p>Cuenta <b>${esc(st.cuenta || 'de Stripe')}</b>, llave terminada en <span class="a-num">${esc(st.termina || '')}</span>. ${st.webhook ? 'Los avisos de pago están activos.' : 'Los avisos de pago no están activos: los pagos con tarjeta habrá que marcarlos a mano.'}${st.quien ? ` La conectó ${esc(st.quien)}${st.fecha ? ` el ${esc(fecha(st.fecha, 'completa'))}` : ''}.` : ''}</p>` : ''}
+        ${
+          sesion.usuario
+            ? `<form class="a-campos" data-stripe>
+                <label class="a-campo"><span>Llave secreta de Stripe</span><input class="a-in" name="llave" type="password" autocomplete="off" spellcheck="false" placeholder="sk_test_…  o  sk_live_…" /></label>
+                <details class="crm-detalle"><summary>Opciones avanzadas</summary>
+                  <label class="a-campo" style="margin-top:10px"><span>Secreto de firma del webhook (opcional)</span><input class="a-in" name="webhook" type="password" autocomplete="off" spellcheck="false" placeholder="whsec_…" /></label>
+                  <p class="a-ayuda" style="margin-top:6px">Déjalo vacío: al conectar, los avisos de pago se activan solos. Solo hace falta si usas una llave restringida que no puede crear webhooks.</p>
+                </details>
+                <div class="a-fila"><button class="a-btn a-btn--azul">${st.conectado ? 'Cambiar la llave' : 'Conectar Stripe'}</button>${st.conectado ? '<button type="button" class="a-btn" data-stripe-estado>Comprobar la conexión</button>' : ''}<span class="a-ayuda" data-stripe-msj></span></div>
+              </form>`
+            : `<p class="a-error">Para conectar Stripe necesitas iniciar sesión con tu cuenta del equipo: la llave se guarda en el servidor, no en este dispositivo.</p><div><a class="a-btn a-btn--pri" href="#/entrar">Iniciar sesión</a></div>`
+        }
+        <details class="crm-detalle" ${st.conectado ? '' : 'open'}><summary>Cómo conseguir la llave, paso a paso</summary>
+          <ol class="crm-pasos">
+            <li>Entra a <b>dashboard.stripe.com</b> con la cuenta de Soma.</li>
+            <li>Arriba a la derecha, activa el <b>modo de prueba</b> (Test mode). Empieza ahí: nada de lo que hagas mueve dinero real.</li>
+            <li>Ve a <b>Developers → API keys</b>.</li>
+            <li>En <b>Secret key</b>, toca <b>Reveal</b> y copia la llave completa. Empieza con <code>sk_test_</code>.</li>
+            <li>Pégala aquí arriba y toca <b>Conectar Stripe</b>. Se comprueba con Stripe en ese momento; si la llave está bien, verás el nombre de la cuenta.</li>
+            <li>Pruébalo: en <b>Cobranza → Registrar pago → Tarjeta, con enlace</b>. Abre el enlace y paga con la tarjeta de prueba <span class="a-num">4242 4242 4242 4242</span>, cualquier fecha futura y cualquier código. En unos segundos el pago debe aparecer como «Pagado».</li>
+            <li>Para cobrar de verdad: cuando Stripe haya activado tu cuenta, apaga el modo de prueba, copia la llave que empieza con <code>sk_live_</code> y pégala aquí igual. Sustituye a la de prueba.</li>
+          </ol>
+          <p class="a-ayuda">La llave se guarda cifrada en el servidor y nadie la puede volver a leer desde el CRM, ni tú. Si la pierdes o crees que alguien más la vio, genera otra en Stripe («Roll key») y pégala aquí.</p>
+        </details>
+      </section>
 
       <form class="a-seccion crm-bloque" data-bloque="contacto"><div class="a-seccion-cab"><h2 class="a-h2">Contacto de Soma</h2><button class="a-btn a-btn--ch a-btn--pri">Guardar</button></div>
         <p class="a-p">Aparece en la última escena de cada visita. Lo que dejes vacío no se muestra.</p>
@@ -58,8 +88,25 @@ export function vistaAjustes() {
       </section>`
   })
 
+  const conectarStripe = async (form) => {
+    const f = leerCampos(form)
+    const msj = form.querySelector('[data-stripe-msj]')
+    if (!f.llave) return (msj.textContent = 'Pega primero la llave secreta.')
+    const boton = form.querySelector('button.a-btn--azul')
+    boton.disabled = true
+    msj.textContent = 'Comprobando con Stripe…'
+    const r = await funcion('stripe-config', { accion: 'guardar', llave: f.llave, webhook: f.webhook || '' })
+    boton.disabled = false
+    if (r.error) return (msj.innerHTML = `<span class="a-error">${esc(r.error)}</span>`)
+    const { nota, ...estado } = r
+    document.activeElement?.blur()
+    store.ponAjuste('stripe', estado)
+    aviso(nota || `Stripe conectado: ${estado.cuenta}, ${estado.modo === 'real' ? 'cobros reales' : 'modo de prueba'}.`, { tipo: nota ? '' : 'ok', ms: nota ? 9000 : 4000 })
+  }
+
   const guardar = (e) => {
     e.preventDefault()
+    if (e.target.matches('[data-stripe]')) return void conectarStripe(e.target)
     const f = leerCampos(e.target)
     const b = e.target.dataset.bloque
     if (b === 'contacto') store.ponAjuste('contacto', f)
@@ -90,9 +137,19 @@ export function vistaAjustes() {
       },
     })
   })
+  const q2 = alTocar(m.main, '[data-stripe-estado]', async (b) => {
+    const msj = m.main.querySelector('[data-stripe-msj]')
+    b.disabled = true
+    msj.textContent = 'Preguntando a Stripe…'
+    const r = await funcion('stripe-config', { accion: 'estado' })
+    b.disabled = false
+    msj.innerHTML = r.error ? `<span class="a-error">${esc(r.error)}</span>` : r.conectado ? `Todo en orden: ${esc(r.cuenta)}, ${r.modo === 'real' ? 'cobros reales' : 'modo de prueba'}${r.webhook ? ', con avisos de pago activos' : ', sin avisos de pago'}.` : 'No hay ninguna llave guardada.'
+  })
+  if (location.hash.includes('tarjeta')) requestAnimationFrame(() => m.main.querySelector('#tarjeta')?.scrollIntoView())
   return () => {
     m.main.removeEventListener('submit', guardar)
     q()
+    q2()
     m.cerrar()
   }
 }
