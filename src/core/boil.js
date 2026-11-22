@@ -7,6 +7,12 @@ const TAU = Math.PI * 2
 const FRAMES = 3
 let counter = 1
 
+/**
+ * Fija la semilla de las formas que siguen. Si una vista se dibuja dos veces con la misma
+ * semilla y el mismo contenido, sus trazos salen idénticos: así un repintado no los hace brincar.
+ */
+export const semilla = (n) => (counter = n)
+
 function rng(seed) {
   let a = seed >>> 0
   return () => {

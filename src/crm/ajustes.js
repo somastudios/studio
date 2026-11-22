@@ -90,8 +90,7 @@ export function vistaAjustes() {
         </div>
       </section>
       ${firma()}`
-    montarFirma(main)
-  })
+  }, { despues: montarFirma })
 
   const conectarStripe = async (form) => {
     const f = leerCampos(form)

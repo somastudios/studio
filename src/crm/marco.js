@@ -4,7 +4,7 @@ import { store } from '../data/store.js'
 import { sesion, salir } from '../app/sesion.js'
 import { ir, rutaActual } from '../app/router.js'
 import { confirmar } from '../app/capas.js'
-import { boil, P } from '../core/boil.js'
+import { boil, P, semilla } from '../core/boil.js'
 import { icoNicho } from '../icons/render.js'
 import { esc, fecha, dinero } from '../app/util.js'
 import { resumenCobranza } from './cobranza.js'
@@ -156,11 +156,15 @@ function entrada(main, dir) {
   return tl
 }
 
+const SEMILLA = 9000
+
 /**
- * Abre una sección. `pintar(main)` dibuja el contenido; se llama ahora y cada vez que cambian
- * los datos (salvo que se esté escribiendo). Devuelve { main, repinta({ tab }), cerrar }.
+ * Abre una sección. `pintar(destino)` dibuja el contenido; se llama ahora y cada vez que cambian
+ * los datos (salvo que se esté escribiendo). `despues(main)` corre cada vez que el contenido
+ * nuevo ya está en pantalla (para arrancar animaciones que viven ahí).
+ * Devuelve { main, repinta({ tab }), cerrar }.
  */
-export function marco(activa, pintar) {
+export function marco(activa, pintar, { despues } = {}) {
   let app = document.getElementById('app')
   let crm = document.body.dataset.modo === 'app' ? app.querySelector('.crm') : null
   const nuevo = !crm
@@ -200,7 +204,11 @@ export function marco(activa, pintar) {
   rueda.scrollTop = 0
   app.scrollTop = 0
   marcas()
+  semilla(SEMILLA)
   pintar(main)
+  // Lo que se dibujó, tal cual: si un cambio de datos no altera la vista, no se vuelve a pintar.
+  let ultimo = main.innerHTML
+  despues?.(main)
   ponTabs(main, activa, false)
   requestAnimationFrame(() => ponPunto(crm, !nuevo && previa !== i))
   if (!reducido) entrada(main, dir)
@@ -217,7 +225,17 @@ export function marco(activa, pintar) {
       if (!tab && foco && main.contains(foco) && /INPUT|TEXTAREA|SELECT/.test(foco.tagName)) return
       const y = rueda.scrollTop
       const y2 = app.scrollTop
-      pintar(main)
+      // Se dibuja aparte y solo se cambia lo que hay en pantalla si de verdad cambió algo.
+      // Repintar de más reinicia animaciones y se ve como un parpadeo.
+      const nuevo = document.createElement('div')
+      semilla(SEMILLA)
+      pintar(nuevo)
+      const html = nuevo.innerHTML
+      if (!tab && html === ultimo) return
+      ultimo = html
+      gsap.killTweensOf(main.querySelectorAll('*'))
+      main.replaceChildren(...nuevo.childNodes)
+      despues?.(main)
       rueda.scrollTop = y
       app.scrollTop = y2
       ponTabs(main, activa, tab)
@@ -231,7 +249,8 @@ export function marco(activa, pintar) {
       }
     })
   }
-  const off = store.alCambiar(() => repinta())
+  // La sincronización solo cambia el indicador; los datos que baje llegan como su propia tabla.
+  const off = store.alCambiar((tabla) => (tabla === '_sync' ? marcas() : repinta()))
   return {
     main,
     repinta,

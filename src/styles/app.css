@@ -855,8 +855,9 @@ a.a-item:hover {
   animation: an-corta 0.9s ease-in-out infinite;
 }
 
+/* Un brillo que respira. A saltos (step-end) se leía como una falla de la pantalla. */
 .vivo .an-parpadea {
-  animation: an-parpadea 1.4s step-end infinite;
+  animation: an-parpadea 1.8s ease-in-out infinite;
 }
 
 .vivo .an-desliza {
@@ -921,7 +922,7 @@ a.a-item:hover {
 
 @keyframes an-parpadea {
   50% {
-    opacity: 0.15;
+    opacity: 0.3;
   }
 }
 
