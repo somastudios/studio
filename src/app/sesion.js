@@ -13,14 +13,35 @@ export const sb = createClient(SUPABASE_URL, SUPABASE_KEY, {
 
 const oyentes = new Set()
 
+// localStorage puede no estar disponible (vistas previas, modo privado): nunca debe tumbar la app.
+const ls = {
+  lee: (k) => {
+    try {
+      return localStorage.getItem(k)
+    } catch {
+      return null
+    }
+  },
+  pon: (k, v) => {
+    try {
+      localStorage.setItem(k, v)
+    } catch {}
+  },
+  quita: (k) => {
+    try {
+      localStorage.removeItem(k)
+    } catch {}
+  },
+}
+
 export const sesion = {
   usuario: null,
   /** Nombre con el que firma lo que registra. */
   get nombre() {
-    return localStorage.getItem('soma.nombre') || ''
+    return ls.lee('soma.nombre') || ''
   },
   get local() {
-    return localStorage.getItem('soma.local') === '1'
+    return ls.lee('soma.local') === '1'
   },
   get dentro() {
     return !!sesion.usuario || sesion.local
@@ -59,10 +80,10 @@ export async function iniciarSesion() {
 }
 
 async function despuesDeEntrar() {
-  localStorage.removeItem('soma.local')
+  ls.quita('soma.local')
   try {
     const { data } = await sb.from('equipo').select('nombre').eq('id', sesion.usuario.id).maybeSingle()
-    if (data?.nombre) localStorage.setItem('soma.nombre', data.nombre)
+    if (data?.nombre) ls.pon('soma.nombre', data.nombre)
   } catch {}
   await store.sincronizar()
   archivos.subirPendientes()
@@ -101,7 +122,7 @@ export async function crearCuenta({ nombre, correo, clave, codigo }) {
     })
     const j = await r.json().catch(() => ({}))
     if (!r.ok) return { error: traducir(j.error) }
-    localStorage.setItem('soma.nombre', nombre.trim())
+    ls.pon('soma.nombre', nombre.trim())
     return entrar(correo, clave)
   } catch {
     return { error: MENSAJES.red }
@@ -112,14 +133,14 @@ export async function salir({ borrarLocal = true } = {}) {
   try {
     await sb.auth.signOut()
   } catch {}
-  localStorage.removeItem('soma.local')
+  ls.quita('soma.local')
   if (borrarLocal) store.vaciar()
   fijar(null)
 }
 
 export function usarSinCuenta(nombre) {
-  localStorage.setItem('soma.local', '1')
-  if (nombre) localStorage.setItem('soma.nombre', nombre)
+  ls.pon('soma.local', '1')
+  if (nombre) ls.pon('soma.nombre', nombre)
   oyentes.forEach((fn) => fn())
 }
 

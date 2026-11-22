@@ -145,7 +145,6 @@ export default {
       area: 'organizacion',
       titulo: 'Los pendientes se olvidan',
       senal: 'Encargos, promesas a clientes y tareas que nadie anotó y nadie hizo.',
-      frecuente: true,
       matices: [{ id: 'turnos', pregunta: '¿Trabajan en más de un turno?', si: 'Varios turnos', no: 'Un solo turno' }],
       rutas: [
         { sol: 'ordenes-trabajo', para: 'Cada encargo con su orden: qué se prometió, para cuándo y en qué va. El cliente recibe aviso cuando está listo.' },
