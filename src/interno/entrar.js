@@ -8,7 +8,7 @@ import { esc } from '../app/util.js'
 // o trabajar solo en este dispositivo sin cuenta.
 
 export function vistaEntrar() {
-  if (sesion.dentro) return void ir('/crm', { reemplazar: true })
+  if (sesion.usuario) return void ir('/crm', { reemplazar: true })
   const app = abrirApp({ tema: 'ink', titulo: 'Entrar · Soma' })
   let modo = 'entrar'
 

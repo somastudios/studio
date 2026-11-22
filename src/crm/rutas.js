@@ -1,11 +1,14 @@
 import { ruta } from '../app/router.js'
-import { abrirApp } from '../app/vista.js'
+import { vistaHoy, vistaProspectos, vistaAgenda, vistaCobranza, vistaSistemas } from './vistas.js'
+import { vistaExpediente } from './expediente.js'
+import { vistaAjustes } from './ajustes.js'
 
 export function registrarCrm() {
-  const inicio = () => {
-    const app = abrirApp({ tema: 'paper' })
-    app.innerHTML = `<div class="a-pagina"><h1 class="a-h1">CRM</h1><div class="a-fila" style="margin-top:20px"><a class="a-btn a-btn--pri" href="#/presala">Nueva visita</a><a class="a-btn" href="#/demos">Demos</a></div></div>`
-  }
-  ruta('/crm', inicio)
-  ruta('/crm/prospecto/:id', inicio)
+  ruta('/crm', vistaHoy)
+  ruta('/crm/prospectos', vistaProspectos)
+  ruta('/crm/prospecto/:id', vistaExpediente)
+  ruta('/crm/agenda', vistaAgenda)
+  ruta('/crm/cobranza', vistaCobranza)
+  ruta('/crm/sistemas', vistaSistemas)
+  ruta('/crm/ajustes', vistaAjustes)
 }
