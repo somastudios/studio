@@ -32,11 +32,39 @@ function estadoSync() {
   if (!e.persistente && !sesion.usuario) return { t: 'Modo de prueba: no se guarda', c: 'alerta' }
   if (!sesion.usuario) return { t: 'Sin cuenta · no se comparte', c: 'mudo' }
   if (!navigator.onLine) return { t: `Sin conexión${e.pendientes ? ` · ${e.pendientes} por subir` : ''}`, c: 'alerta' }
-  if (e.sincronizando) return { t: 'Sincronizando…', c: 'azul' }
+  // De paso: duran un instante. Solo se muestran si se alargan o si alguien tocó el indicador.
+  if (e.sincronizando) return { t: 'Sincronizando…', c: 'azul', fugaz: true }
   if (e.error) return { t: 'No se pudo sincronizar', c: 'mal' }
-  if (e.pendientes) return { t: `${e.pendientes} por subir`, c: 'alerta' }
-  return { t: e.ultima ? `Al día · ${fecha(e.ultima, 'hora')}` : 'Al día', c: 'ok' }
+  if (e.pendientes) return { t: `${e.pendientes} por subir`, c: 'alerta', fugaz: true }
+  return { t: 'Al día', c: 'ok', nota: e.ultima ? `Última sincronización: ${fecha(e.ultima, 'hora')}` : '' }
 }
+
+// El indicador no anuncia cada sincronización de fondo (hay una por minuto y otra tras cada
+// cambio): si se la pasa cambiando de texto y de color, se ve como un parpadeo. Se queda en lo
+// último estable y solo cuenta lo que tarda más de la cuenta.
+const PACIENCIA = 2500
+let estable = null
+let fugazDesde = 0
+let insistir = false
+let recordatorio = 0
+
+function estadoVisible() {
+  const e = estadoSync()
+  if (!e.fugaz) {
+    fugazDesde = 0
+    estable = e
+    return e
+  }
+  if (insistir) return e
+  fugazDesde ||= performance.now()
+  if (performance.now() - fugazDesde >= PACIENCIA) return e
+  clearTimeout(recordatorio)
+  recordatorio = setTimeout(() => document.querySelector('.crm')?.marcas?.(), PACIENCIA + 100)
+  return estable || { t: 'Conectando…', c: 'mudo' }
+}
+
+/** Escribe solo si cambió: tocar el DOM con lo mismo también cuesta. */
+const pon = (el, prop, v) => el && el[prop] !== v && (el[prop] = v)
 
 const MARCA = `<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="24" fill="none" stroke="currentColor" stroke-width="6.4"/><circle cx="32" cy="32" r="9.4" fill="#216fff"/></svg>`
 
@@ -64,7 +92,12 @@ function construir(app) {
 
   crm.addEventListener('click', async (e) => {
     if (e.target.closest('[data-sync]')) {
-      await store.sincronizar()
+      // Aquí sí se muestra el «Sincronizando…»: alguien lo pidió y espera una respuesta.
+      insistir = true
+      const ida = store.sincronizar()
+      crm.marcas?.()
+      await ida
+      insistir = false
       crm.marcas?.()
     } else if (e.target.closest('[data-salir]')) {
       if (!sesion.usuario) return ir('/entrar')
@@ -158,6 +191,10 @@ function entrada(main, dir) {
 
 const SEMILLA = 9000
 
+// Para comparar dos pintadas se ignoran las manecillas del reloj: esas avanzan solas (ponHora)
+// y, si contaran, «Hoy» se repintaría entero cada minuto que llegue un dato.
+const huella = (html) => html.replace(/ data-rot="[^"]*" transform="rotate\([^)]*\)"/g, '')
+
 /**
  * Abre una sección. `pintar(destino)` dibuja el contenido; se llama ahora y cada vez que cambian
  * los datos (salvo que se esté escribiendo). `despues(main)` corre cada vez que el contenido
@@ -184,18 +221,19 @@ export function marco(activa, pintar, { despues } = {}) {
   const main = crm.querySelector('.a-pagina')
   const rueda = crm.querySelector('.crm-main')
   const marcas = () => {
-    const e = estadoSync()
+    const e = estadoVisible()
     crm.querySelectorAll('[data-sync]').forEach((b) => {
-      b.textContent = e.t
-      b.className = `a-chip crm-sync a-chip--${e.c}`
+      pon(b, 'textContent', e.t)
+      pon(b, 'className', `a-chip crm-sync a-chip--${e.c}`)
+      pon(b, 'title', e.nota || '')
     })
-    crm.querySelector('[data-quien]').textContent = sesion.nombre || 'Sin nombre'
-    crm.querySelector('[data-salir]').textContent = sesion.usuario ? 'Cerrar sesión' : 'Iniciar sesión'
+    pon(crm.querySelector('[data-quien]'), 'textContent', sesion.nombre || 'Sin nombre')
+    pon(crm.querySelector('[data-salir]'), 'textContent', sesion.usuario ? 'Cerrar sesión' : 'Iniciar sesión')
     const r = resumenCobranza()
     const n = r.vencidas.length + r.porVencer.length
     const c = crm.querySelector('[data-cobrar]')
-    c.textContent = n || ''
-    c.hidden = !n
+    pon(c, 'textContent', n ? String(n) : '')
+    pon(c, 'hidden', !n)
   }
   crm.marcas = marcas
 
@@ -207,7 +245,7 @@ export function marco(activa, pintar, { despues } = {}) {
   semilla(SEMILLA)
   pintar(main)
   // Lo que se dibujó, tal cual: si un cambio de datos no altera la vista, no se vuelve a pintar.
-  let ultimo = main.innerHTML
+  let ultimo = huella(main.innerHTML)
   despues?.(main)
   ponTabs(main, activa, false)
   requestAnimationFrame(() => ponPunto(crm, !nuevo && previa !== i))
@@ -230,7 +268,7 @@ export function marco(activa, pintar, { despues } = {}) {
       const nuevo = document.createElement('div')
       semilla(SEMILLA)
       pintar(nuevo)
-      const html = nuevo.innerHTML
+      const html = huella(nuevo.innerHTML)
       if (!tab && html === ultimo) return
       ultimo = html
       gsap.killTweensOf(main.querySelectorAll('*'))
