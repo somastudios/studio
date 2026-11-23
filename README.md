@@ -82,7 +82,8 @@ Durante una presentación: `M` abre el índice, `F` pantalla completa, `D` abre 
 
 **Pulido**
 - [x] CRM, primera pasada: navegación con iconos boil vivos y el punto azul como cursor, emblemas con datos reales que se dibujan al entrar a cada sección, pestañas con subrayado que se desliza, cifras que cuentan y vista de celular con barra inferior.
-- [ ] CRM, segunda pasada: transición de salida al cambiar de sección, estados vacíos ilustrados, animación al guardar o registrar un pago, y revisar los emblemas con datos reales (muchos prospectos, muchas membresías).
+- [x] CRM, animaciones: la cortina del punto entre secciones, una viñeta SVG de tres planos por sección y las cuatro películas de pixel art en «Hoy». El diseño de «Hoy» ya está en todo el CRM.
+- [ ] CRM, lo que falta: estados vacíos ilustrados, animación al guardar o registrar un pago, viñeta propia para el expediente, y llevar el mismo diseño a los diálogos, la presala y la pantalla de entrada.
 - [ ] Animaciones de las visitas: revisar ritmo y transiciones escena por escena.
 - [ ] Vista en celular y en vertical de las escenas de las visitas: está resuelta de forma básica y no se ha probado. (El CRM y la presala ya se revisaron en celular y tableta: `node scripts/desborde.cjs <puerto> <carpeta>`.)
 
