@@ -52,33 +52,33 @@ const { chromium } = require('playwright')
     await p.screenshot({ path: `${salida}/fichas-${i}.png`, clip: { x: f.x - 4, y: f.y - 4, width: f.width + 8, height: f.height + 14 } })
     await p.waitForTimeout(430)
   }
-  // La hoja de cuadros: cada escena, todos sus turnos, sobre el color de su ficha.
-  await p.evaluate(async () => {
-    const { pixel } = await import('/src/crm/pixel.js')
-    const hoja = document.createElement('div')
-    hoja.id = 'hoja-px'
-    hoja.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#efece4;overflow:auto;padding:10px;display:grid;gap:8px'
-    for (const [nombre, color] of [['moto', 'azul'], ['tienda', 'amarillo'], ['moneda', 'verde'], ['arena', 'rojo']]) {
+  // Las hojas de cuadros: una por escena, con todos sus turnos sobre el color de su ficha.
+  for (const [nombre, color] of [['puertas', '#216fff'], ['agentes', '#ffcb1f'], ['billetes', '#1fce6d'], ['cobro', '#ff5240']]) {
+    const n = await p.evaluate(async ([nombre, color]) => {
+      const { escena } = await import('/src/crm/escenas.js')
+      document.getElementById('hoja-px')?.remove()
+      const hoja = document.createElement('div')
+      hoja.id = 'hoja-px'
+      hoja.className = `ficha ficha--${{ '#216fff': 'azul', '#ffcb1f': 'amarillo', '#1fce6d': 'verde', '#ff5240': 'rojo' }[color]}`
+      hoja.style.cssText = `position:fixed;inset:0;z-index:99999;background:${color};--f:${color};overflow:auto;padding:6px;display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;border-radius:0;flex-direction:row;justify-content:flex-start`
       const tmp = document.createElement('div')
-      tmp.innerHTML = pixel(nombre)
+      tmp.innerHTML = escena(nombre)
       const svg = tmp.firstElementChild
       const usos = [...svg.querySelectorAll('use')]
-      const fila = document.createElement('div')
-      fila.className = `ficha ficha--${color}`
-      fila.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;padding:8px;min-height:0;border-radius:8px;box-shadow:none'
       usos.forEach((u, i) => {
         const c = svg.cloneNode(true)
         c.querySelectorAll('use').forEach((x, j) => (x.style.cssText = `animation:none;visibility:${i === j ? 'visible' : 'hidden'}`))
-        c.style.cssText = 'width:100px;height:100px;flex:none;background:rgb(255 255 255 / .08)'
-        fila.appendChild(c)
+        c.style.cssText = 'width:224px;height:88px;flex:none;outline:1px solid rgb(0 0 0 / .15)'
+        hoja.appendChild(c)
       })
-      hoja.appendChild(fila)
-    }
-    document.body.appendChild(hoja)
-  })
-  await p.setViewportSize({ width: 900, height: 1000 })
-  await p.waitForTimeout(200)
-  await p.screenshot({ path: `${salida}/cuadros.png`, fullPage: false })
+      document.querySelector('#app').appendChild(hoja)
+      return usos.length
+    }, [nombre, color])
+    await p.setViewportSize({ width: 1400, height: Math.ceil(n / 6) * 94 + 12 })
+    await p.waitForTimeout(150)
+    await p.screenshot({ path: `${salida}/cuadros-${nombre}.png` })
+    console.log(nombre, n, 'cuadros')
+  }
   console.log(errores.length ? `ERRORES: ${errores.join(' | ')}` : 'sin errores')
   await b.close()
 })()

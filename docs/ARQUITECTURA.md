@@ -196,3 +196,12 @@ Diálogos, confirmaciones y avisos: `src/app/capas.js`.
 - Servidor de desarrollo propio: `npx vite --port <puerto asignado> --strictPort`. Capturas con
   `node scripts/foto.cjs <puerto> '<ruta>' <salida.png> [ancho] [alto] [esperaMs] [clics]`.
 - Antes de entregar: `node scripts/validar.mjs` sin errores en lo propio y capturas revisadas a ojo.
+
+## Pixel art (las escenas de «Hoy»)
+
+Las cuatro fichas de «Hoy» llevan una escena de pixel art animada. No hay imágenes: todo se dibuja con letras.
+
+- `src/crm/pixel.js` es el motor. Un lienzo es una cuadrícula de letras; cada letra es un color (`.px-k`, `.px-w`… en `src/styles/hoy.css`) y el punto es transparente. `pelicula(id, fondo, cuadros, fps)` arma un SVG de bordes duros con un fondo fijo y los cuadros encima; los cuadros se alternan con CSS, así que animar no cuesta nada por cuadro.
+- `src/crm/escenas.js` tiene las escenas: `puertas`, `agentes`, `billetes` y `cobro`. Cada una compone sus cuadros con `toma((L) => …)`: se dibuja solo lo que se mueve.
+- Para revisar una escena cuadro por cuadro: `node scripts/hoy.cjs <puerto> <carpeta>` deja una hoja `cuadros-<escena>.png` con todos sus turnos.
+- Para agregar una: escríbela en `escenas.js`, regístrala en `ESCENAS` y úsala con `escena('nombre')`. Si necesita un color nuevo, agrégalo como `.px-<letra>` en `hoy.css`.

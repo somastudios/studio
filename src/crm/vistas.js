@@ -8,7 +8,7 @@ import { ETAPAS, METODOS } from '../data/esquema.js'
 import { NICHO } from '../content/nichos/index.js'
 import { boil, P } from '../core/boil.js'
 import { marco } from './marco.js'
-import { pixel } from './pixel.js'
+import { escena } from './escenas.js'
 import { emblemaFecha, emblemaOrbita, emblemaHoja, emblemaDona, emblemaPulso } from './emblemas.js'
 import { estadoMembresia, requiereAtencion, resumenCobranza, nombreModalidad, confirmarPago } from './cobranza.js'
 import { editarProspecto, editarCita, avisar, dlgPago, editarMembresia, editarSistema, dlgConectar, dlgCredenciales, TIPOS_CITA } from './dialogos.js'
@@ -23,10 +23,18 @@ const tipoCita = (t) => TIPOS_CITA.find(([k]) => k === t)?.[1] || 'Cita'
 const vacio = (t, d, accion = '') => `<div class="a-vacio"><p class="a-vacio-t">${t}</p><p class="a-p">${d}</p>${accion}</div>`
 const cifra = (n, e, f = 'num') => `<div class="a-cifra"><p class="a-cifra-n a-num" data-n="${Number(n) || 0}" data-f="${f}">${f === 'dinero' ? dinero(n) : n}</p><p class="a-cifra-e">${e}</p></div>`
 
+// Iconos de línea para «Hoy».
+const ICO_CITA = `<svg class="hoy-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="3.2"/><path d="M3.5 10h17M8 3v4M16 3v4M12 12.6v5M9.5 15.1h5"/></svg>`
+const ICO_IR = `<svg class="hoy-ico hoy-ico--ir" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>`
+const ICO_FLECHA = `<svg class="hoy-ico hoy-ico--ir" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg>`
+const CHISPA = `<svg class="ficha-chispa" viewBox="-12 -12 24 24" aria-hidden="true"><path d="M0-11C1-3 3-1 11 0 3 1 1 3 0 11-1 3-3 1-11 0-3-1-1-3 0-11Z"/></svg>`
+/** Encabezado de una sección de «Hoy»: icono, título, una línea y el enlace con su flecha. */
+const cabHoy = (titulo, enlace, ruta) => `<div class="a-seccion-cab hoy-cab"><h2 class="a-h2">${ICO_CITA}<span>${titulo}</span></h2><i class="hoy-linea"></i><a class="a-enlace hoy-ir" href="#${ruta}">${enlace}${ICO_FLECHA}</a></div>`
+
 /** Ficha de «Hoy»: un dato en su color, con su escena de pixel art. Lleva a su sección. */
-const ficha = (color, escena, ruta, n, e, f = 'num') => {
+const ficha = (color, cual, ruta, n, e, f = 'num') => {
   const txt = f === 'dinero' ? dinero(n) : String(n)
-  return `<a class="ficha ficha--${color}" href="#${ruta}"><i class="ficha-brillo"></i><p class="ficha-n a-num${txt.length > 6 ? ' ficha-n--largo' : ''}" data-n="${Number(n) || 0}" data-f="${f}">${txt}</p><p class="ficha-e">${e}</p><span class="ficha-px" aria-hidden="true">${pixel(escena)}</span></a>`
+  return `<a class="ficha ficha--${color}" href="#${ruta}"><i class="ficha-brillo"></i>${CHISPA}<span class="ficha-tx"><span class="ficha-n a-num${txt.length > 5 ? ' ficha-n--largo' : ''}" data-n="${Number(n) || 0}" data-f="${f}">${txt}</span><span class="ficha-e">${e}</span></span><span class="ficha-px" aria-hidden="true">${escena(cual)}</span></a>`
 }
 
 // La regla bajo cada encabezado: un trazo a mano que se dibuja al entrar.
@@ -92,25 +100,25 @@ export function vistaHoy() {
     const total = store.lista('prospectos').length
     const porDia = [...agrupar(citas, (c) => (c.inicio ? dia(c.inicio) : 'por-acordar'))]
     main.innerHTML = `
-      ${cab({ k: esc(fecha(new Date(), 'larga')), t: sesion.nombre ? `${saludo()}, ${esc(sesion.nombre.split(' ')[0])}` : saludo(), emblema: emblemaFecha(), acc: '<button type="button" class="a-btn" data-nueva-cita>Nueva cita</button>' })}
+      ${cab({ k: `${ICO_CITA}<span>${esc(fecha(new Date(), 'larga'))}</span>`, t: sesion.nombre ? `${saludo()}, ${esc(sesion.nombre.split(' ')[0])}` : saludo(), emblema: emblemaFecha(), acc: `<button type="button" class="a-btn hoy-cita" data-nueva-cita><i></i><span class="hoy-cita-tx">${ICO_CITA}Nueva cita</span>${ICO_IR}</button>` })}
       <div class="crm-fichas">
-        ${ficha('azul', 'moto', '/crm/prospectos', total - store.lista('prospectos', (p) => ['cliente', 'perdido'].includes(p.etapa)).length, 'Prospectos en proceso')}
-        ${ficha('amarillo', 'tienda', '/crm/prospectos', store.lista('prospectos', { etapa: 'cliente' }).length, 'Clientes')}
-        ${ficha('verde', 'moneda', '/crm/cobranza', r.cobradoMes, 'Cobrado este mes', 'dinero')}
-        ${ficha('rojo', 'arena', '/crm/cobranza', r.vencidas.length + r.porVencer.length, 'Por cobrar o por vencer')}
+        ${ficha('azul', 'puertas', '/crm/prospectos', total - store.lista('prospectos', (p) => ['cliente', 'perdido'].includes(p.etapa)).length, 'Prospectos en proceso')}
+        ${ficha('amarillo', 'agentes', '/crm/prospectos', store.lista('prospectos', { etapa: 'cliente' }).length, 'Clientes')}
+        ${ficha('verde', 'billetes', '/crm/cobranza', r.cobradoMes, 'Cobrado este mes', 'dinero')}
+        ${ficha('rojo', 'cobro', '/crm/cobranza', r.vencidas.length + r.porVencer.length, 'Por cobrar o por vencer')}
       </div>
       ${
         total === 0
           ? `<section class="a-seccion">${vacio('Todavía no hay nada por aquí', '¿Preparamos la primera visita? Al terminar, su expediente aparece aquí solo.', '<a class="a-btn a-btn--pri" href="#/presala">Preparar la primera visita</a>')}</section>`
           : `
-      <section class="a-seccion"><div class="a-seccion-cab"><h2 class="a-h2">Próximos siete días</h2><a class="a-enlace" href="#/crm/agenda">Ver la agenda</a></div>
+      <section class="a-seccion">${cabHoy('Próximos siete días', 'Ver la agenda', '/crm/agenda')}
         ${
           citas.length
             ? porDia.map(([d, lista]) => `<p class="a-k crm-dia">${d === 'por-acordar' ? 'Por acordar por mensaje' : `${esc(fecha(d, 'larga'))} · ${esc(relativo(d))}`}</p><div class="a-lista">${lista.map(filaCita).join('')}</div>`).join('')
             : vacio('Semana libre', 'Las citas que apartes en una visita llegan aquí solas.')
         }
       </section>
-      <section class="a-seccion"><div class="a-seccion-cab"><h2 class="a-h2">Por cobrar</h2><a class="a-enlace" href="#/crm/cobranza">Ver cobranza</a></div>
+      <section class="a-seccion">${cabHoy('Por cobrar', 'Ver cobranza', '/crm/cobranza')}
         ${cobrar.length ? `<div class="a-lista">${cobrar.map(filaMembresia).join('')}</div>` : vacio('Todo al corriente', 'Si algo está por vencer, te aviso aquí.')}
       </section>
       ${

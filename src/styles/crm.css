@@ -1018,9 +1018,12 @@
     box-shadow: 0 12px 32px -10px rgb(5 5 6 / 0.5);
   }
 
+  /* En teléfono se desplaza la página entera, pero nada puede empujarla hacia los lados:
+     ni un dibujo que entra desde fuera ni una ficha que llega girando. */
   .crm-main {
     height: auto;
-    overflow: visible;
+    overflow-x: clip;
+    overflow-y: visible;
   }
 
   .crm .a-pagina {

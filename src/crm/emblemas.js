@@ -17,13 +17,15 @@ const dientes = (r0, r1, n) =>
 
 const SEMANA = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB']
 const RUEDA = '0123456789'.repeat(2).replace(/\d/g, '<i>$&</i>')
-// Cada cifra es una rueda de números: al entrar gira hasta el suyo, como un marcador.
-const cifras = (txt) => [...txt].map((c) => `<span class="sd-dig"><span class="sd-tira" data-d="${c}" style="--d:${c}">${RUEDA}</span></span>`).join('')
+// Cada cifra es una rueda de números: al entrar gira hasta el suyo, como un marcador. La cifra
+// invisible le da su ancho a la columna, para que un 1 ocupe lo de un 1.
+const cifras = (txt) => [...txt].map((c) => `<span class="sd-dig"><span class="sd-ancho">${c}</span><span class="sd-tira" data-d="${c}" style="--d:${c}">${RUEDA}</span></span>`).join('')
+const ESTRELLA = 'M0-11C1-3 3-1 11 0 3 1 1 3 0 11-1 3-3 1-11 0-3-1-1-3 0-11Z'
 
 /**
- * Hoy: el sello del día. El mes y el día en grande, partidos por una diagonal azul, la placa
- * del día de la semana y un reloj con la hora de verdad (el anillo y el punto son el logo).
- * De noche la carátula se apaga.
+ * Hoy: el sello del día. Arriba el reloj, con la hora de verdad, dentro de su halo (un punto
+ * lo recorre una vez por minuto). Abajo la fecha: el mes en negro con la placa del día de la
+ * semana, la diagonal y el día en azul. De noche la carátula se apaga.
  */
 export function emblemaFecha() {
   const d = new Date()
@@ -32,28 +34,24 @@ export function emblemaFecha() {
   const h = ((d.getHours() % 12) + d.getMinutes() / 60) * 30
   const m = d.getMinutes() * 6
   const noche = d.getHours() >= 19 || d.getHours() < 6
-  const marcas = Array.from({ length: 12 }, (_, i) => `<line class="rj-marca${i % 3 ? '' : ' rj-marca--f'}" x1="0" y1="${i % 3 ? -33 : -34}" x2="0" y2="${i % 3 ? -30 : -27}" transform="rotate(${i * 30})"/>`).join('')
-  const rayos = Array.from({ length: 10 }, (_, i) => {
-    const a = (i / 10) * TAU + 0.3
-    const r0 = i % 2 ? 31 : 27
-    const r1 = i % 2 ? 41 : 49
-    return `M${(Math.cos(a) * r0).toFixed(1)} ${(Math.sin(a) * r0).toFixed(1)}L${(Math.cos(a) * r1).toFixed(1)} ${(Math.sin(a) * r1).toFixed(1)}`
-  }).join('')
+  const marcas = Array.from({ length: 12 }, (_, i) => `<line class="rj-marca${i % 3 ? '' : ' rj-marca--f'}" x1="0" y1="${i % 3 ? -41 : -42}" x2="0" y2="${i % 3 ? -36 : -33}" transform="rotate(${i * 30})"/>`).join('')
   return `<div class="sd${noche ? ' sd--noche' : ''}" data-emb="fecha">
-    <svg class="sd-rafaga" viewBox="-50 -50 100 100"><path d="${rayos}"/></svg>
-    <svg class="sd-barra" viewBox="0 0 100 92">${boil(P.line(29, 91, 58, 3, 5), { amp: 0.7, cls: 'draw', attrs: 'stroke-width="7.5" stroke-linecap="butt"' })}</svg>
-    <p class="sd-mes">${cifras(mes)}</p>
-    <p class="sd-dia">${['r', 'y', 'g', 'b'].map((c) => `<span class="sd-eco sd-eco--${c}">${dia}</span>`).join('')}<span class="sd-num">${cifras(dia)}</span></p>
-    <p class="sd-placa"><span>${SEMANA[d.getDay()]}</span></p>
-    <svg class="sd-reloj" data-reloj viewBox="-50 -50 100 100">
-      <circle class="rj-cara" r="40"/>
-      ${boil(P.circle(0, 0, 42, 30), { amp: 0.5, cls: 'draw emb-aro', attrs: 'stroke-width="7" stroke-linecap="butt"' })}
+    <svg class="sd-brillo" viewBox="-12 -12 24 24"><path d="${ESTRELLA}"/></svg>
+    <svg class="sd-reloj" data-reloj viewBox="-66 -66 132 132">
+      <defs><radialGradient id="rj-luz" r="0.5"><stop offset="0.7" stop-color="${AZUL}" stop-opacity="0.05"/><stop offset="0.86" stop-color="${AZUL}" stop-opacity="0.2"/><stop offset="1" stop-color="${AZUL}" stop-opacity="0.07"/></radialGradient></defs>
+      <g class="rj-halo"><circle r="64" fill="url(#rj-luz)"/><circle class="rj-aro" r="63.4"/></g>
+      <g class="rj-orbita" data-seg style="animation-delay:-${d.getSeconds()}s"><circle cy="-63.4" r="2.7"/></g>
+      <circle class="rj-cara" r="48"/>
       <g class="rj-marcas">${marcas}</g>
-      <g class="emb-hora" data-rot="${h.toFixed(1)}" transform="rotate(${h.toFixed(1)})"><line x1="0" y1="5" x2="0" y2="-19"/></g>
-      <g class="emb-min" data-rot="${m}" transform="rotate(${m})"><line x1="0" y1="6" x2="0" y2="-29"/></g>
-      <g class="rj-seg" data-seg style="animation-delay:-${d.getSeconds()}s"><line x1="0" y1="9" x2="0" y2="-31"/></g>
-      <circle class="emb-punto" r="6.4" fill="${AZUL}"/>
+      <g class="emb-hora" data-rot="${h.toFixed(1)}" transform="rotate(${h.toFixed(1)})"><line x1="0" y1="4" x2="0" y2="-23"/></g>
+      <g class="emb-min" data-rot="${m}" transform="rotate(${m})"><line x1="0" y1="5" x2="0" y2="-35"/></g>
+      <g class="rj-seg" data-seg style="animation-delay:-${d.getSeconds()}s"><line x1="0" y1="9" x2="0" y2="-38"/></g>
+      <circle class="emb-punto" r="5.4" fill="${AZUL}"/>
     </svg>
+    <p class="sd-mes">${cifras(mes)}</p>
+    <p class="sd-placa"><span>${SEMANA[d.getDay()]}</span></p>
+    <svg class="sd-barra" viewBox="0 0 30 64"><path d="M0 64L23 0h7L7 64Z"/></svg>
+    <p class="sd-dia">${cifras(dia)}</p>
   </div>`
 }
 
@@ -153,33 +151,24 @@ export function animaEmblema(el, tl, at = 0) {
   const punto = el.querySelector('.emb-punto')
   if (punto) tl.fromTo(punto, { scale: 0, transformOrigin: '50% 50%' }, { scale: 1, duration: 0.7, ease: 'back.out(2.4)' }, at + 0.35)
   if (tipo === 'fecha') {
-    const golpe = at + 0.62
-    // La diagonal ya se está trazando (es un .draw). Las ruedas giran hasta su cifra.
+    // El reloj: primero el halo, luego la carátula; las marcas en ronda y las manecillas dan la vuelta.
+    tl.fromTo(el.querySelector('.rj-halo'), { autoAlpha: 0, scale: 0.6, transformOrigin: '50% 50%' }, { autoAlpha: 1, scale: 1, duration: 0.9, ease: 'expo.out' }, at)
+    tl.fromTo(el.querySelector('.rj-cara'), { scale: 0, transformOrigin: '50% 50%' }, { scale: 1, duration: 0.7, ease: 'back.out(1.6)' }, at + 0.1)
+    tl.fromTo(el.querySelectorAll('.rj-marca'), { opacity: 0 }, { opacity: 1, duration: 0.2, stagger: 0.03, clearProps: 'opacity' }, at + 0.35)
+    el.querySelectorAll('.emb-hora, .emb-min').forEach((g) => tl.fromTo(g, { rotation: -360, svgOrigin: '0 0' }, { rotation: +g.dataset.rot, duration: 1.6, ease: 'expo.out' }, at + 0.25))
+    tl.fromTo(el.querySelectorAll('.rj-seg, .rj-orbita'), { opacity: 0 }, { opacity: 1, duration: 0.4, clearProps: 'opacity' }, at + 1.1)
+    tl.fromTo(el.querySelector('.sd-brillo'), { autoAlpha: 0, scale: 0, rotation: -90, transformOrigin: '50% 50%' }, { autoAlpha: 1, scale: 1, rotation: 0, duration: 0.8, ease: 'back.out(2)', clearProps: 'transform,opacity,visibility' }, at + 0.7)
+    // La fecha: el mes entra por la izquierda y el día por la derecha, girando hasta su cifra.
+    tl.fromTo(el.querySelector('.sd-mes'), { autoAlpha: 0, x: -14 }, { autoAlpha: 1, x: 0, duration: 0.55, ease: 'expo.out', clearProps: 'transform,opacity,visibility' }, at + 0.15)
+    tl.fromTo(el.querySelector('.sd-dia'), { autoAlpha: 0, x: 14 }, { autoAlpha: 1, x: 0, duration: 0.55, ease: 'expo.out', clearProps: 'transform,opacity,visibility' }, at + 0.25)
     el.querySelectorAll('.sd-tira').forEach((t, i) => {
       const d = +t.dataset.d
-      tl.fromTo(t, { yPercent: -(d + 2 - (i % 2)) * 5 }, { yPercent: -(d + 10) * 5, duration: 0.85 + i * 0.09, ease: 'back.out(1.25)', clearProps: 'transform' }, at + 0.06 + i * 0.05)
+      // (y: 0 a propósito: sin él, GSAP suma el giro al desplazamiento que ya trae el CSS y la rueda se pasa de largo.)
+      tl.fromTo(t, { y: 0, yPercent: -(d + 3) * 5 }, { y: 0, yPercent: -(d + 10) * 5, duration: 0.95 + i * 0.1, ease: 'expo.out', clearProps: 'transform' }, at + 0.15 + i * 0.07)
     })
-    tl.fromTo(el.querySelector('.sd-mes'), { autoAlpha: 0, x: -18 }, { autoAlpha: 1, x: 0, duration: 0.45, ease: 'expo.out', clearProps: 'transform,opacity,visibility' }, at)
-    // El día llega con su estela de colores (los de las fichas), que se apila y se recoge.
-    const ecos = [...el.querySelectorAll('.sd-eco')]
-    ecos.forEach((e, i) => {
-      const k = ecos.length - i
-      tl.fromTo(e, { opacity: 1, x: `${0.9 + k * 0.28}em`, y: `${-0.5 - k * 0.12}em` }, { x: `${k * 0.055}em`, y: `${k * 0.055}em`, duration: 0.5, ease: 'expo.out' }, at + 0.1 + i * 0.045)
-      if (k > 1) tl.to(e, { x: 0, y: 0, opacity: 0, duration: 0.28, ease: 'power3.in' }, golpe + 0.18 + i * 0.04)
-      else tl.set(e, { clearProps: 'transform,opacity' }, golpe + 0.5)
-    })
-    tl.fromTo(el.querySelector('.sd-num'), { autoAlpha: 0, x: '1.1em', y: '-0.6em' }, { autoAlpha: 1, x: 0, y: 0, duration: 0.5, ease: 'expo.out', clearProps: 'transform,opacity,visibility' }, at + 0.32)
-    // El golpe: el día pega, salta la ráfaga y todo el sello se sacude un instante.
-    tl.fromTo(el.querySelector('.sd-dia'), { scale: 1.22 }, { scale: 1, duration: 0.5, ease: 'back.out(3.2)', clearProps: 'transform' }, golpe)
-    tl.fromTo(el.querySelector('.sd-rafaga'), { autoAlpha: 1, scale: 0.45, rotation: -14, transformOrigin: '50% 50%' }, { autoAlpha: 0, scale: 1.25, rotation: 6, duration: 0.5, ease: 'expo.out' }, golpe)
-    tl.to(el, { keyframes: { x: [0, -3, 3, -2, 1, 0], y: [0, 2, -2, 1, 0, 0] }, duration: 0.3, ease: 'none', clearProps: 'transform' }, golpe)
-    // La placa entra de lado, como una etiqueta que se pega.
-    tl.fromTo(el.querySelector('.sd-placa'), { autoAlpha: 0, xPercent: -130, skewX: -28 }, { autoAlpha: 1, xPercent: 0, skewX: 0, duration: 0.55, ease: 'back.out(1.7)', clearProps: 'transform,opacity,visibility' }, at + 0.45)
-    // El reloj: las marcas aparecen en ronda y las manecillas parten de las doce.
-    tl.fromTo(el.querySelectorAll('.rj-marca'), { opacity: 0 }, { opacity: 1, duration: 0.2, stagger: 0.03, clearProps: 'opacity' }, at + 0.35)
-    tl.fromTo(el.querySelector('.rj-cara'), { scale: 0, transformOrigin: '50% 50%' }, { scale: 1, duration: 0.6, ease: 'expo.out' }, at + 0.2)
-    el.querySelectorAll('.emb-hora, .emb-min').forEach((g) => tl.fromTo(g, { rotation: -360, svgOrigin: '0 0' }, { rotation: +g.dataset.rot, duration: 1.6, ease: 'expo.out' }, at + 0.25))
-    tl.fromTo(el.querySelector('.rj-seg'), { opacity: 0 }, { opacity: 1, duration: 0.3, clearProps: 'opacity' }, at + 1.2)
+    // La diagonal sube como un corte y la placa se pega con un rebote.
+    tl.fromTo(el.querySelector('.sd-barra'), { clipPath: 'inset(100% 0% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.5, ease: 'expo.out', clearProps: 'clipPath' }, at + 0.3)
+    tl.fromTo(el.querySelector('.sd-placa'), { autoAlpha: 0, scale: 0.4, rotation: -14, transformOrigin: '0% 50%' }, { autoAlpha: 1, scale: 1, rotation: 0, duration: 0.6, ease: 'back.out(2.4)', clearProps: 'transform,opacity,visibility' }, at + 0.6)
   } else if (tipo === 'orbita') {
     tl.fromTo(el.querySelectorAll('.emb-nodos circle'), { scale: 0, transformOrigin: '50% 50%' }, { scale: 1, duration: 0.5, ease: 'back.out(3)', stagger: 0.06 }, at + 0.6)
   } else if (tipo === 'hoja') {

@@ -184,12 +184,12 @@ function entrada(main, dir) {
     const o = { v: 0 }
     tl.to(o, { v: hasta, duration: 1.1, ease: 'expo.out', onUpdate: () => (el.textContent = esDinero ? dinero(Math.round(o.v)) : String(Math.round(o.v))) }, 0.3 + i * 0.06)
   })
-  // Las fichas de «Hoy» caen una tras otra, les cruza un brillo y su escena brota del piso.
+  // Las fichas de «Hoy» caen una tras otra, les cruza un brillo y su escena sube a su sitio.
   const fichas = main.querySelectorAll('.ficha')
   if (fichas.length) {
     tl.fromTo(fichas, { autoAlpha: 0, y: 30, scale: 0.84, rotation: (i) => (i % 2 ? 4 : -4) }, { autoAlpha: 1, y: 0, scale: 1, rotation: 0, duration: 0.7, ease: 'back.out(1.8)', stagger: 0.075, clearProps: 'transform,opacity,visibility' }, 0.3)
     tl.fromTo(main.querySelectorAll('.ficha-brillo'), { autoAlpha: 1, xPercent: -180, skewX: -18 }, { xPercent: 420, duration: 0.85, ease: 'power2.inOut', stagger: 0.075, clearProps: 'transform,opacity,visibility' }, 0.62)
-    tl.fromTo(main.querySelectorAll('.ficha-px'), { scale: 0, transformOrigin: '50% 100%' }, { scale: 1, duration: 0.55, ease: 'back.out(2.8)', stagger: 0.075, clearProps: 'transform' }, 0.68)
+    tl.fromTo(main.querySelectorAll('.ficha-px'), { autoAlpha: 0, y: 18 }, { autoAlpha: 1, y: 0, duration: 0.6, ease: 'expo.out', stagger: 0.075, clearProps: 'transform,opacity,visibility' }, 0.6)
   }
   const reglas = main.querySelectorAll('.a-cifra')
   if (reglas.length) tl.fromTo(reglas, { '--trazo': 0 }, { '--trazo': 1, duration: 0.9, ease: 'expo.inOut', stagger: 0.07 }, 0.25)
