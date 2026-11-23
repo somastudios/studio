@@ -1,25 +1,27 @@
 import gsap from 'gsap'
 import { boil, P } from '../core/boil.js'
 
-// Viñetas: la ilustración animada que encabeza cada sección del CRM. Trazo a mano sobre una
-// tarjeta de color, tres planos por viñeta (general, detalle, otra perspectiva) y, entre plano
-// y plano, un iris que cierra y abre, como la cortina del CRM.
+// Viñetas: la animación que encabeza cada sección del CRM. Cada una es una sola pieza
+// continua, sin cortes: una forma protagonista se va transformando (el pin se vuelve puerta,
+// la puerta expediente; el billete teléfono, el teléfono tarjeta…) y alrededor de ella pasa
+// lo que la sección cuenta. Formas planas para lo importante y trazo a mano para el detalle.
 //
-// Cada plano declara su dibujo (svg), su movimiento de cámara y su animación:
-//   cam: [escala, x, y, giro] de inicio → [escala, x, y] de fin
-//   anima(tl, g, t): agrega a la línea de tiempo lo que pasa dentro del plano
+// Una viñeta es { color, svg, anima(tl, el) }. El dibujo va dentro de una «cámara» que
+// deriva despacio todo el tiempo.
 
 const W = 240
 const H = 100
-const DURA = 3.6
 const reducido = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
+const TINTA = '#050506'
+const PAPEL = '#efece4'
+const AZUL = '#216fff'
+const AMARILLO = '#ffcb1f'
 
-// ───────────────────────── Utilería de dibujo ─────────────────────────
+// ───────────────────────── Dibujo ─────────────────────────
 
 /** Un trazo que hierve y se dibuja. */
 const T = (formas, grosor = 2.4, cls = '') => boil(formas, { amp: 0.45, cls: `draw ${cls}`, attrs: `stroke-width="${grosor}" stroke-linecap="round" stroke-linejoin="round"` })
 
-/** Una línea quebrada con puntos intermedios, para que el trazo tiemble parejo. */
 function poli(pts, cerrado = false, paso = 13) {
   const out = []
   const n = pts.length
@@ -33,391 +35,481 @@ function poli(pts, cerrado = false, paso = 13) {
   return { pts: out, closed: cerrado }
 }
 const caja = (x, y, w, h) => poli([[x, y], [x + w, y], [x + w, y + h], [x, y + h]], true)
-const estrella = (cx, cy, r) => {
-  const pts = Array.from({ length: 10 }, (_, i) => {
-    const a = -Math.PI / 2 + (i / 10) * Math.PI * 2
-    const rr = i % 2 ? r * 0.45 : r
-    return `${(cx + Math.cos(a) * rr).toFixed(1)},${(cy + Math.sin(a) * rr).toFixed(1)}`
+
+// ── Formas que se transforman. Todas son contornos cerrados con el mismo número de puntos,
+// que empiezan arriba y giran igual: así cualquiera puede volverse cualquier otra.
+const N = 72
+
+function remuestra(pts) {
+  let area = 0
+  for (let i = 0; i < pts.length; i++) {
+    const a = pts[i]
+    const b = pts[(i + 1) % pts.length]
+    area += a[0] * b[1] - b[0] * a[1]
+  }
+  if (area < 0) pts = pts.slice().reverse()
+  const largos = pts.map((p, i) => Math.hypot(pts[(i + 1) % pts.length][0] - p[0], pts[(i + 1) % pts.length][1] - p[1]))
+  const total = largos.reduce((s, l) => s + l, 0)
+  const out = []
+  let i = 0
+  let acumulado = 0
+  for (let k = 0; k < N; k++) {
+    const meta = (k / N) * total
+    while (acumulado + largos[i] < meta) acumulado += largos[i++]
+    const t = (meta - acumulado) / (largos[i] || 1)
+    const a = pts[i]
+    const b = pts[(i + 1) % pts.length]
+    out.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t])
+  }
+  // Que todas empiecen en su punto más alto, cerca del centro.
+  const cx = out.reduce((s, p) => s + p[0], 0) / N
+  let mejor = 0
+  out.forEach((p, k) => {
+    const m = out[mejor]
+    if (p[1] < m[1] - 0.4 || (Math.abs(p[1] - m[1]) <= 0.4 && Math.abs(p[0] - cx) < Math.abs(m[0] - cx))) mejor = k
   })
-  return `<polygon points="${pts.join(' ')}"/>`
+  return out.slice(mejor).concat(out.slice(0, mejor))
 }
+
+const F = {
+  circ: (cx, cy, r) => remuestra(Array.from({ length: 48 }, (_, i) => [cx + Math.cos((i / 48) * 6.2832) * r, cy + Math.sin((i / 48) * 6.2832) * r])),
+  rect(x, y, w, h, r = 4) {
+    const pts = []
+    const esquina = (cx, cy, a0) => {
+      for (let i = 0; i <= 5; i++) {
+        const a = ((a0 + i * 18) * Math.PI) / 180
+        pts.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r])
+      }
+    }
+    esquina(x + w - r, y + r, -90)
+    esquina(x + w - r, y + h - r, 0)
+    esquina(x + r, y + h - r, 90)
+    esquina(x + r, y + r, 180)
+    return remuestra(pts)
+  },
+  /** Un pin de mapa con la punta en (x, y). */
+  gota(x, y, s = 1) {
+    const pts = []
+    for (let a = 135; a <= 405; a += 9) pts.push([x + Math.cos((a * Math.PI) / 180) * 9 * s, y - 17 * s + Math.sin((a * Math.PI) / 180) * 9 * s])
+    pts.push([x, y])
+    return remuestra(pts)
+  },
+  /** Un recibo: la orilla de abajo, en zigzag. */
+  recibo(x, y, w, h) {
+    const pts = [[x, y], [x + w, y], [x + w, y + h]]
+    for (let i = 1; i <= 7; i++) pts.push([x + w - (w * i) / 8, y + h - (i % 2 ? 6 : 0)])
+    pts.push([x, y + h])
+    return remuestra(pts)
+  },
+  engrane(cx, cy, r0, r1, n = 10) {
+    const pts = []
+    for (let k = 0; k < n; k++) {
+      const a = (k / n) * 360
+      for (const [da, r] of [[-7, r1], [7, r1], [11, r0], [25, r0]]) pts.push([cx + Math.cos(((a + da) * Math.PI) / 180) * r, cy + Math.sin(((a + da) * Math.PI) / 180) * r])
+    }
+    return remuestra(pts)
+  },
+}
+const aD = (pts) => `M${pts.map((p) => `${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join('L')}Z`
+
+const estrella = (cx, cy, r) => `<polygon points="${Array.from({ length: 10 }, (_, i) => `${(cx + Math.cos(-1.5708 + (i / 10) * 6.2832) * (i % 2 ? r * 0.45 : r)).toFixed(1)},${(cy + Math.sin(-1.5708 + (i / 10) * 6.2832) * (i % 2 ? r * 0.45 : r)).toFixed(1)}`).join(' ')}"/>`
 const CORAZON = 'M0 6C-9 -1 -9 -8 -4.5 -8C-2 -8 0 -6 0 -4C0 -6 2 -8 4.5 -8C9 -8 9 -1 0 6Z'
 const PALOMA = 'M-8 0L-2 6L9 -7'
-
-// Atajos de animación.
-const dibuja = (tl, els, t, d = 0.9, e = 0.1) => tl.fromTo(els, { '--draw': 1.06 }, { '--draw': 0, duration: d, ease: 'expo.inOut', stagger: e }, t)
-const brota = (tl, els, t, e = 0.12) => tl.fromTo(els, { scale: 0, transformOrigin: '50% 50%' }, { scale: 1, duration: 0.55, ease: 'back.out(2.6)', stagger: e }, t)
-const q = (g, s) => g.querySelectorAll(s)
-
-// El lenguaje común: una cuadrícula tenue de fondo, una ruta que se traza, el punto que la
-// recorre y marcas que brotan a su paso. Como un mapa que se va explicando solo.
-const REJILLA = (cls = 'vn-t') => T([P.line(0, 26, 240, 20), P.line(0, 74, 240, 80), P.line(56, 0, 48, 100), P.line(124, 0, 120, 100), P.line(190, 0, 198, 100)], 1.1, cls)
-const RUTA = (pts, cls = 'vn-w', grosor = 2.6) => T(poli(pts), grosor, `${cls} vn-ruta`)
-const VIAJERO = (cls = '') => `<g class="vn-viajero ${cls}"><circle class="vn-va" r="6.5"/><circle class="vn-vb" r="3.6"/></g>`
-const MARCA = (x, y, cls = '') => `<g class="vn-marca-g" transform="translate(${x} ${y})"><g class="vn-brote ${cls}"><circle class="vn-ma" r="7"/><circle class="vn-mb" r="3"/></g></g>`
-const BANDERA = (x, y) => `<g transform="translate(${x} ${y})"><g class="vn-brote"><line class="vn-asta" x1="0" y1="0" x2="0" y2="-17"/><path class="vn-tela" d="M0 -17h12l-3 4l3 4H0Z"/></g></g>`
-const MONEDA = (x, y) => `<g transform="translate(${x} ${y})"><g class="vn-brote"><circle class="vn-famarillo" r="7.5"/><path class="vn-pesos" transform="scale(0.55)" d="M4 -6C-6 -9 -7 -1 0 0C7 1 6 9 -4 6M0 -10V10"/></g></g>`
-const enArco = (cx, cy, r, a0, a1, n = 14) => Array.from({ length: n + 1 }, (_, i) => ({ x: cx + Math.cos(((a0 + ((a1 - a0) * i) / n) * Math.PI) / 180) * r, y: cy + Math.sin(((a0 + ((a1 - a0) * i) / n) * Math.PI) / 180) * r }))
-const enCurva = (p0, p1, p2, p3, n = 14) =>
-  Array.from({ length: n + 1 }, (_, i) => {
-    const t = i / n
-    const m = 1 - t
-    return { x: m * m * m * p0[0] + 3 * m * m * t * p1[0] + 3 * m * t * t * p2[0] + t * t * t * p3[0], y: m * m * m * p0[1] + 3 * m * m * t * p1[1] + 3 * m * t * t * p2[1] + t * t * t * p3[1] }
-  })
-/** El punto recorre una lista de puntos. */
-const viaja = (tl, el, pts, t, d = 2.2, ease = 'power1.inOut') => {
-  const P0 = pts.map((p) => (Array.isArray(p) ? { x: p[0], y: p[1] } : p))
-  tl.fromTo(el, { x: P0[0].x, y: P0[0].y }, { keyframes: P0.slice(1).map((p) => ({ x: p.x, y: p.y })), duration: d, ease }, t)
+const sello = (x, y, r = 14, cls = '') => `<g class="${cls}" transform="translate(${x} ${y})"><g><circle r="${r}" fill="${AZUL}"/><path d="${PALOMA}" transform="scale(${(r / 16).toFixed(2)})" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></g></g>`
+const globo = (x, y, w, h, cls, dentro = '', cola = 0.3) => {
+  // La orilla de abajo: un tramo, el pico y el otro tramo.
+  const a = Math.max(2, Math.round((w - 19) * (1 - cola)))
+  const b = Math.max(2, w - 19 - a)
+  return `<g class="${cls}" transform="translate(${x} ${y})"><g><path fill="#fff" d="M6 0h${w - 12}a6 6 0 0 1 6 6v${h - 12}a6 6 0 0 1 -6 6h-${a}l-7 8v-8h-${b}a6 6 0 0 1 -6 -6v-${h - 12}a6 6 0 0 1 6 -6Z"/>${dentro}</g></g>`
 }
-/** Las marcas brotan una tras otra, a tiempo con el paso del punto. */
-const brotan = (tl, els, t, cada = 0.7) => tl.fromTo(els, { scale: 0, transformOrigin: '50% 100%' }, { scale: 1, duration: 0.5, ease: 'back.out(3)', stagger: cada }, t)
+
+// El reparto, en chiquito: los mismos de las películas.
+const GENTE = {
+  dali: { ropa: TINTA, piel: '#fbdcc0', pelo: `<path fill="#4d2f1c" d="M-7.6 -27.5a7.6 7.6 0 0 1 15.2 0c-2.4 -3.4 -5 -4 -7.6 -1.6c-2.6 -2.4 -5.2 -1.8 -7.6 1.6Z"/>` },
+  alex: {
+    ropa: '#1d3f8f',
+    piel: '#f0c49c',
+    pelo: `<g fill="#17141d"><circle cx="-4.5" cy="-32" r="4.6"/><circle cx="2.5" cy="-33.6" r="5"/><circle cx="7" cy="-30" r="3.6"/><circle cx="-7.6" cy="-28.6" r="3"/></g><path fill="none" stroke="${TINTA}" stroke-width="1.1" d="M-5.8 -28.2h4.4v3.4h-4.4ZM1.4 -28.2h4.4v3.4h-4.4ZM-1.4 -26.6h2.8"/>`,
+  },
+  otro: { ropa: AMARILLO, piel: '#c68a5c', pelo: `<path fill="#8d8f9a" d="M-7.4 -28a7.4 7.4 0 0 1 14.8 0c-4 -2.6 -10.8 -2.6 -14.8 0Z"/>` },
+  clienta: { ropa: '#ff574a', piel: '#fbdcc0', pelo: `<path fill="#c9790a" d="M-8 -24a8 8 0 0 1 16 0v3c-1 -5 -3 -7 -8 -7s-7 2 -8 7Z"/><circle cx="0" cy="-36" r="3.4" fill="#c9790a"/>` },
+}
+const persona = (x, base, quien, cls = '') => {
+  const g = GENTE[quien]
+  return `<g class="vn-p ${cls}" transform="translate(${x} ${base})"><g><rect x="-8" y="-20" width="16" height="20" rx="7" fill="${g.ropa}"/><circle cy="-27" r="7" fill="${g.piel}"/>${g.pelo}${quien === 'alex' ? '' : `<circle cx="-2.6" cy="-26.6" r="0.95" fill="${TINTA}"/><circle cx="2.6" cy="-26.6" r="0.95" fill="${TINTA}"/>`}<path d="M-2.4 -23.4q2.4 2 4.8 0" fill="none" stroke="${TINTA}" stroke-width="1" stroke-linecap="round"/></g></g>`
+}
+
+// ───────────────────────── Animación ─────────────────────────
+
+const q = (r, s) => r.querySelectorAll(s)
+const dibuja = (tl, els, t, d = 0.9, e = 0.08) => tl.fromTo(els, { '--draw': 1.06 }, { '--draw': 0, duration: d, ease: 'expo.inOut', stagger: e }, t)
+const entra = (tl, els, t, d = 0.3, e = 0.05) => tl.fromTo(els, { autoAlpha: 0 }, { autoAlpha: 1, duration: d, stagger: e }, t)
+const sale = (tl, els, t, d = 0.3) => tl.to(els, { autoAlpha: 0, duration: d }, t)
+const brota = (tl, els, t, e = 0.1, origen = '50% 50%') => tl.fromTo(els, { scale: 0, autoAlpha: 1, transformOrigin: origen }, { scale: 1, duration: 0.5, ease: 'back.out(2.6)', stagger: e }, t)
+const brinca = (tl, els, t, n = 3, alto = 5) => tl.to(els, { y: -alto, duration: 0.16, yoyo: true, repeat: n * 2 - 1, ease: 'power1.out', stagger: 0.08 }, t)
+const tiembla = (tl, els, t) => tl.to(els, { keyframes: { x: [0, -2, 2, -2, 2, 0] }, duration: 0.4, ease: 'none' }, t)
+const viaja = (tl, el, pts, t, d = 2.2, ease = 'power1.inOut') => tl.fromTo(el, { x: pts[0][0], y: pts[0][1] }, { keyframes: pts.slice(1).map(([x, y]) => ({ x, y })), duration: d, ease }, t)
+
+/**
+ * La protagonista se vuelve otra forma. Todas las formas tienen los mismos puntos, así que
+ * GSAP puede llevar el trazo de una a otra número por número (y funciona también al saltar
+ * a un momento cualquiera de la animación).
+ */
+const morfa = (tl, el, A, B, t, d = 0.8, ease = 'expo.inOut') => tl.fromTo(el, { attr: { d: aD(A) } }, { attr: { d: aD(B) }, duration: d, ease, immediateRender: false }, t)
+/** La forma con la que empieza cada vuelta. */
+const empieza = (tl, el, A) => tl.set(el, { attr: { d: aD(A) } }, 0)
 
 // ───────────────────────── Las viñetas ─────────────────────────
 
+const RUTA = [[28, 84], [70, 52], [118, 60], [168, 32], [196, 46]]
+const S = {
+  pin: F.gota(196, 46),
+  puerta: F.rect(164, 22, 36, 60, 3),
+  ficha: F.rect(72, 14, 96, 68, 7),
+  punto: F.circ(120, 50, 3),
+  billete: F.rect(66, 28, 108, 46, 4),
+  telefono: F.rect(98, 8, 44, 84, 9),
+  tarjeta: F.rect(70, 24, 100, 54, 8),
+  recibo: F.recibo(86, 8, 68, 82),
+  celda: F.rect(133, 53, 15, 11, 2),
+  reloj: F.circ(120, 50, 35),
+  lugar: F.gota(120, 86, 1.9),
+  ventana: F.rect(52, 12, 136, 76, 7),
+  nodo: F.rect(170, 18, 30, 22, 4),
+  engrane: F.engrane(112, 52, 21, 29),
+  tablero: F.rect(60, 14, 120, 72, 10),
+  candado: F.rect(96, 44, 48, 40, 7),
+}
+
 const VINETAS = {
-  // Prospectos: del mapa, a la puerta, al embudo.
+  // Prospectos: la ruta de visitas → la puerta → nos abren y dicen que sí → el expediente.
   prospectos: {
     color: 'azul',
-    planos: [
-      {
-        // Desde arriba: el mapa. El punto recorre la ruta de visita en visita.
-        cam: [1.22, -16, 6, 0, 1.08, 10, -3],
-        svg: `${T([P.line(0, 28, 240, 20), P.line(0, 72, 240, 80), P.line(58, 0, 50, 100), P.line(150, 0, 162, 100)], 1.1, 'vn-t')}
-          ${T(poli([[28, 84], [70, 52], [118, 60], [168, 32], [214, 46]]), 2.4, 'vn-w vn-ruta')}
-          ${[[70, 52], [168, 32], [214, 46]].map(([x, y]) => `<g class="vn-pin" transform="translate(${x} ${y})"><g><path class="vn-fw" d="M0 0C-7 -9 -9 -13 -9 -17a9 9 0 1 1 18 0c0 4 -2 8 -9 17Z"/><circle class="vn-fk" cy="-17" r="3.2"/></g></g>`).join('')}
-          <g class="vn-viajero"><circle class="vn-fw" r="6.5"/><circle class="vn-fk" r="3.6"/></g>`,
-        anima(tl, g, t) {
-          dibuja(tl, q(g, '.vn-t'), t - 0.2, 0.8)
-          dibuja(tl, q(g, '.vn-ruta'), t + 0.1, 2.2, 0)
-          tl.fromTo(q(g, '.vn-pin > g'), { scale: 0, transformOrigin: '50% 100%' }, { scale: 1, duration: 0.5, ease: 'back.out(3)', stagger: 0.7 }, t + 0.55)
-          tl.fromTo(q(g, '.vn-viajero'), { x: 28, y: 84 }, { keyframes: [{ x: 70, y: 52 }, { x: 118, y: 60 }, { x: 168, y: 32 }, { x: 214, y: 46 }], duration: 2.2, ease: 'power1.inOut' }, t + 0.1)
-        },
-      },
-      {
-        // De cerca: la cuadra. El punto llega al local, toca, y le dicen que sí.
-        cam: [1.3, 26, -8, 0, 1.12, -10, 0],
-        svg: `${T([caja(14, 8, 62, 30), caja(92, 8, 54, 30), caja(162, 8, 64, 30), caja(14, 62, 84, 32)], 1.3, 'vn-t')}
-          <rect class="vn-local" x="116" y="62" width="110" height="32" rx="3"/>
-          ${T([caja(116, 62, 110, 32)], 2.2, 'vn-w')}
-          ${RUTA([[0, 50], [60, 50], [100, 51], [136, 50], [150, 56]])}
-          <circle class="vn-onda2" cx="150" cy="58" r="6"/><circle class="vn-onda2" cx="150" cy="58" r="6"/>
-          <g transform="translate(150 44)"><g class="vn-brote"><path class="vn-fw" d="M0 0C-7 -9 -9 -13 -9 -17a9 9 0 1 1 18 0c0 4 -2 8 -9 17Z"/><path class="vn-corazon" transform="translate(0 -17) scale(0.62)" d="${CORAZON}"/></g></g>
-          ${VIAJERO()}`,
-        anima(tl, g, t) {
-          dibuja(tl, q(g, '.vn-t'), t - 0.2, 0.8, 0.06)
-          dibuja(tl, q(g, '.vn-w:not(.vn-ruta)'), t, 0.7)
-          dibuja(tl, q(g, '.vn-ruta'), t + 0.1, 1.5, 0)
-          viaja(tl, q(g, '.vn-viajero'), [[0, 50], [60, 50], [100, 51], [136, 50], [150, 56]], t + 0.1, 1.5)
-          q(g, '.vn-onda2').forEach((c, i) => tl.fromTo(c, { attr: { r: 6 }, autoAlpha: 0.9 }, { attr: { r: 30 }, autoAlpha: 0, duration: 0.7, ease: 'power1.out', immediateRender: false }, t + 1.6 + i * 0.35))
-          tl.fromTo(q(g, '.vn-local'), { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.4 }, t + 2.1)
-          brotan(tl, q(g, '.vn-brote'), t + 2.3)
-        },
-      },
-      {
-        // Las estaciones: de «por visitar» a «cliente». El punto las recorre y la última es estrella.
-        cam: [1.18, -14, 4, -3, 1.04, 8, 0],
-        svg: `${REJILLA()}
-          ${RUTA([[20, 72], [66, 46], [112, 62], [158, 34], [206, 48]], 'vn-w', 3)}
-          ${[[20, 72], [66, 46], [112, 62], [158, 34]].map(([x, y]) => MARCA(x, y)).join('')}
-          <g transform="translate(206 48)"><g class="vn-brote vn-famarillo">${estrella(0, 0, 13)}</g></g>
-          ${VIAJERO()}`,
-        anima(tl, g, t) {
-          dibuja(tl, q(g, '.vn-t'), t - 0.2, 0.8)
-          dibuja(tl, q(g, '.vn-ruta'), t + 0.1, 2.3, 0)
-          viaja(tl, q(g, '.vn-viajero'), [[20, 72], [66, 46], [112, 62], [158, 34], [206, 48]], t + 0.1, 2.3)
-          tl.fromTo(q(g, '.vn-brote'), { scale: 0, transformOrigin: '50% 50%' }, { scale: 1, duration: 0.5, ease: 'back.out(3)', stagger: 0.56 }, t + 0.15)
-          tl.to(q(g, '.vn-viajero'), { autoAlpha: 0, duration: 0.2 }, t + 2.4).set(q(g, '.vn-viajero'), { autoAlpha: 1 }, t)
-        },
-      },
-    ],
+    svg: `<g class="mapa">${T([P.line(0, 28, 240, 20), P.line(0, 72, 240, 80), P.line(58, 0, 50, 100), P.line(150, 0, 162, 100)], 1.1, 'vn-t')}
+        ${T(poli(RUTA), 2.4, 'vn-w ruta')}
+        ${[[70, 52], [168, 32]].map(([x, y]) => `<g transform="translate(${x} ${y})"><g class="pin"><path fill="#fff" d="M0 0C-7 -9 -9 -13 -9 -17a9 9 0 1 1 18 0c0 4 -2 8 -9 17Z"/><circle cy="-17" r="3.2" fill="${TINTA}"/></g></g>`).join('')}
+        <g class="viajero"><circle r="6.5" fill="#fff"/><circle r="3.6" fill="${TINTA}"/></g></g>
+      ${T([P.line(16, 82, 232, 82)], 2.4, 'vn-w suelo')}
+      ${persona(182, 82, 'otro', 'dueno')}
+      <path class="vn-h" fill="#fff" d="${aD(S.pin)}"/>
+      <g class="hoja-d"><circle cx="170" cy="54" r="2.4" fill="${TINTA}"/>${T([caja(169, 28, 26, 20), caja(169, 56, 26, 20)], 1.6, 'vn-k')}</g>
+      <g class="toc">${T([P.arc(158, 50, 6, 130, 230), P.arc(154, 50, 12, 135, 225)], 2.2, 'vn-w')}</g>
+      <g class="duo">${persona(98, 82, 'alex')}${persona(122, 82, 'dali')}</g>
+      ${globo(84, 12, 50, 26, 'globo-n', T([P.line(10, 9, 40, 9), P.line(10, 17, 30, 17)], 2, 'vn-k'))}
+      ${globo(160, 2, 36, 26, 'globo-d', `<path transform="translate(18 14) scale(0.9)" fill="#ff574a" d="${CORAZON}"/>`, 0.6)}
+      <g class="exp"><circle class="avatar" cx="94" cy="34" r="10" fill="${TINTA}"/>${T([P.line(112, 29, 156, 29), P.line(112, 40, 142, 40)], 2.6, 'vn-k renglon')}
+        ${[88, 104, 120, 136, 152].map((x) => `<circle class="etapa" cx="${x}" cy="64" r="4.6" fill="rgb(5 5 6 / 0.16)"/>`).join('')}
+        ${T([P.line(88, 64, 152, 64)], 1.4, 'vn-k renglon')}
+        <circle class="avance" cy="64" r="5.4" fill="${AZUL}"/>
+        <g transform="translate(166 18)"><g class="premio" fill="${AMARILLO}" stroke="${TINTA}" stroke-width="2" stroke-linejoin="round">${estrella(0, 0, 13)}</g></g></g>`,
+    anima(tl, el) {
+      const h = el.querySelector('.vn-h')
+      empieza(tl, h, S.pin)
+      // 1 · El mapa: la ruta se traza y el punto va de visita en visita.
+      dibuja(tl, q(el, '.mapa .vn-t'), 0, 0.8)
+      dibuja(tl, q(el, '.ruta'), 0.1, 2.3, 0)
+      viaja(tl, q(el, '.viajero'), RUTA, 0.1, 2.3)
+      brota(tl, q(el, '.pin'), 0.6, 0.85, '50% 100%')
+      brota(tl, h, 2.05, 0, '50% 100%')
+      // 2 · El último pin se vuelve puerta. Llegan los dos, tocan, y les abren.
+      sale(tl, q(el, '.mapa'), 2.7, 0.45)
+      morfa(tl, h, S.pin, S.puerta, 2.8)
+      dibuja(tl, q(el, '.suelo'), 3.1, 0.7)
+      entra(tl, q(el, '.hoja-d'), 3.5)
+      dibuja(tl, q(el, '.hoja-d .draw'), 3.5, 0.5)
+      entra(tl, q(el, '.dueno'), 3.5, 0.1)
+      tl.fromTo(q(el, '.duo'), { x: -130, autoAlpha: 1 }, { x: 0, duration: 1, ease: 'power2.out' }, 3.4)
+      tl.to(q(el, '.duo .vn-p > g'), { y: -2.5, duration: 0.14, yoyo: true, repeat: 5, stagger: 0.07 }, 3.45)
+      tl.fromTo(q(el, '.toc'), { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.13, yoyo: true, repeat: 3 }, 4.5)
+      tiembla(tl, [h, ...q(el, '.hoja-d')], 4.5)
+      tl.to([h, ...q(el, '.hoja-d')], { scaleX: 0.16, svgOrigin: '164 52', duration: 0.5, ease: 'back.out(1.4)' }, 5.1)
+      brota(tl, q(el, '.globo-n > g'), 5.5, 0, '20% 100%')
+      dibuja(tl, q(el, '.globo-n .draw'), 5.6, 0.5, 0.12)
+      brota(tl, q(el, '.globo-d > g'), 6.3, 0, '70% 100%')
+      brinca(tl, q(el, '.duo .vn-p > g'), 6.5)
+      // 3 · La puerta se vuelve su expediente.
+      sale(tl, [...q(el, '.globo-n, .globo-d, .dueno, .suelo, .hoja-d')], 7.4)
+      tl.to(q(el, '.duo'), { x: -40, autoAlpha: 0, duration: 0.4, ease: 'power2.in' }, 7.4)
+      tl.to(h, { scaleX: 1, duration: 0.3, ease: 'power2.out' }, 7.45)
+      morfa(tl, h, S.puerta, S.ficha, 7.7)
+      brota(tl, q(el, '.avatar'), 8.3)
+      dibuja(tl, q(el, '.renglon'), 8.4, 0.5, 0.14)
+      entra(tl, q(el, '.etapa'), 8.7, 0.2, 0.07)
+      tl.fromTo(q(el, '.avance'), { x: 88, autoAlpha: 0 }, { autoAlpha: 1, duration: 0.2 }, 9)
+      tl.to(q(el, '.avance'), { x: 104, duration: 0.35, ease: 'back.out(2)' }, 9.3).to(q(el, '.avance'), { x: 120, duration: 0.35, ease: 'back.out(2)' }, 9.8)
+      tl.fromTo(q(el, '.premio'), { scale: 2.6, autoAlpha: 0, rotation: 40, transformOrigin: '50% 50%' }, { scale: 1, autoAlpha: 1, rotation: -8, duration: 0.28, ease: 'power3.in' }, 10.2)
+      tiembla(tl, h, 10.48)
+      // Y de vuelta al mapa.
+      sale(tl, q(el, '.exp'), 11.4)
+      morfa(tl, h, S.ficha, S.punto, 11.5, 0.6)
+      sale(tl, h, 11.95, 0.2)
+      tl.to({}, { duration: 0.3 }, 12.1)
+    },
   },
 
-  // Agenda: la semana, el día y el encuentro.
-  agenda: {
-    color: 'amarillo',
-    planos: [
-      {
-        // La semana, de lado a lado: el punto la recorre y cada cita deja su bandera.
-        cam: [1.2, -14, 2, 0, 1.06, 10, -2],
-        svg: `${T([P.line(10, 80, 230, 80)], 2.2, 'vn-k')}
-          ${T(Array.from({ length: 8 }, (_, i) => P.line(16 + i * 30, 76, 16 + i * 30, 86, 2)), 1.6, 'vn-k')}
-          ${REJILLA('vn-t2')}
-          ${RUTA([[16, 64], [52, 40], [88, 58], [124, 28], [160, 52], [196, 34], [226, 46]], 'vn-k')}
-          ${[[52, 40], [124, 28], [196, 34]].map(([x, y]) => BANDERA(x, y)).join('')}
-          ${VIAJERO('vn-viajero--azul')}`,
-        anima(tl, g, t) {
-          dibuja(tl, q(g, '.vn-k:not(.vn-ruta)'), t - 0.2, 0.7, 0.03)
-          dibuja(tl, q(g, '.vn-t2'), t - 0.1, 0.8)
-          const pts = [[16, 64], [52, 40], [88, 58], [124, 28], [160, 52], [196, 34], [226, 46]]
-          dibuja(tl, q(g, '.vn-ruta'), t + 0.1, 2.4, 0)
-          viaja(tl, q(g, '.vn-viajero'), pts, t + 0.1, 2.4)
-          brotan(tl, q(g, '.vn-brote'), t + 0.55, 0.8)
-        },
-      },
-      {
-        // El día: el sol recorre su arco, de la mañana a la tarde, y pasa por cada cita.
-        cam: [1.32, 0, 10, 0, 1.08, 0, 0],
-        svg: `${T([P.line(20, 88, 220, 88)], 2.2, 'vn-k')}
-          ${T([P.arc(120, 88, 78, 180, 360, 26)], 1.4, 'vn-t2')}
-          ${Array.from({ length: 9 }, (_, i) => `<line class="vn-marca" x1="120" y1="2" x2="120" y2="7" transform="rotate(${-80 + i * 20} 120 88)"/>`).join('')}
-          ${T([P.arc(120, 88, 78, 180, 360, 26)], 3, 'vn-k vn-ruta')}
-          ${[232, 300].map((a) => BANDERA(120 + Math.cos((a * Math.PI) / 180) * 78, 88 + Math.sin((a * Math.PI) / 180) * 78)).join('')}
-          <g class="vn-viajero"><circle class="vn-fw" r="9"/><circle class="vn-fazul" r="5"/></g>`,
-        anima(tl, g, t) {
-          dibuja(tl, q(g, '.vn-k:not(.vn-ruta), .vn-t2'), t - 0.2, 0.7, 0.05)
-          dibuja(tl, q(g, '.vn-ruta'), t + 0.1, 2.5, 0)
-          viaja(tl, q(g, '.vn-viajero'), enArco(120, 88, 78, 180, 360, 18), t + 0.1, 2.5, 'sine.inOut')
-          brotan(tl, q(g, '.vn-brote'), t + 0.95, 0.95)
-        },
-      },
-      {
-        // El encuentro: dos caminos que llegan al mismo punto. Cita confirmada.
-        cam: [1.08, 0, 0, 3, 1.26, 0, 2],
-        svg: `${REJILLA('vn-t2')}
-          ${T([P.curve(8, 86, 50, 86, 70, 50, 120, 50, 16)], 2.8, 'vn-k vn-ruta')}
-          ${T([P.curve(232, 14, 190, 14, 170, 50, 120, 50, 16)], 2.8, 'vn-azul vn-ruta')}
-          <g class="vn-viajero vn-ida"><circle class="vn-fw" r="6.5"/><circle class="vn-fk" r="3.6"/></g>
-          <g class="vn-viajero vn-vuelta"><circle class="vn-fw" r="6.5"/><circle class="vn-fazul" r="3.6"/></g>
-          <circle class="vn-onda3" cx="120" cy="50" r="8"/>
-          <g class="vn-sello" transform="translate(120 50)"><circle class="vn-fazul" r="16"/><path class="vn-palo" d="${PALOMA}"/></g>`,
-        anima(tl, g, t) {
-          dibuja(tl, q(g, '.vn-t2'), t - 0.2, 0.8)
-          dibuja(tl, q(g, '.vn-ruta'), t + 0.1, 1.7, 0)
-          viaja(tl, q(g, '.vn-ida'), enCurva([8, 86], [50, 86], [70, 50], [120, 50]), t + 0.1, 1.7)
-          viaja(tl, q(g, '.vn-vuelta'), enCurva([232, 14], [190, 14], [170, 50], [120, 50]), t + 0.1, 1.7)
-          tl.fromTo(q(g, '.vn-onda3'), { attr: { r: 8 }, autoAlpha: 0.9 }, { attr: { r: 46 }, autoAlpha: 0, duration: 0.8, ease: 'power1.out', immediateRender: false }, t + 1.75)
-          tl.fromTo(q(g, '.vn-sello'), { scale: 0, rotation: -50, svgOrigin: '120 50' }, { scale: 1, rotation: 0, duration: 0.6, ease: 'back.out(2.6)' }, t + 1.8)
-        },
-      },
-    ],
-  },
-
-  // Cobranza: la gráfica, el anillo y el cobro que llega.
+  // Cobranza: en efectivo → por transferencia → con tarjeta → el recibo, y todos contentos.
   cobranza: {
     color: 'verde',
-    planos: [
-      {
-        // La gráfica se traza sola, con el punto en la punta; en cada pico, una moneda.
-        cam: [1.22, -14, -6, 0, 1.06, 8, 2],
-        svg: `${T([P.line(0, 86, 240, 86), P.line(0, 62, 240, 62), P.line(0, 38, 240, 38), P.line(0, 14, 240, 14)], 1.1, 'vn-t')}
-          ${RUTA([[14, 82], [50, 66], [82, 72], [118, 46], [150, 54], [186, 26], [228, 12]], 'vn-w', 3)}
-          ${[[50, 66], [118, 46], [186, 26]].map(([x, y]) => MONEDA(x, y - 13)).join('')}
-          ${VIAJERO()}`,
-        anima(tl, g, t) {
-          dibuja(tl, q(g, '.vn-t'), t - 0.2, 0.8, 0.08)
-          const pts = [[14, 82], [50, 66], [82, 72], [118, 46], [150, 54], [186, 26], [228, 12]]
-          dibuja(tl, q(g, '.vn-ruta'), t + 0.1, 2.4, 0)
-          viaja(tl, q(g, '.vn-viajero'), pts, t + 0.1, 2.4)
-          brotan(tl, q(g, '.vn-brote'), t + 0.5, 0.8)
-        },
-      },
-      {
-        // De cerca: el anillo se llena. Cuánto va al corriente.
-        cam: [1.42, 0, 0, -20, 1.1, 0, 0],
-        svg: `${T([P.circle(120, 50, 34, 26)], 1.4, 'vn-t')}
-          ${T([P.arc(120, 50, 34, -90, 205, 26)], 6, 'vn-w vn-ruta')}
-          ${VIAJERO()}
-          <g class="vn-sello" transform="translate(120 50)"><circle class="vn-fw" r="15"/><path class="vn-palo vn-palo--k" d="${PALOMA}"/></g>
-          <g transform="translate(176 20)"><g class="vn-brote vn-famarillo">${estrella(0, 0, 8)}</g></g>`,
-        anima(tl, g, t) {
-          dibuja(tl, q(g, '.vn-t'), t - 0.2, 0.8)
-          dibuja(tl, q(g, '.vn-ruta'), t + 0.1, 2, 0)
-          viaja(tl, q(g, '.vn-viajero'), enArco(120, 50, 34, -90, 205, 20), t + 0.1, 2, 'sine.inOut')
-          tl.fromTo(q(g, '.vn-sello'), { scale: 0, svgOrigin: '120 50' }, { scale: 1, duration: 0.55, ease: 'back.out(2.8)' }, t + 1.9)
-          tl.fromTo(q(g, '.vn-brote'), { scale: 0, rotation: -90, transformOrigin: '50% 50%' }, { scale: 1, rotation: 0, duration: 0.55, ease: 'back.out(2.8)' }, t + 2.25)
-        },
-      },
-      {
-        // El cobro llega: las monedas viajan del cliente a Soma, una tras otra.
-        cam: [1.05, 10, 4, 2, 1.18, -8, -2],
-        svg: `${REJILLA()}
-          ${T([P.curve(34, 74, 90, 96, 150, 2, 206, 30, 18)], 2.6, 'vn-w vn-ruta')}
-          ${MARCA(34, 74)}
-          <g class="vn-soma" transform="translate(206 30)"><circle class="vn-fw" r="15"/><circle class="vn-fazul" r="6.5"/></g>
-          ${[0, 1, 2].map(() => `<g class="vn-corre"><circle class="vn-famarillo" r="6.5"/></g>`).join('')}`,
-        anima(tl, g, t) {
-          dibuja(tl, q(g, '.vn-t'), t - 0.2, 0.8)
-          dibuja(tl, q(g, '.vn-ruta'), t, 1, 0)
-          brotan(tl, q(g, '.vn-brote'), t + 0.1)
-          const camino = enCurva([34, 74], [90, 96], [150, 2], [206, 30], 16)
-          q(g, '.vn-corre').forEach((c, i) => {
-            const t0 = t + 0.7 + i * 0.6
-            tl.set(c, { autoAlpha: 0 }, t)
-            tl.set(c, { autoAlpha: 1 }, t0)
-            viaja(tl, c, camino, t0, 0.9, 'power1.in')
-            tl.set(c, { autoAlpha: 0 }, t0 + 0.9)
-            tl.fromTo(q(g, '.vn-soma'), { scale: 1, svgOrigin: '206 30' }, { scale: 1.25, duration: 0.14, yoyo: true, repeat: 1, ease: 'power2.out' }, t0 + 0.88)
-          })
-        },
-      },
-    ],
+    svg: `<path class="vn-h" fill="#fff" d="${aD(S.billete)}"/>
+      <g class="b1">${T([caja(72, 34, 96, 34)], 1.6, 'vn-k')}<circle cx="120" cy="51" r="11" fill="${TINTA}"/><path transform="translate(120 51) scale(0.8)" d="M4 -6C-6 -9 -7 -1 0 0C7 1 6 9 -4 6M0 -10V10" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><circle cx="82" cy="43" r="2.4" fill="${TINTA}"/><circle cx="158" cy="59" r="2.4" fill="${TINTA}"/></g>
+      ${[78, 68, 58].map((y) => `<g transform="translate(200 ${y})"><g class="moneda"><ellipse rx="13" ry="5.5" fill="${AMARILLO}" stroke="${TINTA}" stroke-width="2"/></g></g>`).join('')}
+      <g class="b2"><rect x="112" y="13" width="16" height="3" rx="1.5" fill="${TINTA}"/><circle cx="120" cy="30" r="6.5" fill="${TINTA}"/><circle cx="120" cy="72" r="6.5" fill="${AZUL}"/>${T([P.line(120, 40, 120, 60), P.line(115, 55, 120, 61), P.line(125, 55, 120, 61)], 2.2, 'vn-k flecha')}</g>
+      <g class="soma" transform="translate(206 50)"><g><circle r="14" fill="#fff"/><circle r="6.5" fill="${AZUL}"/></g></g>
+      ${[0, 1].map(() => `<circle class="vuela" r="6" fill="${AMARILLO}" stroke="${TINTA}" stroke-width="2"/>`).join('')}
+      <g class="b3"><rect x="70" y="35" width="100" height="10" fill="${TINTA}"/><rect x="80" y="52" width="15" height="11" rx="2.5" fill="${AMARILLO}" stroke="${TINTA}" stroke-width="1.6"/>${T([P.line(104, 58, 122, 58), P.line(128, 58, 146, 58), P.line(80, 70, 112, 70)], 2.4, 'vn-k cifra')}</g>
+      <g class="wifi">${T([P.arc(196, 34, 7, 215, 325), P.arc(196, 34, 14, 215, 325), P.arc(196, 34, 21, 215, 325)], 2.6, 'vn-w')}<circle cx="196" cy="34" r="2.6" fill="#fff"/></g>
+      <circle class="toque" cx="152" cy="64" r="5" fill="none" stroke="${AZUL}" stroke-width="2.6"/>
+      ${sello(152, 64, 12, 'ok3')}
+      <g class="b4">${T([P.line(96, 22, 144, 22), P.line(96, 33, 132, 33), P.line(96, 44, 140, 44)], 2.2, 'vn-k renglon')}${T([P.line(96, 62, 144, 62)], 3.4, 'vn-k renglon')}</g>
+      ${sello(146, 76, 11, 'ok4')}
+      ${persona(44, 90, 'clienta', 'feliz')}${persona(196, 90, 'dali', 'feliz')}
+      ${[[62, 40], [178, 38]].map(([x, y]) => `<path class="amor" transform="translate(${x} ${y})" fill="#fff" d="${CORAZON}"/>`).join('')}`,
+    anima(tl, el) {
+      const h = el.querySelector('.vn-h')
+      empieza(tl, h, S.billete)
+      // 1 · En efectivo: el billete llega y las monedas caen a su lado.
+      tl.fromTo(h, { x: -200, rotation: -16, autoAlpha: 1, svgOrigin: '120 51' }, { x: 0, rotation: 0, duration: 0.9, ease: 'back.out(1.2)' }, 0)
+      entra(tl, q(el, '.b1'), 0.75)
+      dibuja(tl, q(el, '.b1 .draw'), 0.75, 0.6)
+      tl.fromTo(q(el, '.moneda'), { y: -110, autoAlpha: 1 }, { y: 0, duration: 0.7, ease: 'bounce.out', stagger: 0.2 }, 1.1)
+      // 2 · El billete se vuelve teléfono: por transferencia.
+      sale(tl, [...q(el, '.b1, .moneda')], 2.9)
+      morfa(tl, h, S.billete, S.telefono, 3)
+      entra(tl, q(el, '.b2'), 3.7)
+      dibuja(tl, q(el, '.flecha'), 3.9, 0.6, 0.05)
+      brota(tl, q(el, '.soma > g'), 4)
+      q(el, '.vuela').forEach((c, i) => {
+        const t = 4.6 + i * 0.7
+        tl.set(c, { autoAlpha: 0 }, 0).set(c, { autoAlpha: 1 }, t)
+        viaja(tl, c, [[142, 50], [160, 26], [186, 30], [206, 50]], t, 0.6, 'power1.in')
+        tl.set(c, { autoAlpha: 0 }, t + 0.6)
+        tl.to(q(el, '.soma > g'), { scale: 1.25, duration: 0.13, yoyo: true, repeat: 1, transformOrigin: '50% 50%' }, t + 0.58)
+      })
+      // 3 · El teléfono se vuelve tarjeta: por internet.
+      sale(tl, [...q(el, '.b2, .soma')], 6.3)
+      morfa(tl, h, S.telefono, S.tarjeta, 6.4)
+      tl.to(h, { rotation: -5, svgOrigin: '120 51', duration: 0.7, ease: 'expo.inOut' }, 6.4)
+      tl.fromTo(q(el, '.b3'), { autoAlpha: 0, rotation: -5, svgOrigin: '120 51' }, { autoAlpha: 1, duration: 0.3 }, 7.1)
+      dibuja(tl, q(el, '.cifra'), 7.2, 0.5, 0.1)
+      entra(tl, q(el, '.wifi'), 7.5, 0.1)
+      dibuja(tl, q(el, '.wifi .draw'), 7.5, 0.3, 0.14)
+      tl.fromTo(q(el, '.wifi .boil'), { opacity: 1 }, { opacity: 0.25, duration: 0.3, yoyo: true, repeat: 3, stagger: 0.12 }, 8)
+      tl.set(q(el, '.toque'), { autoAlpha: 0 }, 0)
+      tl.fromTo(q(el, '.toque'), { attr: { r: 5 }, autoAlpha: 1 }, { attr: { r: 20 }, autoAlpha: 0, duration: 0.6, ease: 'power1.out', immediateRender: false }, 8.4)
+      brota(tl, q(el, '.ok3 > g'), 8.7)
+      // 4 · La tarjeta se vuelve recibo. Y todos contentos.
+      sale(tl, [...q(el, '.b3, .wifi, .ok3')], 9.6)
+      tl.to(h, { rotation: 0, duration: 0.7, ease: 'expo.inOut' }, 9.7)
+      morfa(tl, h, S.tarjeta, S.recibo, 9.7)
+      dibuja(tl, q(el, '.renglon'), 10.4, 0.4, 0.13)
+      brota(tl, q(el, '.ok4 > g'), 11)
+      brota(tl, q(el, '.feliz > g'), 11.1, 0.15, '50% 100%')
+      brinca(tl, q(el, '.feliz > g'), 11.7, 3, 6)
+      tl.fromTo(q(el, '.amor'), { autoAlpha: 0, y: 10, scale: 0.6, transformOrigin: '50% 50%' }, { autoAlpha: 1, y: -12, scale: 1.1, duration: 0.9, ease: 'power1.out', stagger: 0.2 }, 11.6)
+      sale(tl, q(el, '.amor'), 12.6, 0.2)
+      sale(tl, [...q(el, '.b4, .ok4, .feliz')], 12.9)
+      tl.to(h, { x: 220, autoAlpha: 0, duration: 0.45, ease: 'power2.in' }, 12.9)
+      tl.to({}, { duration: 0.2 }, 13.4)
+    },
   },
 
-  // Sistemas: la red, el pulso y el arreglo a distancia.
+  // Agenda: el día en el calendario → la hora en el reloj → el lugar donde se encuentran.
+  agenda: {
+    color: 'amarillo',
+    svg: `<g class="cal"><rect x="62" y="10" width="116" height="80" rx="6" fill="#fff"/><path d="M62 26V16a6 6 0 0 1 6 -6h104a6 6 0 0 1 6 6v10Z" fill="${TINTA}"/><rect x="82" y="5" width="4" height="11" rx="2" fill="${TINTA}"/><rect x="154" y="5" width="4" height="11" rx="2" fill="${TINTA}"/>
+        ${Array.from({ length: 15 }, (_, i) => (i === 8 ? '' : `<rect class="celda" x="${70 + (i % 5) * 21}" y="${36 + Math.floor(i / 5) * 17}" width="15" height="11" rx="2" fill="rgb(5 5 6 / 0.13)"/>`)).join('')}</g>
+      <path class="vn-h" fill="rgb(5 5 6 / 0.13)" d="${aD(S.celda)}"/>
+      <circle class="salta" r="5.5" fill="${AZUL}"/>
+      <g class="rel">${T([P.circle(120, 50, 36, 28)], 3, 'vn-k')}${Array.from({ length: 12 }, (_, i) => `<line class="tic" x1="120" y1="${i % 3 ? 20 : 19}" x2="120" y2="${i % 3 ? 23 : 25}" stroke="${TINTA}" stroke-width="2" stroke-linecap="round" transform="rotate(${i * 30} 120 50)"/>`).join('')}
+        <line class="hora" x1="120" y1="53" x2="120" y2="34" stroke="${TINTA}" stroke-width="5" stroke-linecap="round"/><line class="min" x1="120" y1="54" x2="120" y2="24" stroke="${TINTA}" stroke-width="3.2" stroke-linecap="round"/><circle cx="120" cy="50" r="4" fill="${AZUL}"/></g>
+      <g class="timbre">${T([P.arc(162, 24, 7, -60, 40), P.arc(166, 22, 13, -55, 35)], 2.4, 'vn-k')}${T([P.arc(78, 24, 7, 140, 240), P.arc(74, 22, 13, 145, 235)], 2.4, 'vn-k')}</g>
+      ${T([P.line(20, 88, 220, 88)], 2.4, 'vn-k suelo')}
+      <circle class="ojo" cx="120" cy="53.7" r="6.6" fill="#fff"/>
+      <g class="izq">${persona(84, 88, 'alex')}</g><g class="der">${persona(156, 88, 'otro')}</g>
+      ${globo(56, 22, 30, 22, 'gl-a', `<circle cx="9" cy="11" r="2" fill="${TINTA}"/><circle cx="15" cy="11" r="2" fill="${TINTA}"/><circle cx="21" cy="11" r="2" fill="${TINTA}"/>`, 0.7)}
+      ${sello(174, 30, 12, 'ok')}`,
+    anima(tl, el) {
+      const h = el.querySelector('.vn-h')
+      empieza(tl, h, S.celda)
+      // 1 · El mes: el punto brinca de día en día hasta el de la cita.
+      tl.fromTo([...q(el, '.cal'), h], { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: 0.5, ease: 'expo.out' }, 0)
+      tl.fromTo(h, { fill: 'rgba(5,5,6,0.13)' }, { fill: AZUL, duration: 0.2 }, 2.55)
+      const paradas = [[77.5, 41.5], [98.5, 41.5], [119.5, 58.5], [140.5, 58.5]]
+      tl.fromTo(q(el, '.salta'), { x: paradas[0][0], y: paradas[0][1], autoAlpha: 0 }, { autoAlpha: 1, duration: 0.2 }, 0.5)
+      paradas.slice(1).forEach(([x, y], i) => {
+        tl.to(q(el, '.salta'), { x, duration: 0.42, ease: 'power1.inOut' }, 0.9 + i * 0.55)
+        tl.to(q(el, '.salta'), { keyframes: [{ y: Math.min(y, paradas[i][1]) - 13, ease: 'power2.out' }, { y, ease: 'power2.in' }], duration: 0.42 }, 0.9 + i * 0.55)
+      })
+      sale(tl, q(el, '.salta'), 2.5, 0.15)
+      // 2 · Ese día se vuelve reloj: la hora.
+      tl.to(q(el, '.cal'), { autoAlpha: 0, scale: 0.92, transformOrigin: '50% 50%', duration: 0.45 }, 3)
+      morfa(tl, h, S.celda, S.reloj, 3.1)
+      tl.to(h, { fill: '#ffffff', duration: 0.6 }, 3.2)
+      dibuja(tl, q(el, '.rel .draw'), 3.6, 0.7)
+      entra(tl, q(el, '.rel'), 3.7, 0.2)
+      tl.fromTo(q(el, '.tic'), { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.15, stagger: 0.03 }, 3.8)
+      tl.fromTo(q(el, '.min'), { rotation: 0, svgOrigin: '120 50' }, { rotation: 720, duration: 1.8, ease: 'power3.inOut' }, 3.9)
+      tl.fromTo(q(el, '.hora'), { rotation: 30, svgOrigin: '120 50' }, { rotation: 150, duration: 1.8, ease: 'power3.inOut' }, 3.9)
+      tl.fromTo(q(el, '.timbre'), { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.12, yoyo: true, repeat: 5 }, 5.75)
+      dibuja(tl, q(el, '.timbre .draw'), 5.7, 0.2, 0.02)
+      tiembla(tl, [h, ...q(el, '.rel')], 5.75)
+      // 3 · El reloj se vuelve el lugar. Y ahí se encuentran.
+      sale(tl, [...q(el, '.rel, .timbre')], 6.6)
+      morfa(tl, h, S.reloj, S.lugar, 6.7)
+      tl.to(h, { fill: AZUL, duration: 0.6 }, 6.8)
+      brota(tl, q(el, '.ojo'), 7.4)
+      dibuja(tl, q(el, '.suelo'), 7.2, 0.7)
+      tl.fromTo(q(el, '.izq'), { x: -120, autoAlpha: 1 }, { x: 0, duration: 0.9, ease: 'power2.out' }, 7.5)
+      tl.fromTo(q(el, '.der'), { x: 120, autoAlpha: 1 }, { x: 0, duration: 0.9, ease: 'power2.out' }, 7.6)
+      tl.to(q(el, '.izq .vn-p > g, .der .vn-p > g'), { y: -2.5, duration: 0.14, yoyo: true, repeat: 5, stagger: 0.05 }, 7.55)
+      brota(tl, q(el, '.gl-a > g'), 8.6, 0, '80% 100%')
+      brota(tl, q(el, '.ok > g'), 9.3)
+      brinca(tl, q(el, '.izq .vn-p > g, .der .vn-p > g'), 9.4)
+      sale(tl, [...q(el, '.izq, .der, .gl-a, .ok, .suelo, .ojo')], 10.7)
+      morfa(tl, h, S.lugar, S.punto, 10.8, 0.6)
+      sale(tl, h, 11.25, 0.2)
+      tl.to({}, { duration: 0.3 }, 11.4)
+    },
+  },
+
+  // Sistemas: se construye → también en el celular → es uno más de la red que cuidamos.
   sistemas: {
     color: 'tinta',
-    planos: [
-      {
-        // La red, desde arriba: Soma al centro y la señal viajando a cada sistema.
-        cam: [1.24, 0, 0, -6, 1.04, 0, 0],
-        svg: `${REJILLA()}
-          ${[[40, 22], [202, 26], [188, 80], [48, 76]].map(([x, y]) => T([P.line(120, 50, x, y)], 2, 'vn-w vn-ruta')).join('')}
-          ${[[40, 22], [202, 26], [188, 80], [48, 76]].map(([x, y]) => `<g transform="translate(${x} ${y})"><g class="vn-brote"><rect class="vn-fw" x="-12" y="-9" width="24" height="18" rx="3"/><rect class="vn-fk" x="-12" y="-9" width="24" height="5" rx="2"/><circle class="vn-luz" cx="6" cy="3" r="2.6"/></g></g>`).join('')}
-          ${[0, 1, 2, 3].map(() => `<circle class="vn-pulso" r="3.4"/>`).join('')}
-          <circle class="vn-fw" cx="120" cy="50" r="13"/><circle class="vn-fazul" cx="120" cy="50" r="6"/>`,
-        anima(tl, g, t) {
-          dibuja(tl, q(g, '.vn-t'), t - 0.2, 0.8)
-          dibuja(tl, q(g, '.vn-ruta'), t, 0.8, 0.1)
-          tl.fromTo(q(g, '.vn-brote'), { scale: 0, transformOrigin: '50% 50%' }, { scale: 1, duration: 0.5, ease: 'back.out(2.6)', stagger: 0.1 }, t + 0.3)
-          const destinos = [[40, 22], [202, 26], [188, 80], [48, 76]]
-          const luces = q(g, '.vn-luz')
-          q(g, '.vn-pulso').forEach((c, i) => {
-            for (const vuelta of [0, 1]) {
-              const t0 = t + 0.9 + i * 0.16 + vuelta * 1.05
-              tl.fromTo(c, { x: 120, y: 50, autoAlpha: 1 }, { x: destinos[i][0], y: destinos[i][1], duration: 0.6, ease: 'power1.in' }, t0)
-              tl.set(c, { autoAlpha: 0 }, t0 + 0.6)
-              tl.fromTo(luces[i], { fill: '#5d5f6b' }, { fill: '#1fce6d', duration: 0.12, yoyo: true, repeat: 3 }, t0 + 0.6)
-            }
-            tl.set(c, { autoAlpha: 0 }, t)
-          })
-        },
-      },
-      {
-        // De cerca: el pulso. Mientras late, el sistema está vivo.
-        cam: [1.36, 30, 0, 0, 1.12, -24, 0],
-        svg: `${T([P.line(0, 20, 240, 20), P.line(0, 50, 240, 50), P.line(0, 80, 240, 80), ...[30, 80, 130, 180, 230].map((x) => P.line(x, 0, x, 100))], 1, 'vn-t')}
-          ${T(poli([[0, 54], [58, 54], [70, 54], [80, 26], [92, 82], [104, 42], [114, 54], [162, 54], [174, 38], [184, 68], [194, 54], [240, 54]], false, 8), 3, 'vn-azul vn-ruta')}
-          ${VIAJERO()}`,
-        anima(tl, g, t) {
-          dibuja(tl, q(g, '.vn-t'), t - 0.2, 0.7, 0.03)
-          const pts = [[0, 54], [58, 54], [70, 54], [80, 26], [92, 82], [104, 42], [114, 54], [162, 54], [174, 38], [184, 68], [194, 54], [240, 54]]
-          dibuja(tl, q(g, '.vn-ruta'), t + 0.1, 2.5, 0)
-          viaja(tl, q(g, '.vn-viajero'), pts, t + 0.1, 2.5, 'none')
-        },
-      },
-      {
-        // El arreglo a distancia: un sistema avisa que algo anda mal, llega la señal, y vuelve.
-        cam: [1.04, 4, 0, 0, 1.14, -4, 0],
-        svg: `${REJILLA()}
-          ${RUTA([[44, 60], [96, 60], [120, 38], [172, 38]], 'vn-w')}
-          <g class="vn-soma" transform="translate(44 60)"><circle class="vn-fw" r="13"/><circle class="vn-fazul" r="6"/></g>
-          <g class="vn-enfermo" transform="translate(172 38)"><rect class="vn-fw" x="-17" y="-13" width="34" height="26" rx="4"/><rect class="vn-fk" x="-17" y="-13" width="34" height="7" rx="3"/><circle class="vn-estado" cy="4" r="6"/><path class="vn-palo vn-cura" transform="translate(0 4) scale(0.55)" d="${PALOMA}"/></g>
-          <circle class="vn-onda2" cx="172" cy="38" r="10"/>
-          <circle class="vn-pulso" r="4"/>`,
-        anima(tl, g, t) {
-          dibuja(tl, q(g, '.vn-t'), t - 0.2, 0.8)
-          dibuja(tl, q(g, '.vn-ruta'), t, 0.9, 0)
-          tl.fromTo(q(g, '.vn-enfermo'), { x: 0 }, { keyframes: { x: [0, -2, 2, -2, 2, 0] }, duration: 0.45, ease: 'none', repeat: 1, repeatDelay: 0.2 }, t + 0.2)
-          tl.fromTo(q(g, '.vn-estado'), { fill: '#ff574a' }, { fill: '#1fce6d', duration: 0.25 }, t + 2.05)
-          tl.fromTo(q(g, '.vn-cura'), { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.2 }, t + 2.1)
-          viaja(tl, q(g, '.vn-pulso'), [[44, 60], [96, 60], [120, 38], [172, 38]], t + 1.1, 0.9, 'power1.inOut')
-          tl.set(q(g, '.vn-pulso'), { autoAlpha: 0 }, t).set(q(g, '.vn-pulso'), { autoAlpha: 1 }, t + 1.1).set(q(g, '.vn-pulso'), { autoAlpha: 0 }, t + 2)
-          tl.fromTo(q(g, '.vn-onda2'), { attr: { r: 10 }, autoAlpha: 0.9 }, { attr: { r: 44 }, autoAlpha: 0, duration: 0.8, ease: 'power1.out', immediateRender: false }, t + 2.05)
-        },
-      },
-    ],
+    svg: `${T([P.line(120, 54, 44, 30), P.line(120, 54, 56, 84), P.line(120, 54, 192, 82), P.line(120, 54, 185, 30)], 1.6, 'vn-w hilo')}
+      ${[[44, 28], [56, 84], [192, 82]].map(([x, y]) => `<g transform="translate(${x} ${y})"><g class="vecino"><rect x="-14" y="-10" width="28" height="20" rx="4" fill="#fff"/><rect x="-14" y="-10" width="28" height="6" rx="3" fill="${TINTA}"/><circle class="luz" cx="7" cy="3" r="3" fill="#5d5f6b"/></g></g>`).join('')}
+      <path class="vn-h" fill="#fff" d="${aD(S.ventana)}"/>
+      <g class="v1">${T([P.line(52, 28, 188, 28)], 2, 'vn-k')}${[62, 71, 80].map((x) => `<circle class="bolita" cx="${x}" cy="20" r="2.6" fill="${TINTA}"/>`).join('')}
+        <rect class="bloque" x="62" y="36" width="54" height="26" rx="4" fill="${AZUL}"/>${T([P.line(126, 40, 178, 40), P.line(126, 50, 166, 50), P.line(126, 60, 172, 60)], 2.4, 'vn-k texto')}<rect class="bloque" x="62" y="70" width="116" height="9" rx="4" fill="rgb(5 5 6 / 0.14)"/></g>
+      <g class="v2"><rect x="112" y="13" width="16" height="3" rx="1.5" fill="${TINTA}"/><rect class="bloque2" x="105" y="24" width="30" height="18" rx="3" fill="${AZUL}"/>${T([P.line(105, 50, 135, 50), P.line(105, 58, 127, 58)], 2.2, 'vn-k texto2')}
+        ${T(poli([[104, 74], [112, 74], [116, 66], [121, 82], [126, 71], [129, 74], [136, 74]], false, 5), 2.2, 'vn-azul latido')}</g>
+      <g class="v3"><rect x="170" y="18" width="30" height="7" rx="3.5" fill="${TINTA}"/><circle class="estado" cx="185" cy="32" r="4.4" fill="#1fce6d"/></g>
+      <g class="soma" transform="translate(120 54)"><g><circle r="13" fill="#fff"/><circle r="6" fill="${AZUL}"/></g></g>
+      ${[0, 1, 2, 3].map(() => `<circle class="pulso" r="3.4" fill="#5d95ff"/>`).join('')}
+      <circle class="alarma" cx="185" cy="29" r="12" fill="none" stroke="#ff574a" stroke-width="2.4"/>
+      ${sello(206, 12, 9, 'ok')}`,
+    anima(tl, el) {
+      const h = el.querySelector('.vn-h')
+      empieza(tl, h, S.ventana)
+      // 1 · El sistema se construye, pieza por pieza.
+      tl.fromTo(h, { scale: 0.7, autoAlpha: 0, transformOrigin: '50% 50%' }, { scale: 1, autoAlpha: 1, duration: 0.6, ease: 'back.out(1.6)' }, 0)
+      entra(tl, q(el, '.v1'), 0.5, 0.1)
+      dibuja(tl, q(el, '.v1 > .draw'), 0.5, 0.5)
+      brota(tl, q(el, '.bolita'), 0.7, 0.08)
+      brota(tl, q(el, '.bloque'), 1.1, 0.7, '0% 50%')
+      dibuja(tl, q(el, '.texto'), 1.4, 0.5, 0.14)
+      // 2 · La ventana se vuelve teléfono: el mismo sistema, en la mano.
+      sale(tl, q(el, '.v1'), 2.9)
+      morfa(tl, h, S.ventana, S.telefono, 3)
+      entra(tl, q(el, '.v2'), 3.7, 0.1)
+      brota(tl, q(el, '.bloque2'), 3.8, 0, '50% 0%')
+      dibuja(tl, q(el, '.texto2'), 4, 0.4, 0.12)
+      dibuja(tl, q(el, '.latido'), 4.4, 0.9, 0)
+      // 3 · El teléfono se vuelve uno más de la red. Uno avisa que algo anda mal… y se arregla desde aquí.
+      sale(tl, q(el, '.v2'), 5.4)
+      morfa(tl, h, S.telefono, S.nodo, 5.5, 0.7)
+      brota(tl, q(el, '.soma > g'), 5.9)
+      dibuja(tl, q(el, '.hilo'), 6, 0.6, 0.08)
+      brota(tl, q(el, '.vecino'), 6.2, 0.1)
+      entra(tl, q(el, '.v3'), 6.2)
+      const destinos = [[44, 30], [56, 84], [192, 82], [185, 30]]
+      const luces = [...q(el, '.luz')]
+      q(el, '.pulso').forEach((c, i) => {
+        tl.set(c, { autoAlpha: 0 }, 0)
+        tl.fromTo(c, { x: 120, y: 54, autoAlpha: 1 }, { x: destinos[i][0], y: destinos[i][1], duration: 0.6, ease: 'power1.in', immediateRender: false }, 6.9 + i * 0.12)
+        tl.set(c, { autoAlpha: 0 }, 7.5 + i * 0.12)
+        if (luces[i]) tl.fromTo(luces[i], { fill: '#5d5f6b' }, { fill: '#1fce6d', duration: 0.12, yoyo: true, repeat: 3, immediateRender: false }, 7.5 + i * 0.12)
+      })
+      tl.to(q(el, '.estado'), { fill: '#ff574a', duration: 0.15 }, 8.1)
+      tiembla(tl, [h, ...q(el, '.v3')], 8.1)
+      tl.set(q(el, '.alarma'), { autoAlpha: 0 }, 0)
+      tl.fromTo(q(el, '.alarma'), { attr: { r: 8 }, autoAlpha: 0.9 }, { attr: { r: 30 }, autoAlpha: 0, duration: 0.6, ease: 'power1.out', repeat: 1, immediateRender: false }, 8.1)
+      const cura = q(el, '.pulso')[3]
+      tl.fromTo(cura, { x: 120, y: 54, autoAlpha: 1 }, { x: 185, y: 30, duration: 0.7, ease: 'power1.inOut', immediateRender: false }, 9.3)
+      tl.set(cura, { autoAlpha: 0 }, 10)
+      tl.to(q(el, '.estado'), { fill: '#1fce6d', duration: 0.2 }, 10)
+      brota(tl, q(el, '.ok > g'), 10.1)
+      sale(tl, [...q(el, '.v3, .soma, .hilo, .vecino, .ok')], 11.3)
+      sale(tl, h, 11.3)
+      tl.to({}, { duration: 0.3 }, 11.6)
+    },
   },
 
-  // Ajustes: los engranes, los controles y la llave.
+  // Ajustes: el engrane → el tablero de controles → el candado que guarda las llaves.
   ajustes: {
     color: 'papel',
-    planos: [
-      {
-        // Detalle: dos engranes que se mueven uno al otro.
-        cam: [1.3, 8, 0, 0, 1.08, -4, 0],
-        svg: `<g class="vn-engrane" transform="translate(98 56)"><g>${T([P.circle(0, 0, 24, 20), P.circle(0, 0, 8, 9), ...Array.from({ length: 10 }, (_, i) => P.line(Math.cos((i / 10) * 6.283) * 24, Math.sin((i / 10) * 6.283) * 24, Math.cos((i / 10) * 6.283) * 32, Math.sin((i / 10) * 6.283) * 32, 2))], 2.6, 'vn-k')}</g></g>
-          <g class="vn-engrane vn-engrane--b" transform="translate(152 34)"><g>${T([P.circle(0, 0, 14, 14), P.circle(0, 0, 5, 7), ...Array.from({ length: 7 }, (_, i) => P.line(Math.cos((i / 7) * 6.283) * 14, Math.sin((i / 7) * 6.283) * 14, Math.cos((i / 7) * 6.283) * 21, Math.sin((i / 7) * 6.283) * 21, 2))], 2.4, 'vn-k')}</g></g>
-          <circle class="vn-fazul" cx="98" cy="56" r="3.6"/>`,
-        anima(tl, g, t) {
-          dibuja(tl, q(g, '.vn-k'), t - 0.2, 0.9, 0.1)
-          tl.fromTo(q(g, '.vn-engrane:not(.vn-engrane--b) > g'), { rotation: 0, transformOrigin: '50% 50%' }, { rotation: 150, duration: 3.4, ease: 'power1.inOut' }, t)
-          tl.fromTo(q(g, '.vn-engrane--b > g'), { rotation: 0, transformOrigin: '50% 50%' }, { rotation: -214, duration: 3.4, ease: 'power1.inOut' }, t)
-        },
-      },
-      {
-        // De frente: los controles se acomodan.
-        cam: [1.05, 0, 0, -3, 1.18, 0, 0],
-        svg: `${[26, 50, 74].map((y) => T([P.line(56, y, 184, y)], 2.4, 'vn-k')).join('')}
-          ${[[26, 0], [50, 1], [74, 2]].map(([y, i]) => `<line class="vn-lleno" data-i="${i}" x1="56" y1="${y}" x2="56" y2="${y}"/><circle class="vn-perilla ${i === 1 ? 'vn-fazul' : 'vn-fk'}" data-i="${i}" cx="56" cy="${y}" r="7.5"/>`).join('')}`,
-        anima(tl, g, t) {
-          dibuja(tl, q(g, '.vn-k'), t - 0.2, 0.6, 0.1)
-          const metas = [92, 58, 112]
-          q(g, '.vn-perilla').forEach((c, i) => {
-            tl.fromTo(c, { x: 0 }, { x: metas[i], duration: 0.8, ease: 'back.out(1.6)' }, t + 0.4 + i * 0.35)
-            tl.to(c, { x: metas[i] - 22 + i * 16, duration: 0.6, ease: 'power2.inOut' }, t + 1.9 + i * 0.15)
-          })
-          q(g, '.vn-lleno').forEach((l, i) => {
-            tl.fromTo(l, { attr: { x2: 56 } }, { attr: { x2: 56 + metas[i] }, duration: 0.8, ease: 'back.out(1.6)' }, t + 0.4 + i * 0.35)
-            tl.to(l, { attr: { x2: 56 + metas[i] - 22 + i * 16 }, duration: 0.6, ease: 'power2.inOut' }, t + 1.9 + i * 0.15)
-          })
-        },
-      },
-      {
-        // Detalle: la llave entra, gira y el candado se abre.
-        cam: [1.3, 0, 4, 0, 1.06, 0, 0],
-        svg: `<g class="vn-arco">${T([P.arc(150, 44, 15, 180, 360, 12), P.line(135, 44, 135, 54), P.line(165, 44, 165, 54)], 3, 'vn-k')}</g>
-          <rect class="vn-fk" x="126" y="52" width="48" height="36" rx="6"/>
-          <circle class="vn-fpapel" cx="150" cy="68" r="5"/>
-          <g class="vn-llave"><g>${T([P.circle(60, 68, 10, 12), P.line(70, 68, 112, 68), P.line(100, 68, 100, 76), P.line(108, 68, 108, 75)], 2.8, 'vn-k')}</g></g>
-          <g class="vn-brillos" transform="translate(150 22)">${T([P.line(-14, 2, -22, -4), P.line(0, -4, 0, -13), P.line(14, 2, 22, -4)], 2.4, 'vn-azul')}</g>`,
-        anima(tl, g, t) {
-          dibuja(tl, q(g, '.vn-k'), t - 0.2, 0.6, 0.04)
-          tl.fromTo(q(g, '.vn-llave'), { x: -46 }, { x: 34, duration: 0.8, ease: 'power3.out' }, t + 0.3)
-          // La llave gira sobre su propio eje: se ve como que se adelgaza y vuelve.
-          tl.fromTo(q(g, '.vn-llave > g'), { scaleY: 1, svgOrigin: '90 68' }, { keyframes: { scaleY: [1, 0.15, 1] }, duration: 0.45, ease: 'power1.inOut' }, t + 1.3)
-          tl.fromTo(q(g, '.vn-arco'), { y: 0, rotation: 0, svgOrigin: '165 54' }, { y: -9, rotation: 14, duration: 0.4, ease: 'back.out(3)' }, t + 1.75)
-          tl.fromTo(q(g, '.vn-brillos'), { autoAlpha: 0, scale: 0.5, svgOrigin: '150 22' }, { autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(3)', yoyo: true, repeat: 1, repeatDelay: 0.5 }, t + 2)
-        },
-      },
-    ],
+    svg: `<g class="chico" transform="translate(160 30)"><g>${T([P.circle(0, 0, 12, 12), P.circle(0, 0, 4, 6), ...Array.from({ length: 7 }, (_, i) => P.line(Math.cos((i / 7) * 6.283) * 12, Math.sin((i / 7) * 6.283) * 12, Math.cos((i / 7) * 6.283) * 18, Math.sin((i / 7) * 6.283) * 18, 2))], 2.4, 'vn-k')}</g></g>
+      <g class="arco">${T([P.arc(120, 44, 15, 180, 360, 12), P.line(105, 44, 105, 52), P.line(135, 44, 135, 52)], 3.2, 'vn-k')}</g>
+      <path class="vn-h" fill="${TINTA}" d="${aD(S.engrane)}"/>
+      <g class="eje"><circle cx="112" cy="52" r="9" fill="${PAPEL}"/><circle cx="112" cy="52" r="3.6" fill="${AZUL}"/></g>
+      <g class="t1">${[30, 50, 70].map((y) => `<line x1="76" y1="${y}" x2="164" y2="${y}" stroke="rgb(239 236 228 / 0.3)" stroke-width="4" stroke-linecap="round"/><line class="lleno" x1="76" y1="${y}" x2="76" y2="${y}" stroke="${AZUL}" stroke-width="4" stroke-linecap="round"/><circle class="perilla" cx="76" cy="${y}" r="6.5" fill="${PAPEL}"/>`).join('')}</g>
+      <g class="t2"><circle cx="120" cy="60" r="5" fill="${PAPEL}"/><rect x="118" y="60" width="4" height="12" rx="2" fill="${PAPEL}"/></g>
+      <g class="llave"><g>${T([P.circle(40, 64, 9, 12), P.line(49, 64, 86, 64), P.line(76, 64, 76, 71), P.line(83, 64, 83, 70)], 2.8, 'vn-k')}</g></g>
+      <g class="chispas" transform="translate(120 20)">${T([P.line(-13, 2, -21, -4), P.line(0, -4, 0, -13), P.line(13, 2, 21, -4)], 2.4, 'vn-azul')}</g>`,
+    anima(tl, el) {
+      const h = el.querySelector('.vn-h')
+      empieza(tl, h, S.engrane)
+      // 1 · Los engranes: uno mueve al otro.
+      tl.fromTo(h, { scale: 0, autoAlpha: 1, rotation: -90, svgOrigin: '112 52' }, { scale: 1, rotation: 0, duration: 0.7, ease: 'back.out(1.8)' }, 0)
+      brota(tl, q(el, '.eje'), 0.3)
+      dibuja(tl, q(el, '.chico .draw'), 0.3, 0.8)
+      tl.to(h, { rotation: 144, duration: 2.3, ease: 'power1.inOut' }, 0.7)
+      tl.fromTo(q(el, '.chico > g'), { rotation: 0, transformOrigin: '50% 50%' }, { rotation: -206, duration: 2.3, ease: 'power1.inOut' }, 0.7)
+      // 2 · El engrane se vuelve tablero: los controles se acomodan.
+      sale(tl, [...q(el, '.eje, .chico')], 3)
+      tl.set(h, { rotation: 0 }, 3.1)
+      morfa(tl, h, S.engrane, S.tablero, 3.1)
+      entra(tl, q(el, '.t1'), 3.8)
+      const metas = [64, 30, 78]
+      q(el, '.perilla').forEach((c, i) => {
+        tl.fromTo(c, { x: 0 }, { x: metas[i], duration: 0.8, ease: 'back.out(1.6)' }, 4 + i * 0.3)
+        tl.to(c, { x: metas[i] - 20 + i * 14, duration: 0.6, ease: 'power2.inOut' }, 5.4 + i * 0.12)
+      })
+      q(el, '.lleno').forEach((l, i) => {
+        tl.fromTo(l, { attr: { x2: 76 } }, { attr: { x2: 76 + metas[i] }, duration: 0.8, ease: 'back.out(1.6)' }, 4 + i * 0.3)
+        tl.to(l, { attr: { x2: 76 + metas[i] - 20 + i * 14 }, duration: 0.6, ease: 'power2.inOut' }, 5.4 + i * 0.12)
+      })
+      // 3 · El tablero se vuelve candado. La llave entra, gira y abre.
+      sale(tl, q(el, '.t1'), 6.5)
+      morfa(tl, h, S.tablero, S.candado, 6.6)
+      dibuja(tl, q(el, '.arco .draw'), 7.2, 0.5, 0.05)
+      brota(tl, q(el, '.t2'), 7.3)
+      dibuja(tl, q(el, '.llave .draw'), 7.4, 0.5, 0.05)
+      tl.fromTo(q(el, '.llave'), { x: -50 }, { x: 22, duration: 0.8, ease: 'power3.out' }, 7.7)
+      tl.fromTo(q(el, '.llave > g'), { scaleY: 1, svgOrigin: '60 64' }, { keyframes: { scaleY: [1, 0.15, 1] }, duration: 0.45, ease: 'power1.inOut' }, 8.6)
+      tl.fromTo(q(el, '.arco'), { y: 0, rotation: 0, svgOrigin: '135 52' }, { y: -8, rotation: 16, duration: 0.4, ease: 'back.out(3)' }, 9.05)
+      dibuja(tl, q(el, '.chispas .draw'), 9.2, 0.3, 0.05)
+      tl.fromTo(q(el, '.chispas'), { autoAlpha: 1 }, { autoAlpha: 0.2, duration: 0.25, yoyo: true, repeat: 3 }, 9.5)
+      sale(tl, [...q(el, '.arco, .t2, .llave, .chispas')], 10.6)
+      sale(tl, h, 10.6)
+      tl.to({}, { duration: 0.3 }, 10.9)
+    },
   },
 }
 
-// ───────────────────────── Marcado y animación ─────────────────────────
-
-// Dónde cierra y abre el iris en cada corte: nunca dos veces en el mismo sitio.
-const IRIS = [
-  [120, 50],
-  [196, 22],
-  [44, 78],
-]
+// ───────────────────────── Marcado y arranque ─────────────────────────
 
 /** El marcado de una viñeta. Siempre sale idéntico (los trazos usan la semilla de la vista). */
 export function vineta(nombre) {
   const v = VINETAS[nombre]
   if (!v) return ''
-  return `<div class="vn vn--${v.color}" data-vn="${nombre}" aria-hidden="true"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice">${v.planos.map((p) => `<g class="vn-plano">${p.svg}</g>`).join('')}<circle class="vn-iris" cx="120" cy="50" r="0"/></svg></div>`
+  return `<div class="vn vn--${v.color}" data-vn="${nombre}" aria-hidden="true"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice"><g class="vn-cam">${v.svg}</g></svg></div>`
 }
 
 function arma(el) {
   const v = VINETAS[el.dataset.vn]
-  const planos = [...el.querySelectorAll('.vn-plano')]
-  const iris = el.querySelector('.vn-iris')
   const tl = gsap.timeline({ repeat: -1 })
-  v.planos.forEach((p, i) => {
-    const g = planos[i]
-    const t = i * DURA
-    const [s0, x0, y0, r0, s1, x1, y1] = p.cam
-    tl.set(planos, { autoAlpha: 0 }, t)
-    tl.set(g, { autoAlpha: 1 }, t)
-    // La cámara nunca está quieta: empuja, se aleja o se desliza durante todo el plano.
-    tl.fromTo(g, { scale: s0, x: x0, y: y0, rotation: r0, svgOrigin: `${W / 2} ${H / 2}` }, { scale: s1, x: x1, y: y1, rotation: 0, duration: DURA, ease: 'sine.inOut' }, t)
-    p.anima(tl, g, t + 0.3)
-    // El iris abre al entrar y cierra al salir.
-    const [ax, ay] = IRIS[i % IRIS.length]
-    const [cx, cy] = IRIS[(i + 1) % IRIS.length]
-    tl.set(iris, { attr: { cx: ax, cy: ay } }, t)
-    tl.fromTo(iris, { attr: { r: 150 } }, { attr: { r: 0 }, duration: 0.5, ease: 'expo.out' }, t)
-    tl.set(iris, { attr: { cx, cy } }, t + DURA - 0.32)
-    tl.fromTo(iris, { attr: { r: 0 } }, { attr: { r: 150 }, duration: 0.3, ease: 'power2.in', immediateRender: false }, t + DURA - 0.31)
-  })
+  v.anima(tl, el)
+  // La cámara deriva despacio de principio a fin: nunca está quieta.
+  tl.fromTo(el.querySelector('.vn-cam'), { scale: 1.07, x: -5, y: 2, svgOrigin: `${W / 2} ${H / 2}` }, { scale: 1, x: 4, y: -1, duration: tl.duration(), ease: 'sine.inOut' }, 0)
   el._tl = tl
 }
 
 /** Echa a andar las viñetas que haya en la vista. Las que ya corren, siguen. */
 export function animaVinetas(raiz) {
-  if (reducido) return
   raiz.querySelectorAll('[data-vn]').forEach((el) => {
-    if (!el._tl) arma(el)
+    if (el._tl) return
+    arma(el)
+    // Quien pidió menos movimiento ve la primera escena, quieta.
+    if (reducido) el._tl.pause(2.5)
   })
 }

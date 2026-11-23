@@ -80,14 +80,15 @@ tl.fromTo(el.querySelectorAll('.boil.draw'), { '--draw': 1.06 }, { '--draw': 0, 
 
 ### Viñetas de sección
 
-Cada sección del CRM abre con una viñeta: una tarjeta de color con una ilustración SVG de tres planos. Viven en `src/crm/vinetas.js`. Lee una (por ejemplo `prospectos`) antes de hacer otra.
+Cada sección del CRM abre con una viñeta: una tarjeta de color con una animación SVG continua, de unos doce segundos. Viven en `src/crm/vinetas.js`. Lee `prospectos` completa antes de hacer otra.
 
-- Una viñeta es `{ color, planos: [{ cam, svg, anima(tl, g, t) }] }`. `cam` es el movimiento de cámara del plano: `[escala, x, y, giro]` de inicio y `[escala, x, y]` de fin. La cámara nunca está quieta.
-- Tres planos, tres encuadres distintos (general, detalle, otra perspectiva). Entre plano y plano cierra y abre un iris; no hay que programarlo.
-- El lenguaje es el del mapa: una cuadrícula tenue (`REJILLA`), una ruta que se traza (`RUTA`), el punto que la recorre (`VIAJERO` + `viaja`) y marcas que brotan a su paso (`MARCA`, `BANDERA`, `MONEDA` + `brotan`). Es lo que mejor funcionó; un objeto suelto haciendo una gracia (una puerta, un reloj) se ve más pobre.
-- El dibujo combina trazo que hierve (`T(formas, grosor, clase)`) con rellenos planos (`vn-fw`, `vn-fk`, `vn-fazul`…). Los colores son clases de `src/styles/crm-volumen.css`.
+- **Piensa primero la historia, con cosas concretas.** Qué pasa en esa sección, contado en tres o cuatro momentos. Prospectos: el mapa, la puerta, nos abren, el expediente. Cobranza: en efectivo, por transferencia, con tarjeta, el recibo y todos contentos. Un objeto suelto haciendo una gracia no cuenta nada, y repetir el mismo recurso en todas (todo mapas, todo rutas) tampoco.
+- **Una forma protagonista que se transforma.** No hay cortes: el pin se vuelve puerta y la puerta expediente; el billete, teléfono; el teléfono, tarjeta. Las formas salen de `F` (`F.rect`, `F.circ`, `F.gota`, `F.recibo`, `F.engrane`), se guardan en `S` y se encadenan con `morfa(tl, h, S.a, S.b, t)`. Todas tienen los mismos puntos, así que cualquiera puede volverse cualquier otra.
+- **Alrededor de la protagonista pasa lo demás:** detalles que entran y salen (`entra`, `sale`, `brota`, `dibuja`), gente (`persona(x, base, 'dali' | 'alex' | 'otro' | 'clienta')`), globos de diálogo (`globo`), sellos (`sello`).
+- Formas planas para lo importante; trazo que hierve (`T(...)`) para el detalle. La cámara deriva sola todo el tiempo.
+- Todo lo que aparece después debe nacer oculto: usa `fromTo` (o `brota`, `entra`, `dibuja`), que dejan el estado inicial puesto desde el arranque.
 - Para usarla: `cab({ …, emblema: vineta('nombre') })`. El marco del CRM la echa a andar solo.
-- Para revisarla: `node scripts/vinetas.cjs 5180 <carpeta>` saca cada plano en cuatro momentos.
+- Para revisarla: `node scripts/vinetas.cjs 5180 <carpeta>` saca doce momentos de cada una.
 
 ### La transición entre secciones
 

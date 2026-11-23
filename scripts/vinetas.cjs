@@ -1,6 +1,5 @@
 //   node scripts/vinetas.cjs <puerto> <carpeta>
-// Fotos de las viñetas de cada sección: cada plano en cuatro momentos (al abrir el iris, a
-// media acción, casi al final y justo antes del corte).
+// Fotos de las viñetas de cada sección: doce momentos repartidos a lo largo de la animación.
 const { chromium } = require('playwright')
 const RUTAS = [['prospectos', '/crm/prospectos'], ['agenda', '/crm/agenda'], ['cobranza', '/crm/cobranza'], ['sistemas', '/crm/sistemas'], ['ajustes', '/crm/ajustes']]
 ;(async () => {
@@ -17,13 +16,12 @@ const RUTAS = [['prospectos', '/crm/prospectos'], ['agenda', '/crm/agenda'], ['c
     await p.waitForTimeout(2300)
     const caja = await p.locator('.vn').boundingBox()
     if (!caja) { errores.push(`${nombre}: sin viñeta`); continue }
-    let n = 0
-    for (const plano of [0, 1, 2])
-      for (const t of [0.25, 1.4, 2.5, 3.2]) {
-        await p.evaluate((x) => { document.querySelector('.vn')._tl.pause(x) }, plano * 3.6 + t)
-        await p.waitForTimeout(450)
-        await p.screenshot({ path: `${salida}/${nombre}-${String(n++).padStart(2, '0')}.png`, clip: caja })
-      }
+    const dura = await p.evaluate(() => document.querySelector('.vn')._tl.duration())
+    for (let n = 0; n < 12; n++) {
+      await p.evaluate((x) => { document.querySelector('.vn')._tl.pause(x) }, ((n + 0.75) / 12) * dura)
+      await p.waitForTimeout(420)
+      await p.screenshot({ path: `${salida}/${nombre}-${String(n).padStart(2, '0')}.png`, clip: caja })
+    }
   }
   console.log(errores.length ? `ERRORES: ${errores.join(' | ')}` : 'sin errores')
   await b.close()
