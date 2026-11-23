@@ -1,0 +1,459 @@
+/* El resto del CRM, con el mismo lenguaje que «Hoy»: las cosas se levantan del papel. Luz
+   arriba, sombra suave abajo, esquinas generosas. Nada de bordes duros donde basta una sombra. */
+
+.crm {
+  --papel-alto: #f8f6f0;
+  --papel-bajo: #ebe8df;
+  --sombra-suave: 0 1px 1.5px rgb(5 5 6 / 0.08), 0 10px 22px -10px rgb(5 5 6 / 0.2);
+}
+
+/* ───────────────────────── Botones ───────────────────────── */
+
+.crm .a-btn {
+  border: 1px solid rgb(255 255 255 / 0.85);
+  background: linear-gradient(180deg, var(--papel-alto), var(--papel-bajo));
+  box-shadow:
+    inset 0 1px 0 #fff,
+    0 1px 1.5px rgb(5 5 6 / 0.1),
+    0 6px 14px -6px rgb(5 5 6 / 0.18);
+  font-weight: 650;
+  transition:
+    transform 0.14s var(--ease-expo),
+    box-shadow 0.14s var(--ease-expo),
+    background 0.18s;
+}
+
+.crm .a-btn:hover {
+  border-color: #fff;
+  box-shadow:
+    inset 0 1px 0 #fff,
+    0 1px 1.5px rgb(5 5 6 / 0.12),
+    0 10px 18px -6px rgb(5 5 6 / 0.24);
+}
+
+.crm .a-btn:active {
+  transform: translateY(1.5px);
+  box-shadow:
+    inset 0 1px 0 #fff,
+    0 1px 1px rgb(5 5 6 / 0.12);
+}
+
+/* El principal: tinta, con su canto. */
+.crm .a-btn--pri {
+  border-color: #3a3b44;
+  background: linear-gradient(180deg, #2d2e36, #050506);
+  color: var(--color-paper);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.22),
+    0 3px 0 #000,
+    0 12px 18px -8px rgb(5 5 6 / 0.5);
+}
+
+.crm .a-btn--pri:hover {
+  border-color: #4f8dff;
+  background: linear-gradient(180deg, #4f8dff, var(--azul));
+  color: #fff;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.4),
+    0 3px 0 #1848b4,
+    0 12px 18px -8px rgb(33 111 255 / 0.6);
+}
+
+.crm .a-btn--pri:active {
+  transform: translateY(3px);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.22),
+    0 0 0 #000;
+}
+
+.crm .a-btn--azul {
+  border-color: #4f8dff;
+  background: linear-gradient(180deg, #4f8dff, var(--azul));
+  color: #fff;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.4),
+    0 3px 0 #1848b4,
+    0 12px 18px -8px rgb(33 111 255 / 0.6);
+}
+
+.crm .a-btn--fantasma {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.crm .a-btn--fantasma:hover {
+  background: var(--fg-4);
+  box-shadow: none;
+}
+
+.crm .a-btn--peligro {
+  border-color: rgb(180 35 24 / 0.35);
+}
+
+/* ───────────────────────── Tarjetas ───────────────────────── */
+
+/* Las listas, los bloques y los vacíos viven en tarjetas que flotan sobre el papel. */
+.crm .a-lista,
+.crm .a-tarjeta,
+.crm .crm-bloque,
+.crm .crm-sistema,
+.crm .a-vacio {
+  border: 1px solid rgb(255 255 255 / 0.9);
+  border-radius: 22px;
+  background: linear-gradient(180deg, var(--papel-alto), #f1eee6);
+  box-shadow: inset 0 1px 0 #fff, var(--sombra-suave);
+}
+
+.crm .a-lista {
+  padding: 4px 16px;
+  margin-top: 4px;
+}
+
+.crm .a-lista .a-lista {
+  border: 0;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.crm .a-lista > .a-item:last-child {
+  border-bottom: 0;
+}
+
+.crm .a-item {
+  padding: 14px 4px;
+  border-bottom-color: rgb(5 5 6 / 0.08);
+}
+
+.crm button.a-item:hover,
+.crm a.a-item:hover {
+  background: none;
+  padding-left: 10px;
+}
+
+.crm .a-vacio {
+  max-width: none;
+  padding: 26px 24px;
+  margin-top: 6px;
+}
+
+.crm .a-tarjeta,
+.crm .crm-bloque,
+.crm .crm-sistema {
+  padding: 20px;
+}
+
+/* ───────────────────────── Campos ───────────────────────── */
+
+.crm .a-in {
+  min-height: 48px;
+  padding: 11px 16px;
+  border: 1px solid rgb(5 5 6 / 0.1);
+  border-radius: 16px;
+  background: #f6f4ee;
+  box-shadow:
+    inset 0 2px 4px rgb(5 5 6 / 0.07),
+    0 1px 0 #fff;
+}
+
+.crm .a-in:focus {
+  border-color: var(--azul);
+  box-shadow:
+    inset 0 2px 4px rgb(5 5 6 / 0.05),
+    0 0 0 3px rgb(33 111 255 / 0.18);
+  outline: none;
+}
+
+/* ───────────────────────── Secciones ───────────────────────── */
+
+/* El título, una línea que corre hasta el enlace, y el enlace con su subrayado azul. */
+.crm .a-seccion-cab {
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 12px;
+  border-bottom: 0;
+}
+
+.crm .a-seccion-cab > .a-h2 {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-stretch: 90%;
+  font-weight: 850;
+  letter-spacing: 0;
+}
+
+.crm .a-seccion-cab > .a-h2::after {
+  content: '';
+  flex: 1 1 0;
+  min-width: 0;
+  height: 1px;
+  background: var(--fg-4);
+}
+
+.crm .hoy-cab > .a-h2 {
+  flex: 0 1 auto;
+}
+
+.crm .hoy-cab > .a-h2::after {
+  content: none;
+}
+
+.crm .a-seccion-cab .a-enlace {
+  font-weight: 550;
+  white-space: nowrap;
+  text-decoration-color: var(--azul);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 6px;
+}
+
+.crm .a-chip {
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.6);
+}
+
+@media (max-width: 860px) {
+  .crm .a-lista {
+    padding: 2px 14px;
+    border-radius: 20px;
+  }
+
+  .crm .a-vacio {
+    padding: 22px 18px;
+  }
+
+  .crm .a-seccion-cab > .a-h2 {
+    font-size: 16.5px;
+  }
+}
+
+/* ───────────────────────── Encabezados y cifras ───────────────────────── */
+
+/* Un título de una sola palabra no se parte a media palabra. */
+.crm-cab .a-h1 {
+  overflow-wrap: normal;
+}
+
+.crm .a-cifra {
+  padding: 16px 18px 14px;
+  border: 1px solid rgb(255 255 255 / 0.9);
+  border-radius: 20px;
+  background: linear-gradient(180deg, var(--papel-alto), #f1eee6);
+  box-shadow: inset 0 1px 0 #fff, var(--sombra-suave);
+}
+
+.crm .a-cifra::before,
+.crm .a-cifra::after {
+  content: none;
+}
+
+.crm .crm-cifras {
+  gap: 14px;
+}
+
+/* ───────────────────────── Viñetas ───────────────────────── */
+
+/* La ilustración animada de cada sección: una tarjeta de color, como las fichas de «Hoy». */
+.crm-emblema:has(.vn) {
+  width: clamp(280px, 30vw, 400px);
+  align-self: center;
+}
+
+.vn {
+  --f: var(--color-blue);
+  --f-c: #5d95ff;
+  --f-o: #1a58e2;
+  --f-s: #1848b4;
+  position: relative;
+  aspect-ratio: 240 / 100;
+  border-radius: 24px;
+  overflow: hidden;
+  background:
+    radial-gradient(118% 140% at 110% -14%, rgb(255 255 255 / 0.16) 0 49.4%, transparent 50%),
+    linear-gradient(142deg, var(--f-c) 0%, var(--f) 46%, var(--f-o) 100%);
+  color: var(--color-ink);
+  box-shadow:
+    inset 0 1.5px 0 rgb(255 255 255 / 0.5),
+    0 6px 0 var(--f-s),
+    0 20px 22px -12px color-mix(in srgb, var(--f-s) 70%, transparent);
+}
+
+.vn--amarillo {
+  --f: #ffc93c;
+  --f-c: #ffe184;
+  --f-o: #f3a41d;
+  --f-s: #c98510;
+}
+
+.vn--verde {
+  --f: #24cf72;
+  --f-c: #8de8b3;
+  --f-o: #17b862;
+  --f-s: #12924d;
+}
+
+.vn--tinta {
+  --f: #17181d;
+  --f-c: #34363f;
+  --f-o: #050506;
+  --f-s: #000;
+  color: var(--color-paper);
+}
+
+.vn--papel {
+  --f: #f4f1ea;
+  --f-c: #fbfaf6;
+  --f-o: #e6e2d8;
+  --f-s: #c9c4b8;
+}
+
+.vn svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.vn-plano:not(:first-of-type) {
+  visibility: hidden;
+}
+
+.vn-iris {
+  fill: var(--f-s);
+}
+
+.vn-w {
+  color: #fff;
+}
+
+.vn-k {
+  color: var(--color-ink);
+}
+
+.vn-t {
+  color: rgb(255 255 255 / 0.4);
+}
+
+.vn-azul {
+  color: var(--color-blue);
+}
+
+.vn--tinta .vn-azul {
+  color: #5d95ff;
+}
+
+.vn-rojo {
+  color: #e0321f;
+}
+
+.vn-fw {
+  fill: #fff;
+}
+
+.vn-fk {
+  fill: var(--color-ink);
+}
+
+.vn-fazul {
+  fill: var(--color-blue);
+}
+
+.vn-fpapel {
+  fill: var(--color-paper);
+}
+
+.vn-fmadera {
+  fill: #c9790a;
+}
+
+.vn-famarillo {
+  fill: #ffcb1f;
+  stroke: var(--color-ink);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.vn--amarillo .vn-famarillo {
+  fill: #fff;
+}
+
+.vn-corazon {
+  fill: #ff574a;
+  stroke: #fff;
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+}
+
+.vn-dia {
+  fill: rgb(5 5 6 / 0.13);
+}
+
+.vn-marca,
+.vn-hora,
+.vn-min {
+  stroke: var(--color-ink);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.vn-hora {
+  stroke-width: 5;
+}
+
+.vn-min {
+  stroke-width: 3.2;
+}
+
+.vn-palo {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.vn-pesos {
+  fill: none;
+  stroke: var(--color-ink);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+.vn-onda {
+  fill: none;
+  stroke: #5d95ff;
+  stroke-width: 2;
+}
+
+.vn-vivo {
+  fill: #1fce6d;
+}
+
+.vn-riel {
+  fill: rgb(255 255 255 / 0.12);
+}
+
+.vn-lleno {
+  stroke: var(--color-blue);
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+
+@media (max-width: 860px) {
+  /* En teléfono la viñeta ocupa todo el ancho, bajo el título. */
+  .crm-cab:has(.vn) {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'tx'
+      'emb'
+      'acc';
+  }
+
+  .crm-emblema:has(.vn) {
+    width: 100%;
+  }
+
+  .vn {
+    border-radius: 22px;
+  }
+}

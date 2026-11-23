@@ -9,6 +9,7 @@ import { icoNicho } from '../icons/render.js'
 import { esc, fecha, dinero } from '../app/util.js'
 import { resumenCobranza } from './cobranza.js'
 import { animaEmblema, ponHora } from './emblemas.js'
+import { animaVinetas } from './vinetas.js'
 
 // El marco del CRM: la navegación, que no se vuelve a dibujar al cambiar de sección, y el
 // contenido, que entra con su propia coreografía. El punto azul es el cursor: viaja a la
@@ -197,6 +198,50 @@ function entrada(main, dir) {
 }
 
 const SEMILLA = 9000
+let turno = 0
+
+const centro = (el) => {
+  const r = el.getBoundingClientRect()
+  return { x: r.left + r.width / 2, y: r.top + r.height / 2 }
+}
+
+/**
+ * La cortina: el punto crece desde donde estaba hasta cubrir el contenido (primero un filo de
+ * tinta, luego el azul) y, ya con la sección nueva debajo, se abre desde su nuevo lugar.
+ */
+function cortina(crm, desde, alCubrir) {
+  let el = crm.querySelector('.crm-cortina')
+  if (!el) {
+    el = document.createElement('div')
+    el.className = 'crm-cortina'
+    el.innerHTML = '<i></i>'
+    crm.appendChild(el)
+  }
+  const azul = el.firstElementChild
+  const zona = crm.querySelector('.crm-main').getBoundingClientRect()
+  const x0 = Math.max(0, zona.left)
+  const y0 = Math.max(0, zona.top)
+  const w = Math.min(innerWidth, zona.right) - x0
+  const h = Math.min(innerHeight, zona.bottom) - y0
+  const hasta = centro(crm.querySelector('.crm-secciones a[aria-current] .crm-ancla'))
+  const lejos = (p) => Math.hypot(Math.max(p.x - x0, x0 + w - p.x), Math.max(p.y - y0, y0 + h - p.y)) + 24
+  Object.assign(el.style, { left: `${x0}px`, top: `${y0}px`, width: `${w}px`, height: `${h}px` })
+  el.style.setProperty('--ox', `${desde.x - x0}px`)
+  el.style.setProperty('--oy', `${desde.y - y0}px`)
+  el.style.setProperty('--dx', `${hasta.x - x0}px`)
+  el.style.setProperty('--dy', `${hasta.y - y0}px`)
+  gsap.killTweensOf([el, azul])
+  gsap.set(el, { autoAlpha: 1, '--r': 0, '--h': 0 })
+  gsap.set(azul, { '--r': 0 })
+  const R = lejos(desde)
+  gsap
+    .timeline()
+    .to(el, { '--r': R, duration: 0.32, ease: 'power2.in' }, 0)
+    .to(azul, { '--r': R, duration: 0.32, ease: 'power2.in' }, 0.06)
+    .add(alCubrir, 0.39)
+    .to(el, { '--h': lejos(hasta), duration: 0.55, ease: 'expo.out' }, 0.43)
+    .set(el, { autoAlpha: 0 })
+}
 
 // Para comparar dos pintadas se ignoran las manecillas del reloj: esas avanzan solas (ponHora)
 // y, si contaran, «Hoy» se repintaría entero cada minuto que llegue un dato.
@@ -244,27 +289,44 @@ export function marco(activa, pintar, { despues } = {}) {
   }
   crm.marcas = marcas
 
-  gsap.killTweensOf(main.querySelectorAll('*'))
-  main.innerHTML = ''
-  rueda.scrollTop = 0
-  app.scrollTop = 0
-  marcas()
-  semilla(SEMILLA)
-  pintar(main)
   // Lo que se dibujó, tal cual: si un cambio de datos no altera la vista, no se vuelve a pintar.
-  let ultimo = huella(main.innerHTML)
-  despues?.(main)
-  ponTabs(main, activa, false)
-  requestAnimationFrame(() => ponPunto(crm, !nuevo && previa !== i))
-  if (!reducido) entrada(main, dir)
-  previa = i
-
+  let ultimo = ''
+  let listo = false
   let raf = 0
   let vivo = true
+  const monta = () => {
+    gsap.killTweensOf(main.querySelectorAll('*'))
+    main.innerHTML = ''
+    rueda.scrollTop = 0
+    app.scrollTop = 0
+    marcas()
+    semilla(SEMILLA)
+    pintar(main)
+    ultimo = huella(main.innerHTML)
+    despues?.(main)
+    animaVinetas(main)
+    ponTabs(main, activa, false)
+    if (!reducido) entrada(main, dir)
+    listo = true
+  }
+  // Al cambiar de sección, el punto se traga la pantalla y la abre en la nueva: lo viejo se
+  // queda a la vista hasta que el azul lo cubre, y lo nuevo se pinta debajo.
+  const cambia = !nuevo && previa >= 0 && previa !== i
+  const mio = ++turno
+  const desde = cambia ? centro(crm.querySelector('.crm-punto')) : null
+  if (cambia && !reducido) {
+    ponPunto(crm, true)
+    cortina(crm, desde, () => turno === mio && vivo && monta())
+  } else {
+    monta()
+    requestAnimationFrame(() => ponPunto(crm, false))
+  }
+  previa = i
+
   const repinta = ({ tab = false } = {}) => {
     cancelAnimationFrame(raf)
     raf = requestAnimationFrame(() => {
-      if (!vivo) return
+      if (!vivo || !listo) return
       marcas()
       const foco = document.activeElement
       if (!tab && foco && main.contains(foco) && /INPUT|TEXTAREA|SELECT/.test(foco.tagName)) return
@@ -281,6 +343,7 @@ export function marco(activa, pintar, { despues } = {}) {
       gsap.killTweensOf(main.querySelectorAll('*'))
       main.replaceChildren(...nuevo.childNodes)
       despues?.(main)
+      animaVinetas(main)
       rueda.scrollTop = y
       app.scrollTop = y2
       ponTabs(main, activa, tab)

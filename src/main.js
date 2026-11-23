@@ -5,6 +5,7 @@ import './styles/demo.css'
 import './styles/interno.css'
 import './styles/crm.css'
 import './styles/hoy.css'
+import './styles/crm-volumen.css'
 import './styles/visita.css'
 
 import { ruta, iniciarRutas, conGuardia } from './app/router.js'

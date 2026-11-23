@@ -77,6 +77,20 @@ tl.fromTo(el.querySelectorAll('.boil.draw'), { '--draw': 1.06 }, { '--draw': 0, 
 - Las entradas van en una línea de tiempo de GSAP con `clearProps` al terminar (solo `transform,opacity,visibility`, nunca `all`).
 - Si animas con GSAP algo que ya tiene `transform` en el CSS, da `y: 0` (o `x: 0`) explícito: si no, GSAP suma los dos desplazamientos.
 
+### Viñetas de sección
+
+Cada sección del CRM abre con una viñeta: una tarjeta de color con una ilustración SVG de tres planos. Viven en `src/crm/vinetas.js`. Lee una (por ejemplo `prospectos`) antes de hacer otra.
+
+- Una viñeta es `{ color, planos: [{ cam, svg, anima(tl, g, t) }] }`. `cam` es el movimiento de cámara del plano: `[escala, x, y, giro]` de inicio y `[escala, x, y]` de fin. La cámara nunca está quieta.
+- Tres planos, tres encuadres distintos (general, detalle, otra perspectiva). Entre plano y plano cierra y abre un iris; no hay que programarlo.
+- El dibujo combina trazo que hierve (`T(formas, grosor, clase)`) con rellenos planos (`vn-fw`, `vn-fk`, `vn-fazul`…). Los colores son clases de `src/styles/crm-volumen.css`.
+- Para usarla: `cab({ …, emblema: vineta('nombre') })`. El marco del CRM la echa a andar solo.
+- Para revisarla: `node scripts/vinetas.cjs 5180 <carpeta>` saca cada plano en cuatro momentos.
+
+### La cortina entre secciones
+
+Al cambiar de sección, el punto del menú crece hasta cubrir el contenido (un filo de tinta y luego el azul) y se abre desde su nuevo lugar. Está en `cortina()` de `src/crm/marco.js`; lo viejo sigue a la vista hasta que el azul lo tapa y lo nuevo se pinta debajo. `node scripts/cortina.cjs 5180 <carpeta>` la fotografía cada 70 ms.
+
 ## 3. Antes de entregar
 
 ```bash

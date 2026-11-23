@@ -10,7 +10,8 @@ import { boil, P } from '../core/boil.js'
 import { marco } from './marco.js'
 import { escena } from './escenas.js'
 import { proyecta } from './pixel.js'
-import { emblemaFecha, emblemaOrbita, emblemaHoja, emblemaDona, emblemaPulso } from './emblemas.js'
+import { emblemaFecha } from './emblemas.js'
+import { vineta } from './vinetas.js'
 import { estadoMembresia, requiereAtencion, resumenCobranza, nombreModalidad, confirmarPago } from './cobranza.js'
 import { editarProspecto, editarCita, avisar, dlgPago, editarMembresia, editarSistema, dlgConectar, dlgCredenciales, TIPOS_CITA } from './dialogos.js'
 
@@ -151,7 +152,7 @@ export function vistaProspectos() {
     const previa = main.querySelector('[data-busca]')
     const teniaFoco = previa && document.activeElement === previa
     main.innerHTML = `
-      ${cab({ k: `${todos.length} en total`, t: 'Prospectos', emblema: emblemaOrbita(todos.filter((p) => !['cliente', 'perdido', 'pausa'].includes(p.etapa)).length), acc: '<button type="button" class="a-btn" data-nuevo>Agregar sin visita</button>' })}
+      ${cab({ k: `${todos.length} en total`, t: 'Prospectos', emblema: vineta('prospectos'), acc: '<button type="button" class="a-btn" data-nuevo>Agregar sin visita</button>' })}
       <div class="crm-embudo" role="group" aria-label="Filtrar por etapa">
         <svg class="crm-embudo-linea" viewBox="0 0 1000 10" preserveAspectRatio="none" aria-hidden="true">${boil(P.line(0, 5, 1000, 5, 18), { amp: 1.4, seed: 710 })}</svg>
         ${ETAPAS.slice(0, 5)
@@ -239,7 +240,7 @@ export function vistaAgenda() {
         )
         .join('')
     main.innerHTML = `
-      ${cab({ k: `${proximas.length} por venir`, t: 'Agenda', emblema: emblemaHoja(), acc: '<button type="button" class="a-btn a-btn--pri" data-nueva-cita>Nueva cita</button>' })}
+      ${cab({ k: `${proximas.length} por venir`, t: 'Agenda', emblema: vineta('agenda'), acc: '<button type="button" class="a-btn a-btn--pri" data-nueva-cita>Nueva cita</button>' })}
       <div class="crm-semana" aria-hidden="true">${Array.from({ length: 7 }, (_, k) => {
         const d = new Date()
         d.setDate(d.getDate() + k)
@@ -278,7 +279,7 @@ export function vistaCobranza() {
     const pagos = store.lista('pagos').sort((a, b) => (b.fecha || b.creado || '').localeCompare(a.fecha || a.creado || ''))
     const metodo = (id) => METODOS.find((x) => x.id === id)?.nombre || id || ''
     main.innerHTML = `
-      ${cab({ k: 'Membresía Soma y pagos únicos', t: 'Cobranza', emblema: emblemaDona({ ok: r.alCorriente.length + r.enPrueba.length, aviso: r.porVencer.length, mal: r.vencidas.length }), acc: store.ajuste('stripe')?.conectado ? `<span class="a-chip a-chip--${store.ajuste('stripe').modo === 'real' ? 'ok' : 'azul'}">Tarjeta: ${store.ajuste('stripe').modo === 'real' ? 'conectada' : 'en modo de prueba'}</span>` : `<a class="a-btn a-btn--ch" href="#/crm/ajustes?tarjeta">Conectar pagos con tarjeta</a>` })}
+      ${cab({ k: 'Membresía Soma y pagos únicos', t: 'Cobranza', emblema: vineta('cobranza'), acc: store.ajuste('stripe')?.conectado ? `<span class="a-chip a-chip--${store.ajuste('stripe').modo === 'real' ? 'ok' : 'azul'}">Tarjeta: ${store.ajuste('stripe').modo === 'real' ? 'conectada' : 'en modo de prueba'}</span>` : `<a class="a-btn a-btn--ch" href="#/crm/ajustes?tarjeta">Conectar pagos con tarjeta</a>` })}
       <div class="a-rejilla crm-cifras">
         ${cifra(r.cobradoMes, 'Cobrado este mes', 'dinero')}
         ${cifra(r.mensualRecurrente, 'Ingreso mensual por membresías', 'dinero')}
@@ -382,7 +383,7 @@ export function vistaSistemas() {
   const m = marco('sistemas', (main) => {
     const L = store.lista('sistemas').sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '', 'es'))
     main.innerHTML = `
-      ${cab({ k: 'Lo que hemos entregado', t: 'Sistemas', emblema: emblemaPulso(L.filter((s) => s.ultima_senal && Date.now() - new Date(s.ultima_senal) < 26 * 36e5).length), extra: '<p class="a-p" style="margin-top:12px">Cada sistema conectado te avisa aquí que sigue vivo. Si su membresía vence, él solo muestra un aviso o se pausa.</p>', acc: '<button type="button" class="a-btn a-btn--pri" data-nuevo-sistema>Nuevo sistema</button>' })}
+      ${cab({ k: 'Lo que hemos entregado', t: 'Sistemas', emblema: vineta('sistemas'), extra: '<p class="a-p" style="margin-top:12px">Cada sistema conectado te avisa aquí que sigue vivo. Si su membresía vence, él solo muestra un aviso o se pausa.</p>', acc: '<button type="button" class="a-btn a-btn--pri" data-nuevo-sistema>Nuevo sistema</button>' })}
       ${L.length ? L.map(filaSistema).join('') : vacio('Aún no hay sistemas', 'Cuando entregues uno, regístralo aquí. Te doy una línea para pegarle y desde entonces lo cuidas a distancia.')}`
   })
   const q = [...accionesSistema(m.main), alTocar(m.main, '[data-nuevo-sistema]', () => editarSistema())]

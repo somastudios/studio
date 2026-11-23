@@ -206,3 +206,12 @@ Las cuatro fichas de «Hoy» llevan una película de pixel art con cortes de cá
 - Cada película es un archivo con sus planos: `peli-puertas.js` (Prospectos), `peli-clientes.js` (Clientes), `peli-cobrado.js` (Cobrado) y `peli-cobro.js` (Por cobrar). `escenas.js` las registra.
 - Para revisar una película cuadro por cuadro: `node scripts/hoy.cjs <puerto> <carpeta> 390 844 22 0 9999` deja una hoja `cuadros-<película>.png`.
 - La guía completa para hacer una nueva (y para los trazos SVG) está en `.claude/skills/animacion-soma/SKILL.md`.
+
+## El lenguaje visual del CRM
+
+«Hoy» es el modelo y todo lo demás lo sigue:
+
+- `src/styles/hoy.css`: el encabezado de todas las secciones (título ancho con su barra azul), el sello del día y las fichas.
+- `src/styles/crm-volumen.css`: lo que se levanta del papel. Botones, tarjetas, campos, encabezados de sección y las viñetas.
+- `src/crm/vinetas.js`: la ilustración animada que abre cada sección (tres planos, con iris entre ellos).
+- `cortina()` en `src/crm/marco.js`: la transición entre secciones, con el punto.

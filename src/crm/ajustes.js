@@ -6,7 +6,7 @@ import { esc, fecha } from '../app/util.js'
 import { AJUSTES_BASE } from '../data/esquema.js'
 import { marco } from './marco.js'
 import { cab } from './vistas.js'
-import { emblemaEngranes } from './emblemas.js'
+import { vineta } from './vinetas.js'
 import { firma, montarFirma } from './firma.js'
 
 // Ajustes: lo que cambia cómo se presenta Soma y cómo se cobra. Cada bloque se guarda por separado.
@@ -22,7 +22,7 @@ export function vistaAjustes() {
     const plantillas = store.ajuste('plantillas')
     const st = store.ajuste('stripe') || {}
     main.innerHTML = `
-      ${cab({ k: 'Cómo se presenta Soma y cómo cobra', t: 'Ajustes', emblema: emblemaEngranes() })}
+      ${cab({ k: 'Cómo se presenta Soma y cómo cobra', t: 'Ajustes', emblema: vineta('ajustes') })}
 
       <section class="a-seccion crm-bloque" id="tarjeta"><div class="a-seccion-cab"><h2 class="a-h2">Pagos con tarjeta</h2><span class="a-chip a-chip--${st.conectado ? (st.modo === 'real' ? 'ok' : 'azul') : 'alerta'}">${st.conectado ? (st.modo === 'real' ? 'Conectado · cobros reales' : 'Conectado · modo de prueba') : 'Sin conectar'}</span></div>
         <p class="a-p">Con Stripe conectado, «Registrar pago» puede crear un enlace para que el cliente pague con tarjeta desde su teléfono. Cuando paga, el pago se marca solo y su membresía se extiende. Sin Stripe, todo lo demás funciona igual: transferencia y efectivo.</p>

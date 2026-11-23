@@ -9,15 +9,15 @@
   --f-rojo: #ff574a;
 }
 
-/* ───────────────────────── Encabezado ───────────────────────── */
+/* ───────────────────────── Encabezado (el de todas las secciones) ───────────────────────── */
 
-.crm-cab:has(.sd) {
+.crm-cab {
   align-items: center;
   gap: 18px 20px;
   padding-bottom: 0;
 }
 
-.crm-cab:has(.sd) .crm-regla {
+.crm-cab .crm-regla {
   display: none;
 }
 
@@ -32,7 +32,7 @@
   stroke-linejoin: round;
 }
 
-.crm-cab:has(.sd) .a-k {
+.crm-cab .a-k {
   display: flex;
   align-items: center;
   gap: 9px;
@@ -41,13 +41,13 @@
   white-space: nowrap;
 }
 
-.crm-cab:has(.sd) .a-k .hoy-ico {
+.crm-cab .a-k .hoy-ico {
   color: var(--fg);
 }
 
 /* El saludo: más ancho que en el resto del CRM, con su barra azul al costado y un subrayado
    corto debajo. */
-.crm-cab:has(.sd) .a-h1 {
+.crm-cab .a-h1 {
   position: relative;
   padding-left: 0.4em;
   margin-bottom: 20px;
@@ -59,8 +59,8 @@
   text-wrap: wrap;
 }
 
-.crm-cab:has(.sd) .a-h1::before,
-.crm-cab:has(.sd) .a-h1::after {
+.crm-cab .a-h1::before,
+.crm-cab .a-h1::after {
   content: '';
   position: absolute;
   left: 0;
@@ -68,13 +68,13 @@
   background: var(--azul);
 }
 
-.crm-cab:has(.sd) .a-h1::before {
+.crm-cab .a-h1::before {
   top: 0.05em;
   bottom: 0.05em;
   width: 0.1em;
 }
 
-.crm-cab:has(.sd) .a-h1::after {
+.crm-cab .a-h1::after {
   left: 0.4em;
   bottom: -0.4em;
   width: 0.95em;
@@ -573,11 +573,11 @@
 /* ───────────────────────── Teléfono ───────────────────────── */
 
 @media (max-width: 860px) {
-  .crm-cab:has(.sd) {
+  .crm-cab {
     gap: 16px 10px;
   }
 
-  .crm-cab:has(.sd) .a-h1 {
+  .crm-cab .a-h1 {
     font-size: clamp(29px, 9.3vw, 40px);
   }
 
