@@ -1,0 +1,465 @@
+/* «Hoy»: el sello del día y las fichas de color. Es la pantalla que se ve primero, así que
+   aquí la interfaz se permite jugar: números que giran, una diagonal que corta, pixel art.
+   Los cuatro colores de las fichas son los mismos de la estela con que llega el día. */
+
+#app {
+  --f-azul: var(--color-blue);
+  --f-amarillo: #ffcb1f;
+  --f-verde: #1fce6d;
+  --f-rojo: #ff5240;
+}
+
+/* ───────────────────────── El sello del día ───────────────────────── */
+
+.crm-emblema:has(.sd) {
+  width: clamp(150px, 16vw, 224px);
+  align-self: end;
+}
+
+.sd {
+  position: relative;
+  container-type: inline-size;
+  aspect-ratio: 100 / 92;
+  font-family: var(--font-sans);
+  font-stretch: 62%;
+  font-weight: 850;
+  font-variant-numeric: tabular-nums;
+  line-height: 0.8;
+  user-select: none;
+}
+
+.sd p {
+  margin: 0;
+}
+
+.sd svg {
+  position: absolute;
+  display: block;
+  overflow: visible;
+}
+
+/* La diagonal: el corte azul entre el mes y el día. */
+.sd-barra {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  color: var(--azul);
+}
+
+/* Las ruedas de números */
+/* La inclinación va en cada número, no en la rueda entera: una tira de veinte cifras inclinada
+   mediría cientos de pixeles de ancho. El margen deja sitio a la punta que se asoma. */
+.sd-dig {
+  display: inline-block;
+  height: 0.8em;
+  padding-right: 0.14em;
+  margin-right: -0.14em;
+  overflow: hidden;
+  vertical-align: top;
+}
+
+.sd-tira {
+  display: block;
+  transform: translateY(calc((10 + var(--d)) * -5%));
+  will-change: transform;
+}
+
+.sd-tira i {
+  display: block;
+  height: 0.8em;
+  font-style: normal;
+  transform: skewX(-9deg);
+  transform-origin: 0 100%;
+}
+
+.sd-mes {
+  position: absolute;
+  left: 1cqw;
+  top: 3cqw;
+  font-size: 37cqw;
+  letter-spacing: -0.02em;
+}
+
+.sd-dia {
+  position: absolute;
+  right: 8cqw;
+  bottom: 2cqw;
+  font-size: 60cqw;
+  letter-spacing: -0.025em;
+  transform-origin: 60% 70%;
+}
+
+.sd-num,
+.sd-eco {
+  display: block;
+  transform-origin: 0 100%;
+}
+
+.sd-num {
+  position: relative;
+}
+
+/* La estela: copias del día en los colores de las fichas. En reposo solo queda la azul,
+   corrida un pelo, como una tinta fuera de registro. */
+.sd-eco {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  height: 0.8em;
+  overflow: hidden;
+  transform: skewX(-9deg);
+}
+
+.sd-eco--r {
+  color: var(--f-rojo);
+}
+
+.sd-eco--y {
+  color: var(--f-amarillo);
+}
+
+.sd-eco--g {
+  color: var(--f-verde);
+}
+
+.sd-eco--b {
+  color: var(--azul);
+  opacity: 1;
+  transform: translate(0.055em, 0.055em) skewX(-9deg);
+}
+
+/* La placa del día de la semana */
+.sd-placa {
+  position: absolute;
+  left: 0;
+  bottom: 9cqw;
+  padding: 2.6cqw 4cqw 2.2cqw;
+  background: var(--fg);
+  color: var(--bg);
+  font-size: 12.5cqw;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  line-height: 0.9;
+  transform: rotate(-7deg);
+  clip-path: polygon(9% 0, 100% 0, 91% 100%, 0 100%);
+}
+
+/* La ráfaga solo existe un instante, cuando el día pega. */
+.sd-rafaga {
+  right: -8cqw;
+  bottom: -12cqw;
+  width: 84cqw;
+  height: 84cqw;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sd-rafaga path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.6;
+  stroke-linecap: butt;
+}
+
+/* El reloj */
+.sd-reloj {
+  right: 2cqw;
+  top: 0;
+  width: 35cqw;
+  height: 35cqw;
+}
+
+.rj-cara {
+  fill: none;
+}
+
+.sd--noche .rj-cara {
+  fill: var(--fg);
+}
+
+.sd-reloj line {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+}
+
+.sd--noche .rj-marcas,
+.sd--noche .emb-hora,
+.sd--noche .emb-min {
+  color: var(--bg);
+}
+
+.rj-marca {
+  stroke-width: 2;
+  opacity: 0.45;
+}
+
+.rj-marca--f {
+  stroke-width: 3.4;
+  opacity: 1;
+}
+
+.emb-hora line {
+  stroke-width: 6.6;
+}
+
+.emb-min line {
+  stroke-width: 4;
+}
+
+.rj-seg {
+  color: var(--azul);
+  animation: rj-seg 60s steps(60) infinite;
+}
+
+.rj-seg line {
+  stroke-width: 1.8;
+}
+
+@keyframes rj-seg {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ───────────────────────── Las fichas ───────────────────────── */
+
+.crm-fichas {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  padding-bottom: 6px;
+}
+
+.ficha {
+  --f: var(--f-azul);
+  --f-s: color-mix(in srgb, var(--f) 70%, #000);
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'n n'
+    'e px';
+  align-items: end;
+  gap: 6px 8px;
+  min-height: 150px;
+  padding: 18px 18px 16px;
+  border-radius: 24px;
+  background: var(--f);
+  color: var(--color-ink);
+  text-decoration: none;
+  overflow: hidden;
+  box-shadow: 0 6px 0 var(--f-s);
+  transition:
+    transform 0.14s var(--ease-expo),
+    box-shadow 0.14s var(--ease-expo);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ficha--amarillo {
+  --f: var(--f-amarillo);
+}
+
+.ficha--verde {
+  --f: var(--f-verde);
+}
+
+.ficha--rojo {
+  --f: var(--f-rojo);
+}
+
+/* Trama de puntos, como impresa: se asoma desde la esquina de la escena. */
+.ficha::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: radial-gradient(circle, var(--f-s) 1.5px, transparent 1.9px);
+  background-size: 10px 10px;
+  opacity: 0.5;
+  -webkit-mask-image: linear-gradient(135deg, transparent 38%, #000 100%);
+  mask-image: linear-gradient(135deg, transparent 38%, #000 100%);
+}
+
+@media (hover: hover) {
+  .ficha:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 9px 0 var(--f-s);
+  }
+}
+
+.ficha:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 var(--f-s);
+}
+
+.ficha:focus-visible {
+  outline: 3px solid var(--fg);
+  outline-offset: 3px;
+}
+
+.ficha-brillo {
+  position: absolute;
+  top: -20%;
+  bottom: -20%;
+  left: 0;
+  width: 34%;
+  background: linear-gradient(100deg, transparent, rgb(255 255 255 / 0.6), transparent);
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.ficha-n {
+  grid-area: n;
+  align-self: start;
+  font-stretch: 62%;
+  font-weight: 850;
+  font-size: clamp(44px, 4.6vw, 66px);
+  line-height: 0.86;
+  letter-spacing: -0.01em;
+}
+
+.ficha-n--largo {
+  font-size: clamp(30px, 3.2vw, 46px);
+  padding-top: 0.2em;
+}
+
+.ficha-e {
+  grid-area: e;
+  font-weight: 650;
+  font-size: 14px;
+  line-height: 1.18;
+  text-wrap: balance;
+}
+
+.ficha-px {
+  grid-area: px;
+  display: block;
+  width: 80px;
+  margin: 0 -4px -2px 0;
+}
+
+/* ───────────────────────── Pixel art ───────────────────────── */
+
+.px {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.px use {
+  visibility: hidden;
+}
+
+.px-k {
+  fill: var(--color-ink);
+}
+
+.px-p {
+  fill: var(--color-paper);
+}
+
+.px-w {
+  fill: #fff;
+}
+
+.px-d {
+  fill: #2b2c33;
+}
+
+.px-y {
+  fill: #ffcb1f;
+}
+
+.px-o {
+  fill: #d98a00;
+}
+
+.px-r {
+  fill: #ff5240;
+}
+
+.px-b {
+  fill: #7fb0ff;
+}
+
+.px-g {
+  fill: #1fce6d;
+}
+
+.px-s {
+  fill: var(--f-s, #000);
+  opacity: 0.55;
+}
+
+.px-v {
+  fill: #fff;
+  opacity: 0.3;
+}
+
+/* Sobre su mismo color, el acento cambia para no perderse. */
+.ficha--amarillo .px-y {
+  fill: #fff;
+}
+
+.ficha--rojo .px-y {
+  fill: #ffe27a;
+}
+
+/* ───────────────────────── Teléfono ───────────────────────── */
+
+@media (max-width: 860px) {
+  .crm-emblema:has(.sd) {
+    width: clamp(138px, 39vw, 168px);
+  }
+
+  .crm-cab:has(.sd) .a-h1 {
+    font-size: clamp(38px, 11.6vw, 56px);
+  }
+
+  .crm-fichas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 12px;
+  }
+
+  .ficha {
+    min-height: 138px;
+    padding: 15px 14px 13px;
+    border-radius: 22px;
+    box-shadow: 0 5px 0 var(--f-s);
+  }
+
+  .ficha-n {
+    font-size: 44px;
+  }
+
+  .ficha-n--largo {
+    font-size: 30px;
+  }
+
+  .ficha-e {
+    font-size: 13.5px;
+  }
+
+  .ficha-px {
+    width: 60px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .px use {
+    animation: none !important;
+  }
+
+  .px use:first-of-type {
+    visibility: visible;
+  }
+
+  .rj-seg {
+    animation: none;
+    display: none;
+  }
+}

@@ -178,12 +178,19 @@ function entrada(main, dir) {
   const filas = [...main.querySelectorAll('.a-item, .crm-sistema, .crm-nodo, .crm-dia-celda')].slice(0, 14)
   if (filas.length) tl.fromTo(filas, { autoAlpha: 0, x: -12 }, { autoAlpha: 1, x: 0, duration: 0.55, ease: 'expo.out', stagger: 0.035, clearProps: 'transform,opacity,visibility' }, 0.4)
   // Las cifras cuentan hasta su valor.
-  main.querySelectorAll('.a-cifra-n[data-n]').forEach((el, i) => {
+  main.querySelectorAll('.a-cifra-n[data-n], .ficha-n[data-n]').forEach((el, i) => {
     const hasta = Number(el.dataset.n) || 0
     const esDinero = el.dataset.f === 'dinero'
     const o = { v: 0 }
     tl.to(o, { v: hasta, duration: 1.1, ease: 'expo.out', onUpdate: () => (el.textContent = esDinero ? dinero(Math.round(o.v)) : String(Math.round(o.v))) }, 0.3 + i * 0.06)
   })
+  // Las fichas de «Hoy» caen una tras otra, les cruza un brillo y su escena brota del piso.
+  const fichas = main.querySelectorAll('.ficha')
+  if (fichas.length) {
+    tl.fromTo(fichas, { autoAlpha: 0, y: 30, scale: 0.84, rotation: (i) => (i % 2 ? 4 : -4) }, { autoAlpha: 1, y: 0, scale: 1, rotation: 0, duration: 0.7, ease: 'back.out(1.8)', stagger: 0.075, clearProps: 'transform,opacity,visibility' }, 0.3)
+    tl.fromTo(main.querySelectorAll('.ficha-brillo'), { autoAlpha: 1, xPercent: -180, skewX: -18 }, { xPercent: 420, duration: 0.85, ease: 'power2.inOut', stagger: 0.075, clearProps: 'transform,opacity,visibility' }, 0.62)
+    tl.fromTo(main.querySelectorAll('.ficha-px'), { scale: 0, transformOrigin: '50% 100%' }, { scale: 1, duration: 0.55, ease: 'back.out(2.8)', stagger: 0.075, clearProps: 'transform' }, 0.68)
+  }
   const reglas = main.querySelectorAll('.a-cifra')
   if (reglas.length) tl.fromTo(reglas, { '--trazo': 0 }, { '--trazo': 1, duration: 0.9, ease: 'expo.inOut', stagger: 0.07 }, 0.25)
   return tl
@@ -193,7 +200,7 @@ const SEMILLA = 9000
 
 // Para comparar dos pintadas se ignoran las manecillas del reloj: esas avanzan solas (ponHora)
 // y, si contaran, «Hoy» se repintaría entero cada minuto que llegue un dato.
-const huella = (html) => html.replace(/ data-rot="[^"]*" transform="rotate\([^)]*\)"/g, '')
+const huella = (html) => html.replace(/ data-rot="[^"]*" transform="rotate\([^)]*\)"| data-seg(="")? style="[^"]*"/g, '')
 
 /**
  * Abre una sección. `pintar(destino)` dibuja el contenido; se llama ahora y cada vez que cambian

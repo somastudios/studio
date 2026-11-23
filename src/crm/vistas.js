@@ -8,7 +8,8 @@ import { ETAPAS, METODOS } from '../data/esquema.js'
 import { NICHO } from '../content/nichos/index.js'
 import { boil, P } from '../core/boil.js'
 import { marco } from './marco.js'
-import { emblemaReloj, emblemaOrbita, emblemaHoja, emblemaDona, emblemaPulso } from './emblemas.js'
+import { pixel } from './pixel.js'
+import { emblemaFecha, emblemaOrbita, emblemaHoja, emblemaDona, emblemaPulso } from './emblemas.js'
 import { estadoMembresia, requiereAtencion, resumenCobranza, nombreModalidad, confirmarPago } from './cobranza.js'
 import { editarProspecto, editarCita, avisar, dlgPago, editarMembresia, editarSistema, dlgConectar, dlgCredenciales, TIPOS_CITA } from './dialogos.js'
 
@@ -21,6 +22,12 @@ const negocio = (id) => store.uno('prospectos', id)?.negocio || 'Sin prospecto'
 const tipoCita = (t) => TIPOS_CITA.find(([k]) => k === t)?.[1] || 'Cita'
 const vacio = (t, d, accion = '') => `<div class="a-vacio"><p class="a-vacio-t">${t}</p><p class="a-p">${d}</p>${accion}</div>`
 const cifra = (n, e, f = 'num') => `<div class="a-cifra"><p class="a-cifra-n a-num" data-n="${Number(n) || 0}" data-f="${f}">${f === 'dinero' ? dinero(n) : n}</p><p class="a-cifra-e">${e}</p></div>`
+
+/** Ficha de «Hoy»: un dato en su color, con su escena de pixel art. Lleva a su sección. */
+const ficha = (color, escena, ruta, n, e, f = 'num') => {
+  const txt = f === 'dinero' ? dinero(n) : String(n)
+  return `<a class="ficha ficha--${color}" href="#${ruta}"><i class="ficha-brillo"></i><p class="ficha-n a-num${txt.length > 6 ? ' ficha-n--largo' : ''}" data-n="${Number(n) || 0}" data-f="${f}">${txt}</p><p class="ficha-e">${e}</p><span class="ficha-px" aria-hidden="true">${pixel(escena)}</span></a>`
+}
 
 // La regla bajo cada encabezado: un trazo a mano que se dibuja al entrar.
 const REGLA = `<svg class="crm-regla" viewBox="0 0 1000 10" preserveAspectRatio="none" aria-hidden="true">${boil(P.line(0, 5, 1000, 5, 22), { amp: 1.3, cls: 'draw', seed: 700 })}</svg>`
@@ -85,12 +92,12 @@ export function vistaHoy() {
     const total = store.lista('prospectos').length
     const porDia = [...agrupar(citas, (c) => (c.inicio ? dia(c.inicio) : 'por-acordar'))]
     main.innerHTML = `
-      ${cab({ k: esc(fecha(new Date(), 'larga')), t: sesion.nombre ? `${saludo()}, ${esc(sesion.nombre.split(' ')[0])}` : saludo(), emblema: emblemaReloj(), acc: '<button type="button" class="a-btn" data-nueva-cita>Nueva cita</button>' })}
-      <div class="a-rejilla crm-cifras">
-        ${cifra(total - store.lista('prospectos', (p) => ['cliente', 'perdido'].includes(p.etapa)).length, 'Prospectos en proceso')}
-        ${cifra(store.lista('prospectos', { etapa: 'cliente' }).length, 'Clientes')}
-        ${cifra(r.cobradoMes, 'Cobrado este mes', 'dinero')}
-        ${cifra(r.vencidas.length + r.porVencer.length, 'Por cobrar o por vencer')}
+      ${cab({ k: esc(fecha(new Date(), 'larga')), t: sesion.nombre ? `${saludo()}, ${esc(sesion.nombre.split(' ')[0])}` : saludo(), emblema: emblemaFecha(), acc: '<button type="button" class="a-btn" data-nueva-cita>Nueva cita</button>' })}
+      <div class="crm-fichas">
+        ${ficha('azul', 'moto', '/crm/prospectos', total - store.lista('prospectos', (p) => ['cliente', 'perdido'].includes(p.etapa)).length, 'Prospectos en proceso')}
+        ${ficha('amarillo', 'tienda', '/crm/prospectos', store.lista('prospectos', { etapa: 'cliente' }).length, 'Clientes')}
+        ${ficha('verde', 'moneda', '/crm/cobranza', r.cobradoMes, 'Cobrado este mes', 'dinero')}
+        ${ficha('rojo', 'arena', '/crm/cobranza', r.vencidas.length + r.porVencer.length, 'Por cobrar o por vencer')}
       </div>
       ${
         total === 0
