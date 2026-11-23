@@ -84,7 +84,7 @@ const CSS = `<style>
 .iv-mira::before,.iv-mira::after{content:'';position:absolute;inset:0;border:3px solid #fff;border-radius:20px;clip-path:polygon(0 0,34px 0,34px 34px,0 34px)}
 .iv-mira::before{clip-path:polygon(0 0,34px 0,34px 34px,calc(100% - 34px) 34px,calc(100% - 34px) 0,100% 0,100% 34px,0 34px)}
 .iv-mira::after{clip-path:polygon(0 calc(100% - 34px),100% calc(100% - 34px),100% 100%,calc(100% - 34px) 100%,calc(100% - 34px) calc(100% - 34px),34px calc(100% - 34px),34px 100%,0 100%)}
-.iv-etiqueta{display:grid;justify-items:center;gap:6px;padding:16px 18px 10px;border-radius:8px;background:#fff;color:#111;font:600 11px/1 var(--font-mono,monospace);letter-spacing:.14em}
+.iv-etiqueta{display:grid;justify-items:center;gap:6px;padding:16px 18px 10px;border-radius:8px;background:#fff;color:#111;font:650 12.5px/1 var(--font-mono,sans-serif);font-stretch:64%;letter-spacing:.12em}
 .iv-etiqueta .iv-barras{width:176px;height:78px}
 .iv-rayo{position:absolute;left:10px;right:10px;top:22px;height:2px;border-radius:2px;background:#ff453a;box-shadow:0 0 14px 3px rgb(255 69 58/.65);animation:iv-barre 1s ease-in-out infinite alternate}
 @keyframes iv-barre{to{top:calc(100% - 24px)}}

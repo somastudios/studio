@@ -145,7 +145,7 @@ export function montarDeck({ scenes, inicial = 0, titulo = 'Soma Studio', alCamb
   })
 
   const fonts = document.fonts
-    ? Promise.all([document.fonts.load('800 16px Archivo'), document.fonts.load('500 16px "Martian Mono"')])
+    ? Promise.all([document.fonts.load('800 16px Archivo'), document.fonts.load('650 16px Archivo')])
         .then(() => document.fonts.ready)
         .catch(() => {})
     : Promise.resolve()

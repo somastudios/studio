@@ -11,14 +11,6 @@
   font-display: block;
 }
 
-@font-face {
-  font-family: 'Martian Mono';
-  src: url('../../node_modules/@fontsource-variable/martian-mono/files/martian-mono-latin-wght-normal.woff2') format('woff2-variations');
-  font-weight: 100 800;
-  font-style: normal;
-  font-display: block;
-}
-
 /* ───────────────────────── Tokens ───────────────────────── */
 
 @theme {
@@ -26,7 +18,9 @@
   --color-paper: #efece4;
   --color-blue: #216fff;
   --font-sans: 'Archivo', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'Martian Mono', ui-monospace, 'SFMono-Regular', monospace;
+  /* Los rótulos (cejillas, etiquetas, cifras chicas): Archivo condensada, en versales.
+     El nombre de la variable es de cuando eran de consola. */
+  --font-mono: 'Archivo', ui-sans-serif, system-ui, sans-serif;
   --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -37,7 +31,7 @@
   --bar: max(30px, calc(var(--u) * 3));
   --fs-body: max(15px, calc(var(--u) * 1.3));
   --fs-small: max(13px, calc(var(--u) * 1.02));
-  --fs-label: max(10px, calc(var(--u) * 0.74));
+  --fs-label: max(11.5px, calc(var(--u) * 0.88));
   --stroke: max(1.25px, calc(var(--u) * 0.11));
 }
 
@@ -46,7 +40,7 @@
     --u: min(2.4vw, 1.25dvh);
     --fs-body: max(15px, calc(var(--u) * 1.62));
     --fs-small: max(13px, calc(var(--u) * 1.4));
-    --fs-label: max(10px, calc(var(--u) * 1.08));
+    --fs-label: max(11.5px, calc(var(--u) * 1.26));
     --stroke: max(1.25px, calc(var(--u) * 0.15));
   }
 }
@@ -144,6 +138,7 @@ button {
 /* Sistema: mono para numeración y etiquetas. */
 .t-label {
   font-family: var(--font-mono);
+  font-stretch: 64%;
   font-size: var(--fs-label);
   font-weight: 500;
   text-transform: uppercase;

@@ -1,3 +1,4 @@
+import { irisA } from '../app/transicion.js'
 import { abrirApp, alTocar } from '../app/vista.js'
 import { ir } from '../app/router.js'
 import { aviso } from '../app/capas.js'
@@ -46,7 +47,7 @@ export function vistaPresala({ consulta }) {
         ({ fam, lista }) => `<div class="ps-fam"><p class="a-k">${esc(fam.nombre)}</p><div class="ps-rejilla">
           ${lista.map((n) => `<button type="button" class="ps-nicho ${st.nicho === n.id ? 'vivo' : ''}" data-nicho="${esc(n.id)}" aria-pressed="${st.nicho === n.id}">${icoNicho(n.icono)}<span>${esc(n.nombre)}</span></button>`).join('')}
         </div></div>`,
-      ).join('') || `<p class="a-p">No encontré ese giro. Elige «Otro giro» y dime cuál es.</p>`
+      ).join('') || `<p class="a-p">No lo encontré. Elige «Otro giro» y cuéntame a qué se dedica.</p>`
   }
 
   function pintaAntes() {
@@ -58,7 +59,7 @@ export function vistaPresala({ consulta }) {
       <p class="a-k">Antes de entrar</p>
       <p class="ps-apertura">«${esc(n.apertura)}»</p>
       <ul class="ps-observa">${n.observa.map((o) => `<li>${esc(o)}</li>`).join('')}</ul>
-      ${n.id === 'general' ? `<label class="a-campo" style="margin-top:16px;max-width:420px"><span>¿Qué giro es?</span><input class="a-in" data-otro value="${esc(st.otro)}" placeholder="Por ejemplo: vivero, imprenta, purificadora" /></label>` : ''}`
+      ${n.id === 'general' ? `<label class="a-campo" style="margin-top:16px;max-width:420px"><span>¿A qué se dedica?</span><input class="a-in" data-otro value="${esc(st.otro)}" placeholder="Por ejemplo: vivero, imprenta, purificadora" /></label>` : ''}`
   }
 
   function pintaPie() {
@@ -67,7 +68,7 @@ export function vistaPresala({ consulta }) {
     const listo = st.negocio.trim() && st.nicho
     const b = app.querySelector('[data-empezar]')
     b.disabled = !listo
-    app.querySelector('.ps-falta').textContent = listo ? 'Se abre a pantalla completa. Para salir: Escape dos veces.' : !st.negocio.trim() ? 'Falta el nombre del negocio.' : 'Falta elegir el giro.'
+    app.querySelector('.ps-falta').textContent = listo ? 'Se abre a pantalla completa. Para salir: Escape dos veces.' : !st.negocio.trim() ? 'Falta el nombre del negocio.' : 'Falta elegir el tipo de negocio.'
   }
 
   app.innerHTML = `
@@ -86,7 +87,7 @@ export function vistaPresala({ consulta }) {
       </section>
 
       <section class="ps-paso">
-        <div class="ps-paso-cab"><p class="a-k">02 · ¿Qué giro es?</p><input class="a-in ps-buscar" type="search" placeholder="Escribe para filtrar" aria-label="Filtrar giros" /></div>
+        <div class="ps-paso-cab"><p class="a-k">02 · ¿Qué tipo de negocio es?</p><input class="a-in ps-buscar" type="search" placeholder="Busca: tacos, barbería, taller…" aria-label="Filtrar giros" /></div>
         <div class="ps-giros"></div>
         <div class="ps-antes" hidden></div>
       </section>
@@ -139,6 +140,14 @@ export function vistaPresala({ consulta }) {
     pintaAntes()
     pintaPie()
   }
+  // De regreso al CRM, el iris en papel.
+  const alVolver = (e) => {
+    const a = e.target.closest('a[href^="#/crm"]')
+    if (!a || e.metaKey || e.ctrlKey) return
+    e.preventDefault()
+    irisA({ x: e.clientX, y: e.clientY }, 'paper', () => ir(a.getAttribute('href').slice(1)))
+  }
+  app.addEventListener('click', alVolver)
   app.addEventListener('input', alEscribir)
   app.addEventListener('change', alCambiar)
   app.addEventListener('keydown', alTeclear)
@@ -169,6 +178,7 @@ export function vistaPresala({ consulta }) {
     q.forEach((f) => f())
     app.removeEventListener('input', alEscribir)
     app.removeEventListener('change', alCambiar)
+    app.removeEventListener('click', alVolver)
     app.removeEventListener('keydown', alTeclear)
     app.removeEventListener('pointerover', entra)
     app.removeEventListener('pointerout', sale)

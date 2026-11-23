@@ -10,6 +10,7 @@ import { esc, fecha, dinero } from '../app/util.js'
 import { resumenCobranza } from './cobranza.js'
 import { animaEmblema, ponHora } from './emblemas.js'
 import { animaVinetas } from './vinetas.js'
+import { DURACION, BANDA, lejos, irisA } from '../app/transicion.js'
 
 // El marco del CRM: la navegación, que no se vuelve a dibujar al cambiar de sección, y el
 // contenido, que entra con su propia coreografía. El punto azul es el cursor: viaja a la
@@ -92,6 +93,14 @@ function construir(app) {
   const crm = app.querySelector('.crm')
 
   crm.addEventListener('click', async (e) => {
+    const salto = e.target.closest('a[href="#/presala"]')
+    if (salto && !e.metaKey && !e.ctrlKey) {
+      // A la presala se entra con el iris: la tinta sale de donde se tocó.
+      e.preventDefault()
+      const r = salto.getBoundingClientRect()
+      irisA({ x: e.clientX || r.left + r.width / 2, y: e.clientY || r.top + r.height / 2 }, 'ink', () => ir('/presala'))
+      return
+    }
     if (e.target.closest('[data-sync]')) {
       // Aquí sí se muestra el «Sincronizando…»: alguien lo pidió y espera una respuesta.
       insistir = true
@@ -163,8 +172,8 @@ function ponTabs(main, clave, animar) {
 }
 
 /** La entrada de una sección: título, regla, emblema, y el contenido que sube por tandas. */
-function entrada(main, dir) {
-  const tl = gsap.timeline()
+function entrada(main, dir, espera = 0) {
+  const tl = gsap.timeline({ delay: espera })
   const h1 = main.querySelector('.a-h1')
   const k = main.querySelector('.crm-cab .a-k, .crm-miga')
   if (h1) tl.fromTo(h1, { yPercent: 60, clipPath: 'inset(0% 0% 100% 0%)' }, { yPercent: 0, clipPath: 'inset(-15% -3% -15% -3%)', duration: 0.95, ease: 'expo.out', clearProps: 'transform,clipPath' }, 0)
@@ -199,6 +208,7 @@ function entrada(main, dir) {
 
 const SEMILLA = 9000
 let turno = 0
+let retraso = 0
 
 const centro = (el) => {
   const r = el.getBoundingClientRect()
@@ -206,41 +216,66 @@ const centro = (el) => {
 }
 
 /**
- * La cortina: el punto crece desde donde estaba hasta cubrir el contenido (primero un filo de
- * tinta, luego el azul) y, ya con la sección nueva debajo, se abre desde su nuevo lugar.
+ * El iris entre secciones, el mismo de la presentación. Lo que había se queda en una copia
+ * encima; lo nuevo se pinta debajo. Hacia adelante, un círculo se abre en la copia desde donde
+ * estaba el punto y deja ver lo nuevo; hacia atrás, la copia se encoge hasta donde el punto va
+ * a quedar. En el borde viaja el anillo de tinta.
  */
-function cortina(crm, desde, alCubrir) {
-  let el = crm.querySelector('.crm-cortina')
-  if (!el) {
-    el = document.createElement('div')
-    el.className = 'crm-cortina'
-    el.innerHTML = '<i></i>'
-    crm.appendChild(el)
-  }
-  const azul = el.firstElementChild
+function iris(crm, main, desde, dir, monta) {
+  crm._iris?.()
   const zona = crm.querySelector('.crm-main').getBoundingClientRect()
   const x0 = Math.max(0, zona.left)
   const y0 = Math.max(0, zona.top)
   const w = Math.min(innerWidth, zona.right) - x0
   const h = Math.min(innerHeight, zona.bottom) - y0
+  const caja = main.getBoundingClientRect()
+  // La copia de lo que había, puesta exactamente donde estaba.
+  const viejo = document.createElement('div')
+  viejo.className = 'crm-viejo'
+  Object.assign(viejo.style, { left: `${x0}px`, top: `${y0}px`, width: `${w}px`, height: `${h}px` })
+  const copia = main.cloneNode(true)
+  copia.removeAttribute('id')
+  Object.assign(copia.style, { position: 'absolute', left: `${caja.left - x0}px`, top: `${caja.top - y0}px`, width: `${caja.width}px`, margin: 0 })
+  const lienzos = main.querySelectorAll('canvas')
+  copia.querySelectorAll('canvas').forEach((c, k) => {
+    c.removeAttribute('data-px')
+    try {
+      c.getContext('2d').drawImage(lienzos[k], 0, 0)
+    } catch {}
+  })
+  viejo.appendChild(copia)
+  const anillo = document.createElement('div')
+  anillo.className = 'crm-anillo'
+  Object.assign(anillo.style, { left: `${x0}px`, top: `${y0}px`, width: `${w}px`, height: `${h}px` })
+  crm.append(viejo, anillo)
+
+  monta()
   const hasta = centro(crm.querySelector('.crm-secciones a[aria-current] .crm-ancla'))
-  const lejos = (p) => Math.hypot(Math.max(p.x - x0, x0 + w - p.x), Math.max(p.y - y0, y0 + h - p.y)) + 24
-  Object.assign(el.style, { left: `${x0}px`, top: `${y0}px`, width: `${w}px`, height: `${h}px` })
-  el.style.setProperty('--ox', `${desde.x - x0}px`)
-  el.style.setProperty('--oy', `${desde.y - y0}px`)
-  el.style.setProperty('--dx', `${hasta.x - x0}px`)
-  el.style.setProperty('--dy', `${hasta.y - y0}px`)
-  gsap.killTweensOf([el, azul])
-  gsap.set(el, { autoAlpha: 1, '--r': 0, '--h': 0 })
-  gsap.set(azul, { '--r': 0 })
-  const R = lejos(desde)
-  gsap
-    .timeline()
-    .to(el, { '--r': R, duration: 0.32, ease: 'power2.in' }, 0)
-    .to(azul, { '--r': R, duration: 0.32, ease: 'power2.in' }, 0.06)
-    .add(alCubrir, 0.39)
-    .to(el, { '--h': lejos(hasta), duration: 0.55, ease: 'expo.out' }, 0.43)
-    .set(el, { autoAlpha: 0 })
+  const c = dir > 0 ? desde : hasta
+  const R = lejos(c, x0, y0, w, h)
+  const en = `at ${(c.x - x0).toFixed(1)}px ${(c.y - y0).toFixed(1)}px`
+  const p = { r: dir > 0 ? 0 : R }
+  const pinta = () => {
+    const r = p.r
+    const mascara = dir > 0 ? `radial-gradient(circle ${en}, transparent ${r.toFixed(1)}px, #000 ${(r + 0.6).toFixed(1)}px)` : ''
+    if (dir > 0) viejo.style.webkitMaskImage = viejo.style.maskImage = mascara
+    else viejo.style.clipPath = `circle(${r.toFixed(1)}px ${en})`
+    // El anillo: por fuera del círculo cuando abre, por dentro del borde cuando cierra.
+    const a = dir > 0 ? r : r
+    const b = dir > 0 ? r * BANDA : r * BANDA
+    const aro = `radial-gradient(circle ${en}, transparent ${Math.max(0, a - 0.6).toFixed(1)}px, #000 ${a.toFixed(1)}px, #000 ${b.toFixed(1)}px, transparent ${(b + 0.6).toFixed(1)}px)`
+    anillo.style.webkitMaskImage = anillo.style.maskImage = aro
+    anillo.style.opacity = r > R * 0.985 || r < 1 ? 0 : 1
+  }
+  pinta()
+  const fin = () => {
+    tw.kill()
+    viejo.remove()
+    anillo.remove()
+    crm._iris = null
+  }
+  const tw = gsap.to(p, { r: dir > 0 ? R : 0, duration: DURACION, ease: 'expo.inOut', onUpdate: pinta, onComplete: fin })
+  crm._iris = fin
 }
 
 // Para comparar dos pintadas se ignoran las manecillas del reloj: esas avanzan solas (ponHora)
@@ -306,17 +341,19 @@ export function marco(activa, pintar, { despues } = {}) {
     despues?.(main)
     animaVinetas(main)
     ponTabs(main, activa, false)
-    if (!reducido) entrada(main, dir)
+    if (!reducido) entrada(main, dir, retraso)
     listo = true
   }
-  // Al cambiar de sección, el punto se traga la pantalla y la abre en la nueva: lo viejo se
-  // queda a la vista hasta que el azul lo cubre, y lo nuevo se pinta debajo.
+  // Al cambiar de sección, el iris de la presentación: lo nuevo se pinta debajo y aparece por
+  // el círculo que abre el punto.
   const cambia = !nuevo && previa >= 0 && previa !== i
-  const mio = ++turno
-  const desde = cambia ? centro(crm.querySelector('.crm-punto')) : null
-  if (cambia && !reducido) {
+  ++turno
+  if (cambia && !reducido && main.childElementCount) {
+    const desde = centro(crm.querySelector('.crm-punto'))
     ponPunto(crm, true)
-    cortina(crm, desde, () => turno === mio && vivo && monta())
+    retraso = DURACION * 0.4
+    iris(crm, main, desde, dir, monta)
+    retraso = 0
   } else {
     monta()
     requestAnimationFrame(() => ponPunto(crm, false))

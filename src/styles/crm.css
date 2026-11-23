@@ -314,6 +314,7 @@
 
 .emb-mes {
   font-family: var(--font-mono);
+  font-stretch: 64%;
   font-size: 8.4px;
   font-weight: 500;
   letter-spacing: 0.14em;
@@ -847,6 +848,7 @@
 
 .crm-pasos li::marker {
   font-family: var(--font-mono);
+  font-stretch: 64%;
   font-size: 0.8em;
   color: var(--fg-2);
 }
@@ -883,6 +885,7 @@
   border-radius: 6px;
   background: var(--fg-4);
   font-family: var(--font-mono);
+  font-stretch: 64%;
   font-size: 13px;
 }
 
@@ -968,6 +971,7 @@
     min-height: 60px;
     padding: 13px 0 5px;
     font-family: var(--font-mono);
+    font-stretch: 64%;
     font-size: 8.6px;
     font-weight: 500;
     letter-spacing: 0.05em;
@@ -1259,27 +1263,36 @@
   }
 }
 
-/* ───────────────────────── La cortina entre secciones ───────────────────────── */
+/* ───────────────────────── El iris entre secciones ───────────────────────── */
 
-/* El punto se traga el contenido y lo abre en la sección nueva. Primero un filo de tinta,
-   luego el azul; al final se abre un hueco desde donde quedó el punto. */
-.crm-cortina {
-  --r: 0;
-  --h: 0;
+/* La copia de la sección que se va, encima de la nueva, y el anillo de tinta que viaja en el
+   borde del círculo. Los mueve iris() en marco.js. */
+.crm-viejo,
+.crm-anillo {
   position: fixed;
   z-index: 15;
-  visibility: hidden;
+  overflow: hidden;
   pointer-events: none;
-  background: var(--color-ink);
-  clip-path: circle(calc(var(--r) * 1px) at var(--ox) var(--oy));
-  -webkit-mask-image: radial-gradient(circle at var(--dx) var(--dy), transparent calc(var(--h) * 1px), #000 calc(var(--h) * 1px + 1.5px));
-  mask-image: radial-gradient(circle at var(--dx) var(--dy), transparent calc(var(--h) * 1px), #000 calc(var(--h) * 1px + 1.5px));
 }
 
-.crm-cortina i {
-  --r: 0;
+.crm-viejo {
+  background: var(--bg);
+}
+
+.crm-anillo {
+  z-index: 16;
+  background: var(--color-ink);
+}
+
+/* El salto entre pantallas (CRM ↔ presala). */
+.iris-salto {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  pointer-events: none;
+}
+
+.iris-salto i {
   position: absolute;
   inset: 0;
-  background: var(--azul);
-  clip-path: circle(calc(var(--r) * 1px) at var(--ox) var(--oy));
 }

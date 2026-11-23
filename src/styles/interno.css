@@ -279,3 +279,13 @@
   gap: 16px;
   margin-top: 40px;
 }
+
+/* En la presala solo «vive» el giro elegido (o el que tienes bajo el dedo). Los demás iconos
+   descansan: veintitantos trazos hirviendo a la vez hacen tropezar a un teléfono. */
+.ps-nicho:not(.vivo) .boil > path {
+  animation: none;
+}
+
+.ps-nicho:not(.vivo) .boil > path:first-child {
+  visibility: visible;
+}

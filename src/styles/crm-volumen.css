@@ -439,6 +439,91 @@
   stroke-linecap: round;
 }
 
+/* El lenguaje de mapa: la cuadrícula, el punto que viaja y lo que brota a su paso. */
+.vn-t2 {
+  color: rgb(5 5 6 / 0.22);
+}
+
+.vn-va {
+  fill: #fff;
+}
+
+.vn-vb {
+  fill: var(--color-ink);
+}
+
+.vn--tinta .vn-vb,
+.vn-viajero--azul .vn-vb {
+  fill: var(--color-blue);
+}
+
+.vn-viajero--azul .vn-va {
+  fill: var(--color-ink);
+}
+
+.vn-ma {
+  fill: #fff;
+}
+
+.vn-mb {
+  fill: var(--color-ink);
+}
+
+.vn-asta {
+  stroke: var(--color-ink);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+
+.vn-tela {
+  fill: var(--color-blue);
+  stroke: var(--color-ink);
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+}
+
+.vn-local {
+  fill: #fff;
+}
+
+.vn-onda2 {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2;
+}
+
+/* Las ondas solo existen mientras se abren. */
+.vn-onda2,
+.vn-onda3 {
+  opacity: 0;
+}
+
+.vn-onda3 {
+  fill: none;
+  stroke: var(--color-blue);
+  stroke-width: 2.4;
+}
+
+.vn-palo--k {
+  stroke: var(--color-ink);
+}
+
+.vn-pulso {
+  fill: #5d95ff;
+}
+
+.vn-luz {
+  fill: #5d5f6b;
+}
+
+.vn-estado {
+  fill: #ff574a;
+}
+
+.vn--verde .vn-famarillo {
+  fill: #ffd84a;
+}
+
 @media (max-width: 860px) {
   /* En teléfono la viñeta ocupa todo el ancho, bajo el título. */
   .crm-cab:has(.vn) {

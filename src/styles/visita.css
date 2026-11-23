@@ -1455,6 +1455,7 @@ textarea.v-in {
 .wg-banco {
   margin-top: calc(var(--u) * 0.8);
   font-family: var(--font-mono);
+  font-stretch: 64%;
   font-size: max(13px, calc(var(--u) * 1.1));
   letter-spacing: 0.02em;
 }
