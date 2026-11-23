@@ -25,16 +25,17 @@ export const PALETA = {
   X: '#d3b185', // adobe en sombra
   z: '#216fff', // el azul de Soma
   u: '#5b92f5', // billete
-  n: '#183b8c', // azul marino
+  n: '#1d3f8f', // azul marino
+  N: '#122a66', // marino en sombra
   c: '#fbdcc0', // piel de Dalí
   C: '#e6b796', // su sombra
-  e: '#f4cda8', // piel de Alex
-  E: '#dca880', // su sombra
+  e: '#f0c49c', // piel de Alex
+  E: '#d6a078', // su sombra
   m: '#c68a5c', // otra piel (vecinos)
-  h: '#7b4a25', // castaño
-  H: '#a86d3a', // castaño con luz
-  a: '#1f1b28', // pelo oscuro
-  A: '#423c58', // pelo oscuro con luz
+  h: '#4d2f1c', // castaño oscuro
+  H: '#7a4d2c', // castaño con luz
+  a: '#17141d', // pelo negro
+  A: '#3c3850', // pelo negro con luz
   s: '#1848b4', // la sombra de la ficha (cada película pone la suya)
   v: 'rgb(255 255 255 / 0.3)', // vidrio
   t: 'rgb(5 5 6 / 0.28)', // sombra en el piso

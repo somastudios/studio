@@ -1,4 +1,5 @@
-import { lienzo, punto, pon, raya, caja, linea, elipse, sombra, tramos, calca, suave, frena, rebota, tramo, registra } from './pixel.js'
+import { lienzo, punto, pon, raya, caja, linea, elipse, sombra, suave, frena, rebota, tramo } from './pixel.js'
+import { W, H, DALI, ALEX, DON, DOÑA, busto, nuca, mini, globo, golpe, confeti, rotulo, TACHE, CORAZON, montaje } from './reparto.js'
 
 // «De puerta en puerta»: la película de la ficha de Prospectos. Dalí y Alex salen a tocar
 // puertas. Diez planos, con cortes de cámara como en el cine:
@@ -14,449 +15,7 @@ import { lienzo, punto, pon, raya, caja, linea, elipse, sombra, tramos, calca, s
 //   9  sobre el hombro  la dueña, encantada: sí
 //  10  dos caras   chocan las manos
 //
-// Los personajes no son dibujos fijos: se arman por piezas (cabeza, pelo, ojos, boca, hombros)
-// y cada plano les dice hacia dónde miran, qué cara ponen y cómo se mueven.
-
-const W = 84
-const H = 33
-const FPS = 12
-
-// ───────────────────────── Reparto ─────────────────────────
-
-// Dalí: castaño, peinado de librito (raya en medio, fleco a los lados), polo blanca.
-const DALI = { piel: 'c', sombra: 'C', pelo: 'h', luz: 'H', ropa: 'w', ropa2: 'G', pierna: 'n', peinado: 'librito', ceja: 4 }
-// Alex: pelo oscuro, ondulado, largo y revuelto; sudadera negra.
-const ALEX = { piel: 'e', sombra: 'E', pelo: 'a', luz: 'A', ropa: 'k', ropa2: 'd', pierna: 'D', peinado: 'greña', ceja: 5 }
-// Los de las casas.
-const DON = { piel: 'm', sombra: 'O', pelo: 'G', luz: 'w', ropa: 'u', ropa2: 'n', peinado: 'entradas', ceja: 4, bigote: true }
-const DOÑA = { piel: 'c', sombra: 'C', pelo: 'o', luz: 'y', ropa: 'g', ropa2: 'q', peinado: 'chongo', ceja: 4 }
-
-const PEINADOS = {
-  // La raya al centro y el fleco que cae a los dos lados, como un libro abierto.
-  librito: {
-    pelo: [
-      [-2, -3, 3],
-      [-1, -5, 5],
-      [0, -6, 6],
-      [1, -6, -1],
-      [1, 1, 6],
-      [2, -6, -2],
-      [2, 2, 6],
-      [3, -6, -3],
-      [3, 3, 6],
-      [4, -6, -5],
-      [4, 5, 6],
-      [5, -6, -6],
-      [5, 6, 6],
-    ],
-    luz: [
-      [-1, -3, -2],
-      [0, -5, -4],
-      [1, -5, -5],
-      [-1, 2, 3],
-      [0, 4, 5],
-      [1, 5, 5],
-    ],
-    raya: [
-      [-2, 0, 0],
-      [-1, 0, 0],
-      [0, 0, 0],
-    ],
-  },
-  // Mechones para todos lados, fleco disparejo, y cae hasta la mandíbula con las puntas hacia afuera.
-  greña: {
-    pelo: [
-      [-4, -3, -2],
-      [-4, 3, 4],
-      [-3, -5, 5],
-      [-2, -6, 6],
-      [-1, -7, 7],
-      [0, -8, 8],
-      [1, -8, 8],
-      [2, -8, 8],
-      [3, -8, -3],
-      [3, -1, 2],
-      [3, 4, 8],
-      [4, -8, -5],
-      [4, -1, 0],
-      [4, 5, 8],
-      [5, -8, -6],
-      [5, 6, 8],
-      [6, -8, -7],
-      [6, 7, 8],
-      [7, -8, -7],
-      [7, 7, 8],
-      [8, -8, -7],
-      [8, 7, 8],
-      [9, -9, -7],
-      [9, 7, 8],
-      [10, -9, -6],
-      [10, 6, 9],
-      [11, -8, -6],
-      [11, 7, 9],
-      [12, -9, -7],
-      [12, 7, 8],
-      [13, -8, -8],
-      [13, 8, 9],
-    ],
-    luz: [
-      [-2, -4, -2],
-      [-1, -6, -5],
-      [0, 3, 5],
-      [1, 6, 7],
-      [2, -5, -4],
-      [6, -8, -8],
-      [9, -8, -8],
-      [10, 8, 8],
-      [7, 8, 8],
-    ],
-    raya: [],
-  },
-  entradas: {
-    pelo: [
-      [-1, -4, 4],
-      [0, -6, -3],
-      [0, 3, 6],
-      [1, -6, -5],
-      [1, 5, 6],
-      [2, -6, -6],
-      [2, 6, 6],
-      [3, -6, -6],
-      [3, 6, 6],
-      [4, -6, -6],
-      [4, 6, 6],
-    ],
-    luz: [],
-    raya: [],
-  },
-  chongo: {
-    pelo: [
-      [-5, -2, 2],
-      [-4, -3, 3],
-      [-3, -3, 3],
-      [-2, -4, 4],
-      [-1, -5, 5],
-      [0, -6, 6],
-      [1, -6, 6],
-      [2, -6, -3],
-      [2, 4, 6],
-      [3, -6, -5],
-      [3, 5, 6],
-      [4, -7, -6],
-      [4, 6, 7],
-      [5, -7, -6],
-      [5, 6, 7],
-      [6, -7, -6],
-      [6, 6, 7],
-      [7, -7, -7],
-      [7, 7, 7],
-      [8, -7, -7],
-      [8, 7, 7],
-    ],
-    luz: [
-      [-4, -1, 0],
-      [-1, -3, -2],
-      [0, 2, 4],
-    ],
-    raya: [],
-  },
-}
-
-const CABEZA = [
-  [0, -3, 3],
-  [1, -4, 4],
-  [2, -5, 5],
-  [3, -6, 6],
-  [4, -6, 6],
-  [5, -6, 6],
-  [6, -6, 6],
-  [7, -6, 6],
-  [8, -6, 6],
-  [9, -6, 6],
-  [10, -6, 6],
-  [11, -5, 5],
-  [12, -4, 4],
-  [13, -2, 2],
-]
-
-/**
- * Un personaje de frente, de hombros para arriba. cx es su centro y `top` el renglón donde
- * empieza la cabeza.
- *   mira     -1 izquierda · 0 al frente · 1 derecha
- *   cierra   ojos cerrados (parpadeo o risa)
- *   boca     'neutra' · 'sonrie' · 'rie' · 'ups' · 'o'
- *   cejas    0 normales · 1 arriba · -1 preocupadas · 2 de enojo
- *   hombros  cuánto los sube (encogerse)
- *   pelo     cuánto se retrasa el pelo al moverse (rebote)
- */
-function busto(L, cx, top, P, o = {}) {
-  const { mira = 0, cierra = false, boca = 'neutra', cejas = 0, hombros = 0, pelo = 0 } = o
-  const X = (x) => cx + x
-  const Y = (y) => top + y
-  // Hombros y pecho.
-  const ty = Y(16) - hombros
-  if (P === ALEX) {
-    // La capucha, detrás del cuello.
-    raya(L, X(-6), X(6), ty - 2, 'd')
-    raya(L, X(-7), X(7), ty - 1, 'd')
-  }
-  raya(L, X(-7), X(7), ty, P.ropa)
-  raya(L, X(-9), X(9), ty + 1, P.ropa)
-  for (let y = ty + 2; y < H; y++) raya(L, X(-10), X(10), y, P.ropa)
-  for (let y = ty + 1; y < H; y++) raya(L, X(9), X(10), y, P.ropa2)
-  // El cuello.
-  caja(L, X(-2), Y(13), 5, ty - Y(13) + 1, P.sombra)
-  if (P === DALI) {
-    // El cuello de la polo.
-    raya(L, X(-2), X(2), ty, P.piel)
-    raya(L, X(-1), X(1), ty + 1, P.piel)
-    punto(L, X(0), ty + 2, P.piel)
-    ;[-3, -2, -1].forEach((x, i) => {
-      punto(L, X(x), ty + i, P.ropa2)
-      punto(L, X(-x), ty + i, P.ropa2)
-    })
-  } else if (P === ALEX) {
-    // Los cordones de la sudadera.
-    for (let i = 2; i < 6; i++) {
-      punto(L, X(-2), ty + i, 'G')
-      punto(L, X(2), ty + i, 'G')
-    }
-  } else {
-    raya(L, X(-1), X(1), ty, P.piel)
-  }
-  // La cabeza, con su sombra a la derecha y bajo la barbilla.
-  tramos(L, cx, top, CABEZA, P.piel)
-  for (let y = 3; y <= 10; y++) punto(L, X(6), Y(y), P.sombra)
-  raya(L, X(4), X(5), Y(11), P.sombra)
-  raya(L, X(2), X(4), Y(12), P.sombra)
-  raya(L, X(-2), X(2), Y(13), P.sombra)
-  // Las orejas.
-  caja(L, X(-7), Y(6), 1, 3, P.piel)
-  caja(L, X(7), Y(6), 1, 3, P.sombra)
-  // La cara.
-  const ojo = (x) => {
-    if (cierra) raya(L, X(x + mira), X(x + 1 + mira), Y(7), 'a')
-    else caja(L, X(x + mira), Y(6), 2, 2, 'a')
-  }
-  ojo(-4)
-  ojo(3)
-  punto(L, X(0), Y(8), P.sombra)
-  punto(L, X(0), Y(9), P.sombra)
-  raya(L, X(-5), X(-4), Y(9), 'R')
-  raya(L, X(4), X(5), Y(9), 'R')
-  const B = {
-    neutra: [[11, -1, 1]],
-    sonrie: [
-      [10, -2, -2],
-      [10, 2, 2],
-      [11, -1, 1],
-    ],
-    rie: [
-      [10, -3, -3],
-      [10, 3, 3],
-      [10, -2, 2, 'w'],
-      [11, -2, 2],
-    ],
-    ups: [
-      [11, 0, 0],
-      [12, -1, -1],
-      [12, 1, 1],
-    ],
-    o: [
-      [10, -1, 0],
-      [11, -1, 0],
-    ],
-  }
-  tramos(L, cx, top, B[boca], 'a')
-  if (P.bigote) {
-    raya(L, X(-3), X(3), Y(10), P.pelo)
-    punto(L, X(-4), Y(11), P.pelo)
-    punto(L, X(4), Y(11), P.pelo)
-  }
-  // El pelo va encima de la cara; las cejas, encima del pelo.
-  const peinado = PEINADOS[P.peinado]
-  tramos(L, cx, top + pelo, peinado.pelo, P.pelo)
-  tramos(L, cx, top + pelo, peinado.luz, P.luz)
-  tramos(L, cx, top + pelo, peinado.raya, 'a')
-  const cy = P.ceja
-  const C = {
-    0: [
-      [cy, -4, -2],
-      [cy, 2, 4],
-    ],
-    1: [
-      [cy - 1, -4, -2],
-      [cy - 1, 2, 4],
-    ],
-    '-1': [
-      [cy + 1, -5, -5],
-      [cy, -4, -3],
-      [cy, 3, 4],
-      [cy + 1, 5, 5],
-    ],
-    2: [
-      [cy, -5, -4],
-      [cy + 1, -3, -2],
-      [cy + 1, 2, 3],
-      [cy, 4, 5],
-    ],
-  }
-  tramos(L, cx, top, C[cejas], P.pelo === 'G' ? 'D' : P.pelo)
-}
-
-/** El mismo personaje visto por detrás, en primer plano: lo que se ve es su pelo. */
-function nuca(L, cx, cy, P, dy = 0) {
-  cy += dy
-  // Los hombros.
-  for (let y = cy + 9; y < H + 2; y++) raya(L, cx - 13 - Math.min(2, y - cy - 9), cx + 13 + Math.min(2, y - cy - 9), y, P.ropa)
-  for (let y = cy + 10; y < H + 2; y++) raya(L, cx + 12, cx + 14, y, P.ropa2)
-  if (P === ALEX) {
-    elipse(L, cx, cy + 9, 8, 2, 'd')
-    elipse(L, cx, cy, 10, 9, P.pelo)
-    // Las puntas, disparejas, sobre la capucha.
-    ;[
-      [9, -11, 11],
-      [10, -11, -8],
-      [10, -6, -3],
-      [10, -1, 2],
-      [10, 4, 7],
-      [10, 9, 11],
-      [11, -10, -9],
-      [11, -5, -4],
-      [11, 0, 1],
-      [11, 5, 6],
-      [11, 10, 11],
-      [12, -10, -10],
-      [12, 6, 6],
-      [-10, -4, -3],
-      [-11, 3, 4],
-      [-10, 2, 5],
-    ].forEach(([y, a, b]) => raya(L, cx + a, cx + b, cy + y, P.pelo))
-    ;[
-      [-6, -5, -3],
-      [-5, -7, -6],
-      [-3, 3, 5],
-      [-2, 6, 7],
-      [1, -8, -7],
-      [3, -4, -3],
-      [4, 2, 4],
-      [6, 7, 8],
-      [7, -6, -5],
-    ].forEach(([y, a, b]) => raya(L, cx + a, cx + b, cy + y, P.luz))
-  } else {
-    // El cuello y las orejas asoman bajo el pelo corto.
-    caja(L, cx - 3, cy + 6, 7, 4, P.sombra)
-    caja(L, cx - 10, cy, 2, 3, P.piel)
-    caja(L, cx + 9, cy, 2, 3, P.sombra)
-    elipse(L, cx, cy - 1, 8, 8, P.pelo)
-    raya(L, cx - 5, cx + 5, cy + 7, P.pelo)
-    // La raya en medio, vista por detrás, y la luz en cada lado.
-    linea(L, cx, cy - 9, cx, cy - 2, 'a')
-    ;[
-      [-6, -4, -2],
-      [-5, -6, -5],
-      [-3, -7, -7],
-      [-6, 2, 4],
-      [-5, 5, 6],
-      [-3, 7, 7],
-    ].forEach(([y, a, b]) => raya(L, cx + a, cx + b, cy + y, P.luz))
-    raya(L, cx - 4, cx + 4, cy + 10, P.ropa2)
-  }
-}
-
-/** De cuerpo entero y de perfil, chiquito, caminando hacia la derecha. `y` es el piso. */
-function mini(L, x, y, P, fase, anda = true) {
-  const paso = anda ? Math.sin(fase) : 0
-  const bote = anda && Math.abs(Math.cos(fase)) > 0.7 ? 0 : anda ? -1 : 0
-  x = Math.round(x)
-  const yy = y + bote
-  sombra(L, x + 3, y, 4, 0.6)
-  // Las piernas: de la cadera al pie, una adelante y otra atrás.
-  const cad = [x + 3, yy - 6]
-  const pieA = x + 3 + Math.round(3 * paso)
-  const pieB = x + 3 - Math.round(3 * paso)
-  linea(L, cad[0], cad[1], pieB, y - 1 - (paso > 0.3 ? 1 : 0), P.pierna === 'n' ? 'u' : 'd', 2)
-  linea(L, cad[0], cad[1], pieA, y - 1 - (paso < -0.3 ? 1 : 0), P.pierna, 2)
-  punto(L, pieA + 1, y - 1 - (paso < -0.3 ? 1 : 0), 'k')
-  punto(L, pieB + 1, y - 1 - (paso > 0.3 ? 1 : 0), 'k')
-  // El tronco y el brazo, que va al revés que la pierna.
-  caja(L, x + 1, yy - 11, 5, 6, P.ropa)
-  caja(L, x + 5, yy - 11, 1, 6, P.ropa2)
-  const mano = x + 3 - Math.round(2 * paso)
-  linea(L, x + 3, yy - 10, mano, yy - 6, P.ropa2)
-  punto(L, mano, yy - 5, P.piel)
-  // La cabeza.
-  if (P === ALEX) pon(L, ['.aaaaa.', 'aaAaaaa', 'aaaaaee', 'aaaeeae', 'aaaeeee', 'aa..ee.', 'a......'], x - 1, yy - 17)
-  else pon(L, ['.hhhh.', 'hhHhhh', 'hhhhcc', 'hhccac', '.ccccc', '..ccc.'], x, yy - 17)
-}
-
-// ───────────────────────── Utilería ─────────────────────────
-
-const GLOBO = [
-  '..wwwwwwwwwww..',
-  '.wwwwwwwwwwwww.',
-  'wwwwwwwwwwwwwww',
-  'wwwwwwwwwwwwwww',
-  'wwwwwwwwwwwwwww',
-  'wwwwwwwwwwwwwww',
-  'wwwwwwwwwwwwwww',
-  'wwwwwwwwwwwwwww',
-  'wwwwwwwwwwwwwww',
-  '.wwwwwwwwwwwww.',
-  '..wwwwwwwwwww..',
-  '..www..........',
-  '..ww...........',
-  '..w............',
-]
-const TACHE = ['rr.....rr', 'rrr...rrr', '.rrr.rrr.', '..rrrrr..', '...rrr...', '..rrrrr..', '.rrr.rrr.', 'rrr...rrr', 'rr.....rr']
-const CORAZON = ['.rr...rr.', 'rrrr.rrrr', 'rRrrrrrrr', 'rrrrrrrrr', '.rrrrrrr.', '..rrrrr..', '...rrr...', '....r....']
-const LETRA = {
-  T: ['###', '.#.', '.#.', '.#.', '.#.'],
-  O: ['###', '#.#', '#.#', '#.#', '###'],
-  C: ['###', '#..', '#..', '#..', '###'],
-  '!': ['#', '#', '#', '.', '#'],
-}
-const rotulo = (L, txt, x, y, c) => [...txt].forEach((ch, i) => pon(L, LETRA[ch].map((f) => f.replace(/#/g, c)), x + i * 4, y))
-
-/** El globo de diálogo, que crece de golpe (k va de 0 a 1). */
-function globo(L, x, y, icono, k) {
-  if (k <= 0) return
-  if (k < 0.5) return pon(L, ['.www.', 'wwwww', 'wwwww', '.www.'], x + 5, y + 6)
-  if (k < 0.8) return pon(L, ['.wwwwwww.', 'wwwwwwwww', 'wwwwwwwww', 'wwwwwwwww', 'wwwwwwwww', '.wwwwwww.', '.ww......'], x + 3, y + 3)
-  pon(L, GLOBO, x, y)
-  pon(L, icono, x + 3, y + 1)
-}
-
-/** Rayos que salen de un punto: el golpe. */
-function golpe(L, x, y, r, c = 'w') {
-  for (let i = 0; i < 8; i++) {
-    const a = (i / 8) * Math.PI * 2 + 0.3
-    const r0 = r * (i % 2 ? 0.55 : 0.4)
-    const r1 = r * (i % 2 ? 0.8 : 1)
-    linea(L, x + Math.cos(a) * r0, y + Math.sin(a) * r0, x + Math.cos(a) * r1, y + Math.sin(a) * r1, i % 2 ? 'y' : c)
-  }
-}
-
-const CONFETI = 'ywrgbwyr'
-function confeti(L, f, n = 26) {
-  for (let i = 0; i < n; i++) {
-    const x = (i * 37 + 11) % W
-    const v = 1 + (i % 3) * 0.6
-    const y = ((i * 13) % 40) - 38 + f * v
-    if (y >= 0 && y < H) {
-      punto(L, x + Math.round(Math.sin((f + i) * 0.7)), y, CONFETI[i % 8])
-      if (i % 4 === 0) punto(L, x + 1 + Math.round(Math.sin((f + i) * 0.7)), y, CONFETI[i % 8])
-    }
-  }
-}
-
-/** La cámara tiembla: desplaza todo el cuadro. */
-const sacude = (L, dx, dy) => {
-  if (!dx && !dy) return L
-  const N = lienzo(W, H)
-  calca(N, L, dx, dy)
-  return N
-}
+// El reparto (Dalí, Alex y los de las casas) vive en reparto.js.
 
 // ───────────────────────── Los planos ─────────────────────────
 
@@ -508,7 +67,7 @@ function planoCalle(L, f, n) {
   // Dalí levanta el puño.
   if (!anda) {
     const sube = Math.min(3, f - (n - 6))
-    linea(L, X(xD) + 4, 17, X(xD) + 6 + sube, 17 - sube, 'G')
+    linea(L, X(xD) + 4, 17, X(xD) + 6 + sube, 17 - sube, 'c')
     punto(L, X(xD) + 7 + sube, 16 - sube, 'c')
   }
 }
@@ -539,9 +98,9 @@ function planoToca(L, f, n, amarilla = false) {
   const sale = f > toques[1] + 3 ? (f - toques[1] - 3) * 3 : 0
   const hx = 4 + entra * 34 - atras - sale
   const hy = 24 - entra * 9 + atras * 0.7 + sale
-  // El antebrazo (la manga de la polo) y el puño.
-  linea(L, hx - 26, hy + 20, hx - 5, hy + 5, 'w', 9)
-  linea(L, hx - 26, hy + 24, hx - 6, hy + 9, 'G', 2)
+  // El antebrazo y el puño.
+  linea(L, hx - 26, hy + 20, hx - 5, hy + 5, 'c', 9)
+  linea(L, hx - 26, hy + 24, hx - 6, hy + 9, 'C', 2)
   linea(L, hx - 7, hy + 6, hx - 3, hy + 3, 'C', 7)
   elipse(L, hx, hy, 5, 4.4, 'c')
   caja(L, Math.round(hx) - 4, Math.round(hy) + 3, 8, 2, 'C')
@@ -574,7 +133,7 @@ function planoDesdeDentro(L, f) {
   if (saluda) {
     // La mano de Dalí, de un lado a otro.
     const m = Math.round(Math.sin(t * 1.5) * 2)
-    linea(afuera, 27, 32, 27 + m, 24, 'G', 3)
+    linea(afuera, 27, 32, 27 + m, 24, 'C', 3)
     pon(afuera, ['.c.c.', 'ccccc', 'cccCc', '.cCC.'], 25 + m, 20)
   }
   // Adentro: pared y piso a oscuras.
@@ -673,7 +232,7 @@ function planoQueSigue(L, f) {
     const s = rebota(tramo(f, 11, 15))
     const mx = 35 + s * 5
     const my = 31 - s * 13
-    linea(L, 32, 32, mx - 2, my + 2, 'w', 4)
+    linea(L, 32, 32, mx - 2, my + 2, 'c', 4)
     pon(L, ['.cccc...', 'ccccccc.', 'cccccccc', 'ccccCC..', '.ccc....'], Math.round(mx) - 2, Math.round(my) - 2)
     if (f >= 15 && f % 2) {
       raya(L, mx + 8, mx + 10, my, 'w')
@@ -721,15 +280,13 @@ function planoDesdeArriba(L, f, n) {
     y = Math.round(y)
     sombra(L, x + 2, y + 1, 3, 6)
     // Los hombros, atravesados al rumbo; las manos van y vienen en las puntas.
-    const tela = P === ALEX ? 'd' : P.ropa
-    elipse(L, x, y, 2.4, 6, tela)
+    elipse(L, x, y, 2.4, 6, P.ropa)
     const b = Math.round(fase * 2)
     punto(L, x + b, y - 7, P.piel)
     punto(L, x - b, y + 7, P.piel)
-    if (P === ALEX) {
-      // La capucha atrás y la greña: grande, dispareja, con mechones que se salen.
-      elipse(L, x - 3, y, 1.6, 3, 'k')
-      elipse(L, x, y, 4, 4, P.pelo)
+    if (P.peinado === 'rizos') {
+      // Los rizos: un nubarrón disparejo, con mechones que se salen.
+      elipse(L, x, y, 4.4, 4.4, P.pelo)
       punto(L, x - 5, y + 2, P.pelo)
       punto(L, x - 4, y - 4, P.pelo)
       punto(L, x + 1, y - 5, P.pelo)
@@ -740,7 +297,7 @@ function planoDesdeArriba(L, f, n) {
     } else {
       // El librito: la raya corre de la frente a la nuca.
       elipse(L, x, y, 3.4, 3.4, P.pelo)
-      raya(L, x - 3, x + 3, y, 'a')
+      raya(L, x + 1, x + 3, y, 'a')
       raya(L, x - 1, x + 1, y - 2, P.luz)
       raya(L, x - 1, x + 1, y + 2, P.luz)
     }
@@ -780,8 +337,8 @@ function planoChoque(L, f) {
   const xD = 33 + sube * 6
   const xA = 51 - sube * 6
   const atras = despues > 1 ? Math.min(3, despues - 1) : 0
-  linea(L, 33, 33, xD - 1 - atras, yM + 3, 'w', 4)
-  linea(L, 51, 33, xA + 1 + atras, yM + 3, 'k', 4)
+  linea(L, 33, 33, xD - 1 - atras, yM + 3, 'c', 4)
+  linea(L, 51, 33, xA + 1 + atras, yM + 3, 'n', 4)
   pon(L, ['.c.c.', 'ccccc', 'ccccc', 'ccccc', '.ccc.'], Math.round(xD - 3 - atras), Math.round(yM - 2))
   pon(L, ['.e.e.', 'eeeee', 'eeeee', 'eeeee', '.eee.'], Math.round(xA - 1 + atras), Math.round(yM - 2))
   if (despues >= 0 && despues < 4) golpe(L, 42, 9, 6 + despues * 4)
@@ -804,19 +361,4 @@ const PLANOS = [
   [22, planoSi],
   [24, planoChoque],
 ]
-const TOTAL = PLANOS.reduce((s, [n]) => s + n, 0)
-
-function cuadro(i) {
-  let f = i
-  for (const [n, plano] of PLANOS) {
-    if (f < n) {
-      const L = lienzo(W, H)
-      const temblor = plano(L, f, n)
-      return temblor ? sacude(L, temblor[0], temblor[1]) : L
-    }
-    f -= n
-  }
-  return lienzo(W, H)
-}
-
-export const peliPuertas = () => registra('puertas', { w: W, h: H, fps: FPS, n: TOTAL, cuadro, colores: { s: '#1848b4' }, cartel: 30 + 16 + 20 })
+export const peliPuertas = () => montaje('puertas', PLANOS, { s: '#1848b4' }, 66)
