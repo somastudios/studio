@@ -52,32 +52,36 @@ const { chromium } = require('playwright')
     await p.screenshot({ path: `${salida}/fichas-${i}.png`, clip: { x: f.x - 4, y: f.y - 4, width: f.width + 8, height: f.height + 14 } })
     await p.waitForTimeout(430)
   }
-  // Las hojas de cuadros: una por escena, con todos sus turnos sobre el color de su ficha.
+  // Las hojas de cuadros: una por escena, sobre el color de su ficha. De la película se
+  // muestran todos; `desde` y `hasta` (6.º y 7.º argumento) acotan el tramo.
+  const [desde = '0', hasta = '9999'] = process.argv.slice(7)
   for (const [nombre, color] of [['puertas', '#216fff'], ['agentes', '#ffcb1f'], ['billetes', '#1fce6d'], ['cobro', '#ff5240']]) {
-    const n = await p.evaluate(async ([nombre, color]) => {
-      const { escena } = await import('/src/crm/escenas.js')
+    const info = await p.evaluate(async ([nombre, color, desde, hasta]) => {
+      const { escena, pelicula, pinta } = await import('/src/crm/escenas.js')
+      escena(nombre)
+      const peli = pelicula(nombre)
       document.getElementById('hoja-px')?.remove()
       const hoja = document.createElement('div')
       hoja.id = 'hoja-px'
-      hoja.className = `ficha ficha--${{ '#216fff': 'azul', '#ffcb1f': 'amarillo', '#1fce6d': 'verde', '#ff5240': 'rojo' }[color]}`
-      hoja.style.cssText = `position:fixed;inset:0;z-index:99999;background:${color};--f:${color};overflow:auto;padding:6px;display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;border-radius:0;flex-direction:row;justify-content:flex-start`
-      const tmp = document.createElement('div')
-      tmp.innerHTML = escena(nombre)
-      const svg = tmp.firstElementChild
-      const usos = [...svg.querySelectorAll('use')]
-      usos.forEach((u, i) => {
-        const c = svg.cloneNode(true)
-        c.querySelectorAll('use').forEach((x, j) => (x.style.cssText = `animation:none;visibility:${i === j ? 'visible' : 'hidden'}`))
-        c.style.cssText = 'width:224px;height:88px;flex:none;outline:1px solid rgb(0 0 0 / .15)'
+      hoja.style.cssText = `position:fixed;inset:0;z-index:99999;background:${color};overflow:auto;padding:6px;display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start`
+      const a = Math.max(0, +desde)
+      const b = Math.min(peli.n, +hasta)
+      for (let i = a; i < b; i++) {
+        const c = document.createElement('canvas')
+        c.width = peli.w
+        c.height = peli.h
+        c.style.cssText = `width:${peli.w * 4}px;height:${peli.h * 4}px;flex:none;image-rendering:pixelated;outline:1px solid rgb(0 0 0 / .2)`
+        pinta(c, nombre, i)
         hoja.appendChild(c)
-      })
+      }
       document.querySelector('#app').appendChild(hoja)
-      return usos.length
-    }, [nombre, color])
-    await p.setViewportSize({ width: 1400, height: Math.ceil(n / 6) * 94 + 12 })
+      return { n: b - a, w: peli.w * 4 + 6, h: peli.h * 4 + 6, total: peli.n }
+    }, [nombre, color, desde, hasta])
+    const cols = Math.max(1, Math.floor(1400 / info.w))
+    await p.setViewportSize({ width: cols * info.w + 12, height: Math.ceil(info.n / cols) * info.h + 12 })
     await p.waitForTimeout(150)
     await p.screenshot({ path: `${salida}/cuadros-${nombre}.png` })
-    console.log(nombre, n, 'cuadros')
+    console.log(nombre, info.total, 'cuadros')
   }
   console.log(errores.length ? `ERRORES: ${errores.join(' | ')}` : 'sin errores')
   await b.close()

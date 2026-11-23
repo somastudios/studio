@@ -561,96 +561,13 @@
 
 /* ───────────────────────── Pixel art ───────────────────────── */
 
+/* Cada escena es un canvas chiquito, ampliado sin suavizar: los pixeles quedan nítidos. */
 .px {
   display: block;
   width: 100%;
   height: auto;
-}
-
-.px use {
-  visibility: hidden;
-}
-
-.px-k {
-  fill: var(--color-ink);
-}
-
-.px-p {
-  fill: var(--color-paper);
-}
-
-.px-w {
-  fill: #fff;
-}
-
-.px-d {
-  fill: #2b2c33;
-}
-
-.px-y {
-  fill: #ffcb1f;
-}
-
-.px-o {
-  fill: #c9790a;
-}
-
-.px-r {
-  fill: #ff5240;
-}
-
-.px-b {
-  fill: #8fbaff;
-}
-
-.px-g {
-  fill: #1fce6d;
-}
-
-.px-z {
-  fill: var(--color-blue);
-}
-
-.px-c {
-  fill: #f6cfa6;
-}
-
-.px-m {
-  fill: #c68a5c;
-}
-
-.px-u {
-  fill: #5b92f5;
-}
-
-.px-n {
-  fill: #183b8c;
-}
-
-.px-s {
-  fill: var(--f-s, #000);
-}
-
-.px-v {
-  fill: #fff;
-  opacity: 0.3;
-}
-
-/* Sobre su mismo color, el acento cambia para no perderse. */
-.ficha--amarillo .px-y {
-  fill: #fff;
-}
-
-.ficha--rojo .px-y {
-  fill: #ffe27a;
-}
-
-.ficha--rojo .px-r {
-  fill: #c81e10;
-}
-
-.ficha--verde .px-g {
-  fill: #0b7a3c;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
 }
 
 /* ───────────────────────── Teléfono ───────────────────────── */
@@ -729,14 +646,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .px use {
-    animation: none !important;
-  }
-
-  .px use:first-of-type {
-    visibility: visible;
-  }
-
   .rj-seg,
   .rj-orbita,
   .sd-brillo path,

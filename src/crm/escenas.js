@@ -1,14 +1,15 @@
-import { lienzo, punto, pon, raya, caja, tinte, gira, pelicula } from './pixel.js'
+import { lienzo, punto, pon, raya, caja, tinte, gira, calca, registra, pelicula, canvasDe } from './pixel.js'
+import { peliPuertas } from './peli-puertas.js'
 
-// Las cuatro escenas de «Hoy». Cada una cuenta, en chiquito, lo que mide su ficha:
-//   puertas   Prospectos en proceso: los dos de Soma van de puerta en puerta. Unas se cierran
-//             en la cara, otras se abren con gusto.
+// Las escenas de «Hoy». Cada una cuenta, en chiquito, lo que mide su ficha:
+//   puertas   Prospectos en proceso: Dalí y Alex van de puerta en puerta. Es una película
+//             con cortes de cámara y vive en su propio archivo (peli-puertas.js).
 //   agentes   Clientes: llegan de traje y lentes oscuros, exigen, y se van contentos.
 //   billetes  Cobrado este mes: billetes de 500 que caen y se van apilando.
 //   cobro     Por cobrar o por vencer: el reloj de arena corre, el calendario se deshoja y,
 //             cuando llega el día, suena la campana y sale el aviso.
 //
-// Letras → colores en hoy.css (.px-*).
+// Letras → colores en pixel.js (PALETA).
 
 const W = 56
 const H = 22
@@ -31,23 +32,6 @@ const rollo = () => {
   return { cuadros, toma }
 }
 
-// ───────────────────────── Gente ─────────────────────────
-// Cinco pixeles de ancho, nueve de alto, mirando a la derecha.
-// h pelo · c piel · e ojo · s camisa · l piernas
-
-const PIE = ['.hhh.', '.hce.', '.ccc.', 'sssss', 'csssc', '.sss.', '.l.l.', '.l.l.', '.l.l.']
-const PASO = ['.hhh.', '.hce.', '.ccc.', 'sssss', 'csssc', '.sss.', '..l..', '..l..', '..l..']
-const ZANCADA = ['.hhh.', '.hce.', '.ccc.', 'sssss', 'csssc', '.sss.', '.l.l.', '.l.l.', 'l...l']
-const TOCA = [
-  ['.hhh.', '.hce.', '.ccc.', 'sssssc', 'csss.', '.sss.', '.l.l.', '.l.l.', '.l.l.'],
-  ['.hhh.', '.hce.', '.ccc.', 'ssssssc', 'csss.', '.sss.', '.l.l.', '.l.l.', '.l.l.'],
-]
-const SALTA = ['chhhc', '.hce.', '.ccc.', '.sss.', '.sss.', '.sss.', '.l.l.', 'l...l']
-const TRISTE = ['.....', '.hhh.', '.hce.', 'sssss', 'csssc', '.sss.', '.l.l.', '.l.l.', '.l.l.']
-
-const UNO = { h: 'k', c: 'c', e: 'k', s: 'g', l: 'd' }
-const OTRO = { h: 'o', c: 'm', e: 'k', s: 'r', l: 'd' }
-
 // Globos de diálogo: nueve de ancho, con su pico. El icono va adentro.
 const GLOBO = ['.wwwwwww.', 'wwwwwwwww', 'wwwwwwwww', 'wwwwwwwww', 'wwwwwwwww', 'wwwwwwwww', '.wwwwwww.', '...ww....']
 const GLOBITO = ['.ww.', 'wwww', '.ww.']
@@ -67,191 +51,21 @@ const globo = (L, x, y, icono) => {
   if (icono) pon(L, ICONO[icono], x + 2, y + 1)
 }
 
-// ───────────────────────── Prospectos: de puerta en puerta ─────────────────────────
-
-const TIENDA = [
-  'kkkkkkkkkkkkkkk',
-  'krrwwrrwwrrwwrk',
-  'krrwwrrwwrrwwrk',
-  'kkkkkkkkkkkkkkk',
-  'kpppppppppppppk',
-  'kpkkkkpkkkkkppk',
-  'kpkbbkpkoookppk',
-  'kpkbbkpkoookppk',
-  'kpkkkkpkoookppk',
-  'kppppppkoookppk',
-  'kppppppkooykppk',
-  'kppppppkoookppk',
-  'kppppppkoookppk',
-]
-const CASA = [
-  '.......k.......',
-  '......krk......',
-  '.....krrrk.....',
-  '....krrrrrk....',
-  '...krrrrrrrk...',
-  '..krrrrrrrrrk..',
-  '.krrrrrrrrrrrk.',
-  'kkkkkkkkkkkkkkk',
-  'kyyyyyyyyyyyyyk',
-  'kykkkkykkkkkyyk',
-  'kykbbkykoookyyk',
-  'kykbbkykoookyyk',
-  'kykkkkykoookyyk',
-  'kyyyyyykoookyyk',
-  'kyyyyyykoowkyyk',
-  'kyyyyyykoookyyk',
-  'kyyyyyykoookyyk',
-]
-const OFICINA = [
-  'kkkkkkkkkkkkkk',
-  'kppppppppppppk',
-  'kpbbpbbpbbpbbk',
-  'kpbbpbbpbbpbbk',
-  'kppppppppppppk',
-  'kpbbpbbpbbpbbk',
-  'kpbbpbbpbbpbbk',
-  'kppppppppppppk',
-  'kpbbpbbpbbpbbk',
-  'kppppppppppppk',
-  'kppppppkkkkkpk',
-  'kppppppkoookpk',
-  'kppppppkoookpk',
-  'kppppppkoookpk',
-  'kppppppkoookpk',
-  'kppppppkooykpk',
-  'kppppppkoookpk',
-  'kppppppkoookpk',
-]
-// Quien abre: de frente al que toca (mira a la izquierda), asomado en el marco.
-const VECINO = ['hhh', 'ecc', 'ccc', 'sss', 'sss', 'l.l', 'l.l']
-const VECINOS = [
-  { h: 'k', c: 'm', e: 'k', s: 'd', l: 'k' },
-  { h: 'o', c: 'c', e: 'k', s: 'w', l: 'd' },
-  { h: 'd', c: 'c', e: 'k', s: 'b', l: 'd' },
-]
-
-function escenaPuertas() {
-  const PUERTAS = [13, 31, 49] // columna del marco izquierdo de cada puerta
-  const fondo = piso()
-  pon(fondo, TIENDA, 6, 7)
-  pon(fondo, CASA, 24, 3)
-  pon(fondo, OFICINA, 42, 2)
-  const { cuadros, toma } = rollo()
-
-  const duo = (L, ax, poseA, poseB = poseA, dyA = 0, dyB = 0) => {
-    pon(L, tinte(poseB, OTRO), ax - 6, 11 + dyB)
-    pon(L, tinte(poseA, UNO), ax, 11 + dyA)
-  }
-  const abierta = (L, i) => {
-    const x = PUERTAS[i]
-    caja(L, x + 1, 13, 3, 7, 'k')
-    pon(L, tinte(VECINO, VECINOS[i]), x + 1, 13)
-  }
-  const camina = (desde, hasta) => {
-    for (let x = desde, n = 0; x < hasta; x += 2, n++) toma((L) => duo(L, x, n % 2 ? ZANCADA : PASO))
-  }
-  const toca = (i) => {
-    const ax = PUERTAS[i] - 6
-    for (let n = 0; n < 4; n++)
-      toma((L) => {
-        duo(L, ax, TOCA[n % 2], PIE)
-        // «toc, toc»
-        if (n % 2) {
-          punto(L, PUERTAS[i] + 1, 11, 'w')
-          punto(L, PUERTAS[i] + 3, 10, 'w')
-        }
-      })
-    for (let n = 0; n < 2; n++) toma((L) => duo(L, ax, PIE))
-  }
-  const confeti = (L, x, n) => {
-    const P = [
-      [-3, 2, 'y'],
-      [2, 0, 'w'],
-      [7, 3, 'r'],
-      [11, 1, 'y'],
-      [-6, 5, 'w'],
-      [5, 4, 'g'],
-      [9, 6, 'w'],
-      [0, 6, 'y'],
-    ]
-    P.forEach(([dx, dy, c], k) => punto(L, x + dx, 1 + ((dy + n + k) % 9), c))
-  }
-  const gx = (i) => PUERTAS[i] - 2
-
-  // Entran por la izquierda.
-  camina(-5, 7)
-
-  // Primera puerta: no.
-  toca(0)
-  toma((L) => {
-    abierta(L, 0)
-    duo(L, 7, PIE)
-    pon(L, GLOBITO, gx(0) + 3, 7)
+/** Estrena una escena de fondo fijo: cada cuadro es el fondo con lo que se mueve encima. */
+const estrena = (id, fondo, cuadros, fps, colores, cartel = 0) =>
+  registra(id, {
+    w: W,
+    h: H,
+    fps,
+    n: cuadros.length,
+    colores,
+    cartel,
+    cuadro: (i) => {
+      const L = fondo.map((fila) => [...fila])
+      calca(L, cuadros[i])
+      return L
+    },
   })
-  for (let n = 0; n < 6; n++)
-    toma((L) => {
-      abierta(L, 0)
-      globo(L, gx(0), 3, 'no')
-      duo(L, 7, n < 2 ? PIE : TRISTE)
-      // Una gota de pena.
-      if (n >= 2) punto(L, 12, 11 + ((n - 2) % 3), 'w')
-    })
-  // Portazo.
-  for (let n = 0; n < 2; n++)
-    toma((L) => {
-      duo(L, 7, TRISTE)
-      if (n === 0) {
-        punto(L, 12, 12, 'w')
-        punto(L, 18, 12, 'w')
-        punto(L, 11, 14, 'w')
-        punto(L, 19, 14, 'w')
-      }
-    })
-  camina(7, 25)
-
-  // Segunda puerta: sí, y con ganas.
-  toca(1)
-  toma((L) => {
-    abierta(L, 1)
-    duo(L, 25, PIE)
-    pon(L, GLOBITO, gx(1) + 3, 7)
-  })
-  for (let n = 0; n < 7; n++)
-    toma((L) => {
-      abierta(L, 1)
-      globo(L, gx(1), 3, 'amor')
-      duo(L, 25, n % 2 ? PIE : SALTA, n % 2 ? SALTA : PIE, n % 2 ? 0 : -2, n % 2 ? -2 : 0)
-      confeti(L, 26, n)
-    })
-  toma((L) => duo(L, 25, PIE))
-  camina(25, 43)
-
-  // Tercera puerta: lo piensa… y sí.
-  toca(2)
-  ;['uno', 'dos', 'tres'].forEach((ic) =>
-    toma((L) => {
-      abierta(L, 2)
-      globo(L, gx(2), 3, ic)
-      duo(L, 43, PIE)
-    }),
-  )
-  toma((L) => {
-    abierta(L, 2)
-    globo(L, gx(2), 3, 'tres')
-    duo(L, 43, PIE)
-  })
-  for (let n = 0; n < 6; n++)
-    toma((L) => {
-      abierta(L, 2)
-      globo(L, gx(2), 3, 'si')
-      duo(L, 43, n % 2 ? PIE : SALTA, n % 2 ? SALTA : PIE, n % 2 ? 0 : -2, n % 2 ? -2 : 0)
-      confeti(L, 40, n + 3)
-    })
-  // Y se van a la siguiente.
-  camina(43, 63)
-  return pelicula('puertas', fondo, cuadros, 8)
-}
 
 // ───────────────────────── Clientes: los agentes ─────────────────────────
 
@@ -261,7 +75,8 @@ const AG_PASO = ['.hhh.', '.cgg.', '.ccc.', 'sstss', 'ssrss', '.sss.', '..l..', 
 const AG_ZANCADA = ['.hhh.', '.cgg.', '.ccc.', 'sstss', 'ssrss', '.sss.', '.l.l.', '.l.l.', 'k...k']
 const LOGO = ['.kkk.', 'k...k', 'k.z.k', 'k...k', '.kkk.']
 const PLANTA = ['..g..', '.gg.g', 'g.ggg', '.ggg.', '..g..', '.rrr.', '.rrr.']
-const SENTADO = ['.hhh.', '.hce.', '.ccc.', 'sssss', 'sssss', 'sssss', 'sssss', 'sssss']
+// Alex en su escritorio: pelo oscuro y revuelto que le cae en la nuca, sudadera negra.
+const SENTADO = ['.aaaa.', 'aaAaa.', 'aaaek.', 'aaeee.', 'a.eee.', '.kkkkk', '.kkGkk', '.kkkkk', '.kkkkk', '.kkkkk']
 
 function escenaAgentes() {
   const fondo = piso()
@@ -282,11 +97,11 @@ function escenaAgentes() {
 
   /** El de Soma en su escritorio. `prisa` 0 tranquilo · 1 teclea · 2 teclea como loco. */
   const yo = (L, n, prisa = 1, susto = 0) => {
-    pon(L, tinte(SENTADO, OTRO), 8, 6 - susto)
+    pon(L, SENTADO, 7, 4 - susto)
     // Las manos sobre el teclado.
     const a = prisa ? n % 2 : 0
-    punto(L, 13, 12 - a, 'c')
-    punto(L, 15, 12 - (1 - a), 'c')
+    punto(L, 13, 12 - a, 'e')
+    punto(L, 15, 12 - (1 - a), 'e')
     // El brillo de la pantalla.
     caja(L, 19, 9, 1, 3, prisa === 2 && n % 2 ? 'w' : 'b')
     if (prisa && n % 2) punto(L, 19, 9 + (n % 3), 'w')
@@ -412,7 +227,7 @@ function escenaAgentes() {
       carpeta(L, x - 2, 14)
       carpeta(L, x + 7, 14)
     })
-  return pelicula('agentes', fondo, cuadros, 8)
+  return estrena('agentes', fondo, cuadros, 8, { s: '#c98510', y: '#ffffff' }, 30)
 }
 
 // ───────────────────────── Cobrado: billetes de 500 ─────────────────────────
@@ -515,7 +330,7 @@ function escenaBilletes() {
     }),
   )
   for (let n = 0; n < 3; n++) toma(() => {})
-  return pelicula('billetes', fondo, cuadros, 10)
+  return estrena('billetes', fondo, cuadros, 10, { s: '#12924d', g: '#0b7a3c' }, 34)
 }
 
 // ───────────────────────── Por cobrar: se acerca el día ─────────────────────────
@@ -633,11 +448,16 @@ function escenaCobro() {
       if (f > 1) punto(L, x - 5, y + 9, 'w')
     }),
   )
-  return pelicula('cobro', fondo, cuadros, 8)
+  return estrena('cobro', fondo, cuadros, 8, { s: '#c12e26', y: '#ffe27a', r: '#c81e10' }, 4)
 }
 
-const HECHAS = {}
-const ESCENAS = { puertas: escenaPuertas, agentes: escenaAgentes, billetes: escenaBilletes, cobro: escenaCobro }
+const ESCENAS = { puertas: peliPuertas, agentes: escenaAgentes, billetes: escenaBilletes, cobro: escenaCobro }
 
-/** El SVG de una escena. Se dibuja una sola vez: siempre sale idéntico. */
-export const escena = (nombre) => (HECHAS[nombre] ||= ESCENAS[nombre]())
+/** El canvas de una escena. La película se arma la primera vez que se pide. */
+export function escena(nombre) {
+  if (!pelicula(nombre)) ESCENAS[nombre]()
+  return canvasDe(nombre)
+}
+
+// Para las herramientas que revisan las películas cuadro por cuadro.
+export { pelicula, pinta } from './pixel.js'

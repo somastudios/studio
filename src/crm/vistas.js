@@ -9,6 +9,7 @@ import { NICHO } from '../content/nichos/index.js'
 import { boil, P } from '../core/boil.js'
 import { marco } from './marco.js'
 import { escena } from './escenas.js'
+import { proyecta } from './pixel.js'
 import { emblemaFecha, emblemaOrbita, emblemaHoja, emblemaDona, emblemaPulso } from './emblemas.js'
 import { estadoMembresia, requiereAtencion, resumenCobranza, nombreModalidad, confirmarPago } from './cobranza.js'
 import { editarProspecto, editarCita, avisar, dlgPago, editarMembresia, editarSistema, dlgConectar, dlgCredenciales, TIPOS_CITA } from './dialogos.js'
@@ -129,7 +130,7 @@ export function vistaHoy() {
       }
       ${porVisitar ? `<p class="a-p" style="margin-top:28px">${porVisitar === 1 ? 'Te falta visitar a 1 prospecto' : `Te falta visitar a ${porVisitar} prospectos`}. <a class="a-enlace" href="#/crm/prospectos">Verlos</a></p>` : ''}`
       }`
-  })
+  }, { despues: proyecta })
   const q = [...acciones(m.main), alTocar(m.main, '[data-nueva-cita]', () => editarCita())]
   return () => {
     q.forEach((f) => f())

@@ -1,9 +1,46 @@
-// Pixel art animado, sin imágenes. Cada escena se compone en una cuadrícula de letras y sale
-// como un SVG de bordes duros: un fondo fijo y, encima, los cuadros de lo que se mueve. Los
-// cuadros se alternan con CSS (como el trazo que hierve), así que animar no cuesta nada por
-// cuadro y un repintado no reinicia nada si el HTML no cambió.
+// Pixel art animado, sin imágenes. Una película es una lista de cuadros; cada cuadro es una
+// cuadrícula de letras y cada letra, un color (el punto es transparente). Se proyecta en un
+// <canvas> escalado sin suavizar, así que los pixeles quedan nítidos a cualquier tamaño y una
+// película larga no pesa nada en la página.
 //
-// Cada letra es un color (ver .px-* en hoy.css). El punto es transparente.
+// El reloj es global: si la vista se repinta y el canvas se cambia por otro, la película sigue
+// donde iba en lugar de volver a empezar.
+
+export const PALETA = {
+  k: '#050506', // tinta
+  p: '#efece4', // papel
+  w: '#ffffff',
+  d: '#2b2c33', // gris oscuro
+  D: '#5d5f6b', // gris medio
+  G: '#a9abb6', // gris claro
+  y: '#ffcb1f',
+  o: '#c9790a', // madera
+  O: '#8f5406', // madera oscura
+  r: '#ff5240',
+  R: '#ffb1a4', // rubor
+  b: '#8fbaff',
+  g: '#1fce6d',
+  q: '#2f9e63', // verde hoja
+  x: '#ead0aa', // adobe
+  X: '#d3b185', // adobe en sombra
+  z: '#216fff', // el azul de Soma
+  u: '#5b92f5', // billete
+  n: '#183b8c', // azul marino
+  c: '#fbdcc0', // piel de Dalí
+  C: '#e6b796', // su sombra
+  e: '#f4cda8', // piel de Alex
+  E: '#dca880', // su sombra
+  m: '#c68a5c', // otra piel (vecinos)
+  h: '#7b4a25', // castaño
+  H: '#a86d3a', // castaño con luz
+  a: '#1f1b28', // pelo oscuro
+  A: '#423c58', // pelo oscuro con luz
+  s: '#1848b4', // la sombra de la ficha (cada película pone la suya)
+  v: 'rgb(255 255 255 / 0.3)', // vidrio
+  t: 'rgb(5 5 6 / 0.28)', // sombra en el piso
+}
+
+// ───────────────────────── Dibujar en la cuadrícula ─────────────────────────
 
 export const lienzo = (w, h) => Array.from({ length: h }, () => Array(w).fill('.'))
 
@@ -21,19 +58,60 @@ export const pon = (L, dibujo, x, y, espejo = false) =>
   })
 
 export const raya = (L, x0, x1, y, c) => {
-  for (let x = x0; x <= x1; x++) punto(L, x, y, c)
+  for (let x = Math.round(x0); x <= Math.round(x1); x++) punto(L, x, y, c)
 }
 
 export const caja = (L, x, y, w, h, c) => {
   for (let j = 0; j < h; j++) raya(L, x, x + w - 1, y + j, c)
 }
 
+/** Una recta de cualquier grosor entre dos puntos. */
+export function linea(L, x0, y0, x1, y1, c, grosor = 1) {
+  const n = Math.max(1, Math.ceil(Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0))))
+  for (let i = 0; i <= n; i++) {
+    const x = x0 + ((x1 - x0) * i) / n
+    const y = y0 + ((y1 - y0) * i) / n
+    if (grosor === 1) punto(L, x, y, c)
+    else caja(L, Math.round(x - (grosor - 1) / 2), Math.round(y - (grosor - 1) / 2), grosor, grosor, c)
+  }
+}
+
+export function elipse(L, cx, cy, rx, ry, c) {
+  for (let y = Math.floor(cy - ry); y <= Math.ceil(cy + ry); y++)
+    for (let x = Math.floor(cx - rx); x <= Math.ceil(cx + rx); x++) {
+      const dx = (x - cx) / (rx + 0.35)
+      const dy = (y - cy) / (ry + 0.35)
+      if (dx * dx + dy * dy <= 1) punto(L, x, y, c)
+    }
+}
+
+// Una cuadrícula no mezcla colores: la sombra oscurece lo que haya debajo, tono por tono.
+const MAS_OSCURO = { p: 'G', w: 'G', G: 'D', D: 'd', d: 'k', x: 'X', X: 'O', y: 'o', o: 'O', r: 'O', b: 'u', q: 'd', g: 'q' }
+
+/** Una sombra ovalada en el piso. */
+export function sombra(L, cx, cy, rx, ry) {
+  for (let y = Math.floor(cy - ry); y <= Math.ceil(cy + ry); y++)
+    for (let x = Math.floor(cx - rx); x <= Math.ceil(cx + rx); x++) {
+      const dx = (x - cx) / (rx + 0.35)
+      const dy = (y - cy) / (ry + 0.35)
+      if (dx * dx + dy * dy > 1 || y < 0 || y >= L.length || x < 0 || x >= L[0].length) continue
+      const c = L[y][x]
+      L[y][x] = c === '.' ? 't' : (MAS_OSCURO[c] ?? c)
+    }
+}
+
+/** Renglones como [y, x0, x1] (o [y, x0, x1, color]) relativos a un origen: para siluetas. */
+export const tramos = (L, ox, oy, lista, c) => lista.forEach(([y, x0, x1, cc]) => raya(L, ox + x0, ox + x1, oy + y, cc || c))
+
 /** Cambia letras de un dibujo: tinte(PERSONA, { s: 'r' }) le pone la camisa roja. */
 export const tinte = (dibujo, mapa) => dibujo.map((fila) => [...fila].map((c) => mapa[c] ?? c).join(''))
 
+/** Copia un lienzo sobre otro, desplazado. Lo que se sale, se pierde. */
+export const calca = (L, otro, dx = 0, dy = 0) => otro.forEach((fila, j) => fila.forEach((c, i) => punto(L, i + dx, j + dy, c)))
+
 /**
- * Gira una zona del lienzo alrededor de un centro. Cada pixel nuevo mira nueve puntos del
- * original y se queda con el color que más se repite: así los contornos sobreviven al giro.
+ * Gira un lienzo alrededor de un centro. Cada pixel nuevo mira nueve puntos del original y se
+ * queda con el color que más se repite: así los contornos sobreviven al giro.
  */
 export function gira(L, grados, cx, cy) {
   const a = (-grados * Math.PI) / 180
@@ -57,41 +135,119 @@ export function gira(L, grados, cx, cy) {
   return N
 }
 
-/** Un lienzo, como trazos: uno por color, hechos de tiras horizontales. */
-function trazos(L) {
-  const porColor = {}
-  for (let y = 0; y < L.length; y++) {
+// Curvas de movimiento: de 0 a 1.
+export const suave = (t) => (t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t))
+export const frena = (t) => (t <= 0 ? 0 : t >= 1 ? 1 : 1 - Math.pow(1 - t, 3))
+export const rebota = (t) => {
+  if (t <= 0) return 0
+  if (t >= 1) return 1
+  const c = 2.2
+  return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2)
+}
+/** Avance de 0 a 1 entre dos cuadros. */
+export const tramo = (f, desde, hasta) => (f <= desde ? 0 : f >= hasta ? 1 : (f - desde) / (hasta - desde))
+
+// ───────────────────────── Películas ─────────────────────────
+
+const PELIS = {}
+
+/**
+ * Registra una película.
+ *   w, h      tamaño en pixeles
+ *   fps       cuadros por segundo
+ *   n         cuántos cuadros tiene
+ *   cuadro(i) devuelve el lienzo del cuadro i (se llama una vez por cuadro y se guarda)
+ *   colores   letras que cambian de color en esta película (la sombra de su ficha, acentos)
+ *   cartel    el cuadro que se muestra quieto a quien pidió menos movimiento
+ */
+export function registra(id, peli) {
+  PELIS[id] = { cartel: 0, colores: {}, ...peli, hechos: new Set(), hoja: null }
+  return PELIS[id]
+}
+
+export const pelicula = (id) => PELIS[id]
+
+function hojaDe(p) {
+  if (!p.hoja) {
+    // Todos los cuadros, uno junto al otro, en un lienzo que nunca se muestra.
+    const cols = Math.min(p.n, 24)
+    p.cols = cols
+    p.hoja = document.createElement('canvas')
+    p.hoja.width = p.w * cols
+    p.hoja.height = p.h * Math.ceil(p.n / cols)
+  }
+  return p.hoja
+}
+
+function revela(p, i) {
+  const hoja = hojaDe(p)
+  if (p.hechos.has(i)) return
+  const g = hoja.getContext('2d')
+  const L = p.cuadro(i)
+  const ox = (i % p.cols) * p.w
+  const oy = Math.floor(i / p.cols) * p.h
+  const color = { ...PALETA, ...p.colores }
+  for (let y = 0; y < p.h; y++) {
     let x = 0
-    while (x < L[0].length) {
+    while (x < p.w) {
       const c = L[y][x]
       if (c === '.') {
         x++
         continue
       }
       let n = 1
-      while (x + n < L[0].length && L[y][x + n] === c) n++
-      porColor[c] = (porColor[c] || '') + `M${x} ${y}h${n}v1h-${n}z`
+      while (x + n < p.w && L[y][x + n] === c) n++
+      g.fillStyle = color[c] || '#f0f'
+      g.fillRect(ox + x, oy + y, n, 1)
       x += n
     }
   }
-  return Object.keys(porColor)
-    .sort()
-    .map((c) => `<path class="px-${c}" d="${porColor[c]}"/>`)
-    .join('')
+  p.hechos.add(i)
 }
 
+/** Dibuja el cuadro i de una película en un canvas. */
+export function pinta(canvas, id, i) {
+  const p = PELIS[id]
+  if (!p) return
+  revela(p, i)
+  const g = canvas.getContext('2d')
+  g.clearRect(0, 0, p.w, p.h)
+  g.drawImage(p.hoja, (i % p.cols) * p.w, Math.floor(i / p.cols) * p.h, p.w, p.h, 0, 0, p.w, p.h)
+}
+
+/** El canvas de una película, listo para ponerse en la página. */
+export const canvasDe = (id) => {
+  const p = PELIS[id]
+  return `<canvas class="px" data-px="${id}" width="${p.w}" height="${p.h}"></canvas>`
+}
+
+let corriendo = false
+const quieto = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
+
 /**
- * Arma la película. El fondo se dibuja una vez y queda fijo; de cada cuadro solo se guarda lo
- * que se mueve. Los cuadros repetidos se dibujan una sola vez y cada turno apunta al suyo.
+ * Echa a andar el proyector: mientras haya canvas de película en la página, les va poniendo
+ * el cuadro que toca. Cuando ya no hay ninguno, se apaga solo. Llamarlo de más no hace daño.
  */
-export function pelicula(id, fondo, cuadros, fps) {
-  const w = fondo[0].length
-  const h = fondo.length
-  const dibujos = cuadros.map(trazos)
-  const unicos = [...new Set(dibujos)]
-  const n = cuadros.length
-  const T = n / fps
-  const corte = (100 / n).toFixed(4)
-  const turnos = dibujos.map((d, i) => `<use href="#px-${id}-${unicos.indexOf(d)}" style="animation:px-${id} ${T.toFixed(3)}s steps(1) ${(-(T - i / fps)).toFixed(3)}s infinite"/>`).join('')
-  return `<svg class="px" viewBox="0 0 ${w} ${h}" shape-rendering="crispEdges" aria-hidden="true"><style>@keyframes px-${id}{0%{visibility:visible}${corte}%,to{visibility:hidden}}</style><defs>${unicos.map((d, i) => `<g id="px-${id}-${i}">${d}</g>`).join('')}</defs><g>${trazos(fondo)}</g>${turnos}</svg>`
+export function proyecta() {
+  if (corriendo) return
+  corriendo = true
+  const paso = (ahora) => {
+    const pantallas = document.querySelectorAll('canvas[data-px]')
+    if (!pantallas.length) {
+      corriendo = false
+      return
+    }
+    const parado = quieto()
+    for (const c of pantallas) {
+      const p = PELIS[c.dataset.px]
+      if (!p) continue
+      const i = parado ? p.cartel : Math.floor((ahora / 1000) * p.fps) % p.n
+      if (c._cuadro !== i) {
+        pinta(c, c.dataset.px, i)
+        c._cuadro = i
+      }
+    }
+    requestAnimationFrame(paso)
+  }
+  requestAnimationFrame(paso)
 }

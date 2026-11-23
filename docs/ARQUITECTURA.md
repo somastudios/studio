@@ -199,9 +199,10 @@ Diálogos, confirmaciones y avisos: `src/app/capas.js`.
 
 ## Pixel art (las escenas de «Hoy»)
 
-Las cuatro fichas de «Hoy» llevan una escena de pixel art animada. No hay imágenes: todo se dibuja con letras.
+Las cuatro fichas de «Hoy» llevan una escena de pixel art animada. No hay imágenes: todo se dibuja con código.
 
-- `src/crm/pixel.js` es el motor. Un lienzo es una cuadrícula de letras; cada letra es un color (`.px-k`, `.px-w`… en `src/styles/hoy.css`) y el punto es transparente. `pelicula(id, fondo, cuadros, fps)` arma un SVG de bordes duros con un fondo fijo y los cuadros encima; los cuadros se alternan con CSS, así que animar no cuesta nada por cuadro.
-- `src/crm/escenas.js` tiene las escenas: `puertas`, `agentes`, `billetes` y `cobro`. Cada una compone sus cuadros con `toma((L) => …)`: se dibuja solo lo que se mueve.
-- Para revisar una escena cuadro por cuadro: `node scripts/hoy.cjs <puerto> <carpeta>` deja una hoja `cuadros-<escena>.png` con todos sus turnos.
-- Para agregar una: escríbela en `escenas.js`, regístrala en `ESCENAS` y úsala con `escena('nombre')`. Si necesita un color nuevo, agrégalo como `.px-<letra>` en `hoy.css`.
+- `src/crm/pixel.js` es el motor. Un cuadro es una cuadrícula de letras; cada letra es un color (`PALETA`) y el punto es transparente. Trae lo necesario para dibujar (`pon`, `caja`, `linea`, `elipse`, `sombra`, `tramos`) y las curvas de movimiento (`suave`, `frena`, `rebota`). `registra(id, { w, h, fps, n, cuadro(i) })` da de alta una película y `proyecta()` la echa a andar en todos los `<canvas data-px>` de la página. El reloj es global: si la vista se repinta, la película sigue donde iba.
+- `src/crm/peli-puertas.js` es la película de Prospectos: diez planos con cortes de cámara. Los personajes se arman por piezas (`busto`, `nuca`, `mini`) y cada plano les dice hacia dónde miran, qué cara ponen y cómo se mueven. Dalí y Alex están definidos arriba del archivo (`DALI`, `ALEX`, `PEINADOS`): ahí se les cambia el pelo, la piel o la ropa.
+- `src/crm/escenas.js` tiene las otras tres (`agentes`, `billetes`, `cobro`), de fondo fijo: se dibuja solo lo que se mueve.
+- Para revisar una escena cuadro por cuadro: `node scripts/hoy.cjs <puerto> <carpeta> 390 844 22 <desde> <hasta>` deja una hoja `cuadros-<escena>.png`.
+- Para agregar un plano a la película: escribe una función `plano(L, f, n)` (L es el cuadro, f el número de cuadro dentro del plano) y agrégala a `PLANOS` con su duración.
