@@ -118,6 +118,9 @@ export const enlaceCalendario = ({ titulo, inicio, minutos = 45, lugar = '', det
 /** Sustituye {claves} en una plantilla. Lo que no exista se deja vacío. */
 export const plantilla = (s, datos = {}) => String(s ?? '').replace(/\{(\w+)\}/g, (_, k) => datos[k] ?? '')
 
+/** El saludo según la hora: como te recibe alguien, no un sistema. */
+export const saludo = (d = new Date()) => (d.getHours() < 5 ? 'Buenas noches' : d.getHours() < 12 ? 'Buenos días' : d.getHours() < 19 ? 'Buenas tardes' : 'Buenas noches')
+
 export const mayus = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : '')
 
 export const duracion = (seg) => {

@@ -3,7 +3,7 @@ import { sesion } from '../app/sesion.js'
 import { ir } from '../app/router.js'
 import { alTocar } from '../app/vista.js'
 import { confirmar, aviso } from '../app/capas.js'
-import { esc, dia, fecha, dinero, relativo, diasPara, enlaceCalendario, agrupar, copiar } from '../app/util.js'
+import { esc, dia, fecha, dinero, relativo, diasPara, enlaceCalendario, agrupar, copiar, saludo } from '../app/util.js'
 import { ETAPAS, METODOS } from '../data/esquema.js'
 import { NICHO } from '../content/nichos/index.js'
 import { boil, P } from '../core/boil.js'
@@ -85,7 +85,7 @@ export function vistaHoy() {
     const total = store.lista('prospectos').length
     const porDia = [...agrupar(citas, (c) => (c.inicio ? dia(c.inicio) : 'por-acordar'))]
     main.innerHTML = `
-      ${cab({ k: esc(fecha(new Date(), 'larga')), t: sesion.nombre ? `Hola, ${esc(sesion.nombre.split(' ')[0])}` : 'Hoy', emblema: emblemaReloj(), acc: '<button type="button" class="a-btn" data-nueva-cita>Nueva cita</button>' })}
+      ${cab({ k: esc(fecha(new Date(), 'larga')), t: sesion.nombre ? `${saludo()}, ${esc(sesion.nombre.split(' ')[0])}` : saludo(), emblema: emblemaReloj(), acc: '<button type="button" class="a-btn" data-nueva-cita>Nueva cita</button>' })}
       <div class="a-rejilla crm-cifras">
         ${cifra(total - store.lista('prospectos', (p) => ['cliente', 'perdido'].includes(p.etapa)).length, 'Prospectos en proceso')}
         ${cifra(store.lista('prospectos', { etapa: 'cliente' }).length, 'Clientes')}
@@ -94,25 +94,25 @@ export function vistaHoy() {
       </div>
       ${
         total === 0
-          ? `<section class="a-seccion">${vacio('Aquí va a vivir todo lo que pase con tus prospectos', 'Empieza con una visita: eliges el giro, presentas y, al terminar, el expediente aparece aquí con lo que el cliente dijo.', '<a class="a-btn a-btn--pri" href="#/presala">Preparar la primera visita</a>')}</section>`
+          ? `<section class="a-seccion">${vacio('Todavía no hay nada por aquí', '¿Preparamos la primera visita? Al terminar, su expediente aparece aquí solo.', '<a class="a-btn a-btn--pri" href="#/presala">Preparar la primera visita</a>')}</section>`
           : `
       <section class="a-seccion"><div class="a-seccion-cab"><h2 class="a-h2">Próximos siete días</h2><a class="a-enlace" href="#/crm/agenda">Ver la agenda</a></div>
         ${
           citas.length
             ? porDia.map(([d, lista]) => `<p class="a-k crm-dia">${d === 'por-acordar' ? 'Por acordar por mensaje' : `${esc(fecha(d, 'larga'))} · ${esc(relativo(d))}`}</p><div class="a-lista">${lista.map(filaCita).join('')}</div>`).join('')
-            : vacio('Nada agendado esta semana', 'Las citas que apartes al final de una visita aparecen aquí.')
+            : vacio('Semana libre', 'Las citas que apartes en una visita llegan aquí solas.')
         }
       </section>
       <section class="a-seccion"><div class="a-seccion-cab"><h2 class="a-h2">Por cobrar</h2><a class="a-enlace" href="#/crm/cobranza">Ver cobranza</a></div>
-        ${cobrar.length ? `<div class="a-lista">${cobrar.map(filaMembresia).join('')}</div>` : vacio('Nadie debe nada', 'Cuando una membresía esté por vencer o vencida, aparece aquí con el mensaje listo para avisarle.')}
+        ${cobrar.length ? `<div class="a-lista">${cobrar.map(filaMembresia).join('')}</div>` : vacio('Todo al corriente', 'Si algo está por vencer, te aviso aquí.')}
       </section>
       ${
         frios.length
-          ? `<section class="a-seccion"><div class="a-seccion-cab"><h2 class="a-h2">Se están enfriando</h2><span class="a-k">Sin cita y sin movimiento en 5 días o más</span></div>
+          ? `<section class="a-seccion"><div class="a-seccion-cab"><h2 class="a-h2">Se están enfriando</h2><span class="a-k">Sin cita y sin noticias en 5 días o más</span></div>
               <div class="a-lista">${frios.map((p) => `<a class="a-item" style="--cols:1fr auto auto" href="#/crm/prospecto/${p.id}"><span><span class="a-item-t">${esc(p.negocio)}</span><br><span class="a-item-s">${esc(giro(p))}${p.proxima_accion ? ` · ${esc(p.proxima_accion)}` : ''}</span></span>${chipEtapa(p.etapa)}<span class="a-item-s">${esc(relativo(p.actualizado))}</span></a>`).join('')}</div></section>`
           : ''
       }
-      ${porVisitar ? `<p class="a-p" style="margin-top:28px">${porVisitar === 1 ? 'Hay 1 prospecto' : `Hay ${porVisitar} prospectos`} por visitar. <a class="a-enlace" href="#/crm/prospectos">Verlos</a></p>` : ''}`
+      ${porVisitar ? `<p class="a-p" style="margin-top:28px">${porVisitar === 1 ? 'Te falta visitar a 1 prospecto' : `Te falta visitar a ${porVisitar} prospectos`}. <a class="a-enlace" href="#/crm/prospectos">Verlos</a></p>` : ''}`
       }`
   })
   const q = [...acciones(m.main), alTocar(m.main, '[data-nueva-cita]', () => editarCita())]
@@ -162,8 +162,8 @@ export function vistaProspectos() {
               })
               .join('')}</div>`
           : todos.length
-            ? vacio('Nada coincide con ese filtro', 'Prueba con otra etapa o borra la búsqueda.')
-            : vacio('Todavía no hay prospectos', 'El primero aparece aquí cuando termines una visita. También puedes agregar uno a mano si ya platicaste con él.', '<a class="a-btn a-btn--pri" href="#/presala">Preparar una visita</a>')
+            ? vacio('No encontré nada con eso', 'Prueba otra etapa o borra la búsqueda.')
+            : vacio('Aún no hay prospectos', 'El primero llega solo cuando termines una visita. Si ya platicaste con alguien, agrégalo a mano.', '<a class="a-btn a-btn--pri" href="#/presala">Preparar una visita</a>')
       }`
     if (teniaFoco) {
       const b = main.querySelector('[data-busca]')
@@ -230,7 +230,7 @@ export function vistaAgenda() {
         const n = proximas.filter((c) => dia(c.inicio) === dia(d)).length
         return `<div class="crm-dia-celda ${k === 0 ? 'es-hoy' : ''}"><span class="a-k">${esc(fecha(d, 'media').split(' ')[0])}</span><b class="crm-dia-n a-num">${d.getDate()}</b><span class="crm-dia-p">${'<i></i>'.repeat(Math.min(3, n))}</span></div>`
       }).join('')}</div>
-      ${proximas.length ? grupo(proximas) : vacio('No hay citas por venir', 'Las que apartes al final de una visita llegan aquí solas. También puedes crear una a mano.')}
+      ${proximas.length ? grupo(proximas) : vacio('Nada en la agenda', 'Las citas de tus visitas llegan aquí solas. También puedes crear una.')}
       ${sinFecha.length ? `<section class="a-seccion"><div class="a-seccion-cab"><h2 class="a-h2">Por acordar por mensaje</h2></div><div class="a-lista">${sinFecha.map(filaCita).join('')}</div></section>` : ''}
       ${pasadas.length ? `<section class="a-seccion"><div class="a-seccion-cab"><h2 class="a-h2">Anteriores</h2></div>${grupo(pasadas)}</section>` : ''}`
   })
@@ -277,7 +277,7 @@ export function vistaCobranza() {
         pestana === 'membresias'
           ? mem.length
             ? `<div class="a-lista">${mem.map((x) => filaMembresia(x).replace('<button type="button" class="a-btn a-btn--ch" data-avisar>', '<button type="button" class="a-btn a-btn--ch a-btn--fantasma" data-editar-membresia>Editar</button><button type="button" class="a-btn a-btn--ch" data-avisar>').replace('--cols:1.4fr 1fr auto auto', '--cols:1.4fr 1fr auto auto auto')).join('')}</div>`
-            : vacio('Todavía no hay membresías', 'Se crean cuando un cliente decide en la segunda visita, o a mano desde su expediente. Aquí vas a ver quién está al corriente, a quién se le vence y a quién avisarle.')
+            : vacio('Aún no hay membresías', 'Nacen cuando un cliente dice que sí. Aquí vas a ver quién va al corriente y a quién avisarle.')
           : pagos.length
             ? [...agrupar(pagos, (p) => (p.fecha || p.creado || '').slice(0, 7))]
                 .map(
@@ -299,7 +299,7 @@ export function vistaCobranza() {
                   ).join('')}</div>`,
                 )
                 .join('')
-            : vacio('Todavía no hay pagos', 'Cada pago que registres, por transferencia, en efectivo o con tarjeta, queda aquí con su fecha y quién lo recibió.')
+            : vacio('Aún no hay pagos', 'Cada pago que registres queda aquí, con su fecha y quién lo recibió.')
       }</div>`
   })
   const q = [
@@ -311,7 +311,7 @@ export function vistaCobranza() {
     alTocar(m.main, '[data-copia-enlace]', async (b) => aviso((await copiar(store.uno('pagos', b.closest('[data-pago]').dataset.pago).enlace)) ? 'Enlace copiado.' : 'No se pudo copiar.')),
     alTocar(m.main, '[data-confirma]', async (b) => {
       const p = store.uno('pagos', b.closest('[data-pago]').dataset.pago)
-      if (await confirmar({ titulo: '¿Marcar este pago como recibido?', texto: 'Úsalo si ya confirmaste el pago por fuera. Si pagó con el enlace, se marca solo en cuanto Stripe avisa.', si: 'Marcar pagado' })) confirmarPago(p)
+      if (await confirmar({ titulo: '¿Ya te llegó este pago?', texto: 'Márcalo solo si ya lo confirmaste por fuera. Si pagó con el enlace, se marca solo.', si: 'Sí, ya llegó' })) confirmarPago(p)
     }),
   ]
   return () => {
@@ -355,7 +355,7 @@ export function accionesSistema(main) {
     alTocar(main, '[data-suspender]', async (b) => {
       const s = de(b)
       const suspender = s.estado !== 'suspendido'
-      if (suspender && !(await confirmar({ titulo: `¿Suspender «${s.nombre}»?`, texto: 'El sistema se pausa la próxima vez que alguien lo abra y muestra un mensaje. Se reactiva desde aquí cuando quieras.', si: 'Suspender', peligro: true }))) return
+      if (suspender && !(await confirmar({ titulo: `¿Suspender «${s.nombre}»?`, texto: 'Se pausa la próxima vez que alguien lo abra. Lo reactivas aquí cuando quieras.', si: 'Suspender', peligro: true }))) return
       store.guardar('sistemas', { id: s.id, estado: suspender ? 'suspendido' : 'activo' })
       store.anotar(s.prospecto_id, 'sistema', suspender ? `Se suspendió «${s.nombre}».` : `Se reactivó «${s.nombre}».`, null, sesion.nombre)
     }),
@@ -366,8 +366,8 @@ export function vistaSistemas() {
   const m = marco('sistemas', (main) => {
     const L = store.lista('sistemas').sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '', 'es'))
     main.innerHTML = `
-      ${cab({ k: 'Lo que hemos entregado', t: 'Sistemas', emblema: emblemaPulso(L.filter((s) => s.ultima_senal && Date.now() - new Date(s.ultima_senal) < 26 * 36e5).length), extra: '<p class="a-p" style="margin-top:12px">Cada sistema enlazado avisa aquí que está vivo y obedece a su membresía: si vence, muestra un aviso o se pausa.</p>', acc: '<button type="button" class="a-btn a-btn--pri" data-nuevo-sistema>Nuevo sistema</button>' })}
-      ${L.length ? L.map(filaSistema).join('') : vacio('Todavía no hay sistemas', 'Cuando entregues uno, regístralo aquí. Te da una línea para pegar en el sistema y, desde entonces, lo administras a distancia: su estado, sus accesos y su membresía.')}`
+      ${cab({ k: 'Lo que hemos entregado', t: 'Sistemas', emblema: emblemaPulso(L.filter((s) => s.ultima_senal && Date.now() - new Date(s.ultima_senal) < 26 * 36e5).length), extra: '<p class="a-p" style="margin-top:12px">Cada sistema conectado te avisa aquí que sigue vivo. Si su membresía vence, él solo muestra un aviso o se pausa.</p>', acc: '<button type="button" class="a-btn a-btn--pri" data-nuevo-sistema>Nuevo sistema</button>' })}
+      ${L.length ? L.map(filaSistema).join('') : vacio('Aún no hay sistemas', 'Cuando entregues uno, regístralo aquí. Te doy una línea para pegarle y desde entonces lo cuidas a distancia.')}`
   })
   const q = [...accionesSistema(m.main), alTocar(m.main, '[data-nuevo-sistema]', () => editarSistema())]
   return () => {

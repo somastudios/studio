@@ -35,7 +35,7 @@ export function vistaCierre({ id }) {
     <div class="ps">
       <header class="ps-cab"><span class="a-k">Solo para el equipo</span><span class="a-k">${n} ${n === 1 ? 'hallazgo guardado' : 'hallazgos guardados'}${visita.audio_seg ? ` · audio ${duracion(visita.audio_seg)}` : ''}</span></header>
       <h1 class="a-h1 ps-h">¿Cómo te fue en ${esc(prospecto.negocio)}?</h1>
-      <p class="a-p">Un minuto, mientras está fresco. Es lo que más ayuda a preparar la demostración.</p>
+      <p class="a-p">Cuéntame mientras está fresco. Con esto armamos su demo.</p>
 
       <section class="ps-paso"><p class="a-k">¿Cómo estaba la persona?</p>
         <div class="ps-van">${ANIMOS.map((a) => `<button type="button" class="ps-persona" data-animo="${a.id}" aria-pressed="${st.animo === a.id}"><b>${a.t}</b><span>${a.d}</span></button>`).join('')}</div>

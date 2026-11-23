@@ -67,13 +67,13 @@ export function vistaExpediente({ id, consulta }) {
                         ${h.nota ? `<p class="crm-cita-texto">«${esc(h.nota)}»</p>` : ''}</li>`
                     })
                     .join('')}</ol>`
-                : vacio('Todavía no hay diagnóstico', 'Aparece aquí al terminar la primera visita: qué problemas reconoció, qué respondió y qué ruta le interesó.', `<a class="a-btn a-btn--pri" href="#/presala?p=${id}">Preparar la visita</a>`)
+                : vacio('Aún no hay diagnóstico', 'Llega solo al terminar la primera visita: qué le duele, qué respondió y qué le interesó.', `<a class="a-btn a-btn--pri" href="#/presala?p=${id}">Preparar la visita</a>`)
             }
             ${mencionados.length ? `<p class="a-k" style="margin-top:20px">También mencionó</p><p class="a-p">${mencionados.map((h) => esc(h.titulo)).join(' · ')}</p>` : ''}
           </section>
           <aside class="a-pila">
             <div class="a-tarjeta"><p class="a-k">Siguiente paso</p>
-              ${proxima ? `<p class="a-h3" style="margin-top:6px">${proxima.inicio ? `${esc(fecha(proxima.inicio, 'larga'))}, ${esc(fecha(proxima.inicio, 'hora'))}` : 'Cita por acordar por mensaje'}</p><p class="a-item-s">${proxima.inicio ? esc(relativo(proxima.inicio)) : ''}</p>` : `<p class="a-h3" style="margin-top:6px">${esc(p.proxima_accion || 'Sin siguiente paso definido')}</p>${p.proxima_fecha ? `<p class="a-item-s">${esc(fecha(p.proxima_fecha, 'larga'))}</p>` : ''}`}
+              ${proxima ? `<p class="a-h3" style="margin-top:6px">${proxima.inicio ? `${esc(fecha(proxima.inicio, 'larga'))}, ${esc(fecha(proxima.inicio, 'hora'))}` : 'Cita por acordar por mensaje'}</p><p class="a-item-s">${proxima.inicio ? esc(relativo(proxima.inicio)) : ''}</p>` : `<p class="a-h3" style="margin-top:6px">${esc(p.proxima_accion || 'Aún sin siguiente paso')}</p>${p.proxima_fecha ? `<p class="a-item-s">${esc(fecha(p.proxima_fecha, 'larga'))}</p>` : ''}`}
               <div class="a-fila" style="margin-top:12px"><button type="button" class="a-btn a-btn--ch" data-cita-nueva>Agendar</button>${p.telefono ? `<button type="button" class="a-btn a-btn--ch" data-seguimiento>Escribirle</button>` : ''}</div>
             </div>
             <div class="a-tarjeta"><p class="a-k">Contacto</p>
@@ -113,7 +113,7 @@ export function vistaExpediente({ id, consulta }) {
                 </dl>
                 ${v.notas ? `<p style="margin-top:12px;white-space:pre-wrap">${esc(v.notas)}</p>` : ''}
                 <div class="a-fila" style="margin-top:12px">
-                  ${v.audio_ruta ? `<button type="button" class="a-btn a-btn--ch" data-audio="${esc(v.audio_ruta)}">Escuchar la grabación · ${duracion(v.audio_seg)}</button>` : v.graba ? '<span class="a-item-s">Se pidió grabar, pero no hay audio guardado en este dispositivo ni en la nube.</span>' : ''}
+                  ${v.audio_ruta ? `<button type="button" class="a-btn a-btn--ch" data-audio="${esc(v.audio_ruta)}">Escuchar la grabación · ${duracion(v.audio_seg)}</button>` : v.graba ? '<span class="a-item-s">Se iba a grabar, pero no encuentro el audio aquí ni en la nube.</span>' : ''}
                   ${v.estado === 'en_curso' && v.tipo !== 2 ? `<a class="a-btn a-btn--ch" href="#/visita/${v.id}">Retomar la presentación</a>` : ''}
                   <a class="a-btn a-btn--ch a-btn--fantasma" href="#/visita/${v.id}/cierre">Editar el cierre</a>
                 </div>
@@ -121,10 +121,10 @@ export function vistaExpediente({ id, consulta }) {
               </div>`
             })
             .join('')
-        : vacio('Sin visitas todavía', 'Cada visita queda aquí con su fecha, quién fue, cómo estaba la persona y, si se grabó, el audio.', `<a class="a-btn a-btn--pri" href="#/presala?p=${id}">Preparar la visita</a>`)
+        : vacio('Aún sin visitas', 'Cada visita queda aquí: cuándo fue, quién fue, cómo estaba la persona y, si grabaste, el audio.', `<a class="a-btn a-btn--pri" href="#/presala?p=${id}">Preparar la visita</a>`)
 
     const laPropuesta = () => {
-      if (!propuesta) return vacio('Todavía no hay propuesta', 'Aquí se prepara la segunda visita: el enlace de la demo que construyeron, lo que incluye y los precios, de contado y con Membresía Soma. Los precios los definen ustedes.', '<button type="button" class="a-btn a-btn--pri" data-propuesta>Preparar la propuesta</button>')
+      if (!propuesta) return vacio('Aún no hay propuesta', 'Aquí armas la segunda visita: la demo, lo que incluye y los precios. Los precios los pones tú.', '<button type="button" class="a-btn a-btn--pri" data-propuesta>Preparar la propuesta</button>')
       const a = precioPlazo(propuesta, 1)
       const b = precioPlazo(propuesta, 6)
       const c = precioPlazo(propuesta, 12)
@@ -147,12 +147,12 @@ export function vistaExpediente({ id, consulta }) {
           </section>
           <aside class="a-pila">
             <div class="a-tarjeta"><p class="a-k">Segunda visita</p>
-              <p class="a-p" style="margin-top:6px">${lista ? 'Recapitula lo que dijo, le deja probar su sistema y le presenta las dos formas de pago.' : 'Faltan los precios. Sin ellos, la escena de «Cómo se paga» sale vacía.'}</p>
+              <p class="a-p" style="margin-top:6px">${lista ? 'Le recuerda lo que dijo, lo deja probar su sistema y le muestra cómo pagar.' : 'Faltan los precios. Sin ellos, «Cómo se paga» sale vacía.'}</p>
               <div class="a-fila" style="margin-top:12px"><a class="a-btn a-btn--pri" href="#/visita2/${id}">Presentar</a><button type="button" class="a-btn" data-propuesta>Editar</button></div>
             </div>
             ${
               propuesta.modalidad && propuesta.modalidad !== 'pensar' && !membresias.length
-                ? `<div class="a-tarjeta"><p class="a-k">Pendiente</p><p class="a-p" style="margin-top:6px">El cliente eligió ${esc(nombreModalidad(propuesta.modalidad).toLowerCase())}. Actívalo para empezar a llevar sus pagos.</p><button type="button" class="a-btn a-btn--azul" style="margin-top:12px" data-activar>Activar</button></div>`
+                ? `<div class="a-tarjeta"><p class="a-k">Pendiente</p><p class="a-p" style="margin-top:6px">Dijo que sí: ${esc(nombreModalidad(propuesta.modalidad).toLowerCase())}. Actívalo para empezar a llevar sus pagos.</p><button type="button" class="a-btn a-btn--azul" style="margin-top:12px" data-activar>Activar</button></div>`
                 : ''
             }
           </aside>
@@ -161,7 +161,7 @@ export function vistaExpediente({ id, consulta }) {
 
     const laCuenta = () => `
       <section><div class="a-seccion-cab"><h2 class="a-h2">Sistemas</h2><button type="button" class="a-btn a-btn--ch" data-nuevo-sistema>Agregar sistema</button></div>
-        ${sistemas.length ? sistemas.map(filaSistema).join('') : `<p class="a-p" style="margin-top:12px">Cuando entregues el sistema, regístralo aquí para administrarlo a distancia y guardar sus accesos.</p>`}
+        ${sistemas.length ? sistemas.map(filaSistema).join('') : `<p class="a-p" style="margin-top:12px">Cuando entregues su sistema, regístralo aquí para cuidarlo a distancia y guardar sus accesos.</p>`}
       </section>
       <section class="a-seccion"><div class="a-seccion-cab"><h2 class="a-h2">Membresía y pagos</h2><button type="button" class="a-btn a-btn--ch" data-nueva-membresia>Agregar membresía</button></div>
         ${
@@ -173,7 +173,7 @@ export function vistaExpediente({ id, consulta }) {
                     <span class="a-chip a-chip--${e.chip}">${esc(e.texto)}</span><button type="button" class="a-btn a-btn--ch a-btn--fantasma" data-editar-membresia>Editar</button><button type="button" class="a-btn a-btn--ch" data-avisar>Avisar</button><button type="button" class="a-btn a-btn--ch a-btn--pri" data-pagar>Registrar pago</button></div>`
                 })
                 .join('')}</div>`
-            : `<p class="a-p" style="margin-top:12px">Sin membresía. Se crea cuando el cliente decide, o a mano con «Agregar membresía».</p>`
+            : `<p class="a-p" style="margin-top:12px">Aún sin membresía. Nace cuando el cliente dice que sí, o la agregas a mano.</p>`
         }
         ${
           pagos.length
@@ -185,7 +185,7 @@ export function vistaExpediente({ id, consulta }) {
 
     const laBitacora = () => `
       <form class="crm-nota" data-nota><input class="a-in" name="nota" placeholder="Anotar algo en el expediente" autocomplete="off" /><button type="submit" class="a-btn a-btn--pri">Anotar</button></form>
-      ${bitacora.length ? `<ol class="crm-bitacora">${bitacora.map((b) => `<li><span class="a-k">${esc(fecha(b.creado, 'corta'))} · ${esc(fecha(b.creado, 'hora'))}${b.quien ? ` · ${esc(b.quien)}` : ''}</span><p>${esc(b.texto)}</p></li>`).join('')}</ol>` : `<p class="a-p" style="margin-top:16px">Aquí queda el rastro de todo: visitas, avisos, pagos y cambios en sus sistemas.</p>`}`
+      ${bitacora.length ? `<ol class="crm-bitacora">${bitacora.map((b) => `<li><span class="a-k">${esc(fecha(b.creado, 'corta'))} · ${esc(fecha(b.creado, 'hora'))}${b.quien ? ` · ${esc(b.quien)}` : ''}</span><p>${esc(b.texto)}</p></li>`).join('')}</ol>` : `<p class="a-p" style="margin-top:16px">Aquí se va quedando el rastro de todo: visitas, avisos, pagos y cambios.</p>`}`
 
     main.innerHTML = `
       <p class="a-k crm-miga"><a class="a-enlace" href="#/crm/prospectos">Prospectos</a> / ${esc(giro(p))}</p>
@@ -250,10 +250,10 @@ export function vistaExpediente({ id, consulta }) {
       const z = b.closest('[data-visita]').querySelector('[data-reproductor]')
       b.disabled = true
       const url = await archivos.url('grabaciones', b.dataset.audio)
-      z.innerHTML = url ? `<audio controls autoplay src="${esc(url)}" style="width:100%;margin-top:12px"></audio>` : `<p class="a-error" style="margin-top:10px">No se encontró el audio. Si se grabó en otro dispositivo, todavía no termina de subir.</p>`
+      z.innerHTML = url ? `<audio controls autoplay src="${esc(url)}" style="width:100%;margin-top:12px"></audio>` : `<p class="a-error" style="margin-top:10px">No encuentro el audio. Si se grabó en otro dispositivo, puede que siga subiendo.</p>`
     }),
     alTocar(m.main, '[data-borrar]', async () => {
-      if (!(await confirmar({ titulo: `¿Eliminar a ${P().negocio}?`, texto: 'Deja de aparecer en el CRM de todo el equipo, junto con sus visitas y hallazgos. Sus pagos se conservan en cobranza.', si: 'Eliminar', peligro: true }))) return
+      if (!(await confirmar({ titulo: `¿Eliminar a ${P().negocio}?`, texto: 'Desaparece del CRM de todo el equipo, con sus visitas y hallazgos. Sus pagos se quedan en cobranza.', si: 'Eliminar', peligro: true }))) return
       for (const t of ['hallazgos', 'visitas', 'citas', 'propuestas']) store.lista(t, { prospecto_id: id }).forEach((x) => store.borrar(t, x.id))
       store.borrar('prospectos', id)
       ir('/crm/prospectos')

@@ -46,7 +46,10 @@ Escribimos como escribe Anthropic en las interfaces de Claude: claro, sereno, di
 - Sin signos de exclamación, sin superlativos, sin jerga. Nunca: "potente", "revolucionario", "solución integral", "lleve su negocio al siguiente nivel", "increíble", "de última generación", "inteligente" como adorno.
 - Los botones empiezan con verbo y dicen lo que pasa: "Guardar cita", "Enviar pedido". No "Aceptar" ni "OK".
 - Mayúscula solo al inicio de la frase. Los titulares de la presentación se ponen en mayúsculas por CSS, no al escribirlos.
-- Estados vacíos: dicen qué aparecerá ahí y cómo. Errores: qué pasó y qué hacer, sin culpar a nadie.
+- Suena a una persona que ayuda, no a un sistema. El CRM saluda según la hora ("Buenas tardes, Dalí") y habla en primera persona cuando hace algo por ti: "Si algo está por vencer, te aviso aquí", "No encuentro el audio", "Aquí calculo lo que va a ver el cliente".
+- Pregunta antes que instrucción: "¿Cuáles le suenan?" en vez de "Seleccione las que apliquen". "¿Ya te llegó este pago?" en vez de "¿Marcar como recibido?".
+- Corto gana. Si una frase explica cómo funciona el sistema por dentro, sobra.
+- Estados vacíos: dicen qué aparecerá ahí y cómo ("Todo al corriente", "Semana libre"). Errores: qué pasó y qué hacer, sin culpar a nadie.
 - Al cliente se le habla de **usted**. Dentro del CRM y la presala, al equipo se le habla de **tú**.
 - Español de México, natural. Nada de "ordenador", "móvil" o "vosotros". Sí: "celular", "cobrar", "apartar", "fiado".
 - El cliente del negocio no es "usuario": es "comensal", "paciente", "alumno", lo que corresponda al giro.

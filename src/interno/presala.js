@@ -46,7 +46,7 @@ export function vistaPresala({ consulta }) {
         ({ fam, lista }) => `<div class="ps-fam"><p class="a-k">${esc(fam.nombre)}</p><div class="ps-rejilla">
           ${lista.map((n) => `<button type="button" class="ps-nicho ${st.nicho === n.id ? 'vivo' : ''}" data-nicho="${esc(n.id)}" aria-pressed="${st.nicho === n.id}">${icoNicho(n.icono)}<span>${esc(n.nombre)}</span></button>`).join('')}
         </div></div>`,
-      ).join('') || `<p class="a-p">Ningún giro coincide. Elige «Otro giro» y escribe cuál es.</p>`
+      ).join('') || `<p class="a-p">No encontré ese giro. Elige «Otro giro» y dime cuál es.</p>`
   }
 
   function pintaAntes() {
@@ -94,7 +94,7 @@ export function vistaPresala({ consulta }) {
       <section class="ps-paso">
         <p class="a-k">03 · ¿Quién va?</p>
         <div class="ps-van">${personas.map((p) => `<button type="button" class="ps-persona" data-va="${esc(p.id)}" aria-pressed="${st.van.has(p.id)}"><b>${esc(p.nombre)}</b><span>${esc(p.linea || '')}</span></button>`).join('')}</div>
-        <label class="a-sw ps-graba"><input type="checkbox" data-graba ${grabadora.soportada ? '' : 'disabled'} /><i></i><span><b>Grabar la conversación</b><br /><span class="a-ayuda ps-mic">${grabadora.soportada ? 'Pide permiso antes de empezar. Sirve para no estar anotando y repasar después qué le interesó.' : 'Este navegador no permite grabar audio.'}</span></span></label>
+        <label class="a-sw ps-graba"><input type="checkbox" data-graba ${grabadora.soportada ? '' : 'disabled'} /><i></i><span><b>Grabar la conversación</b><br /><span class="a-ayuda ps-mic">${grabadora.soportada ? 'Pídele permiso antes de empezar. Así no anotas, y luego repasas qué le interesó.' : 'Este navegador no permite grabar audio.'}</span></span></label>
       </section>
 
       <footer class="ps-pie">
@@ -123,8 +123,8 @@ export function vistaPresala({ consulta }) {
       const ok = await grabadora.pedirPermiso()
       if (!ok) {
         st.graba = e.target.checked = false
-        nota.textContent = 'No hay acceso al micrófono. Revisa el permiso del navegador y vuelve a intentarlo.'
-      } else nota.textContent = 'Micrófono listo. La grabación empieza con la presentación; recuerda pedir permiso.'
+        nota.textContent = 'No me dejó usar el micrófono. Revisa el permiso del navegador e intenta de nuevo.'
+      } else nota.textContent = 'Micrófono listo. Empiezo a grabar con la presentación. Acuérdate de pedirle permiso.'
     } else grabadora.soltar()
   }
   const alTeclear = (e) => {
