@@ -16,10 +16,8 @@ const dientes = (r0, r1, n) =>
   })
 
 const SEMANA = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB']
-const RUEDA = '0123456789'.repeat(2).replace(/\d/g, '<i>$&</i>')
-// Cada cifra es una rueda de números: al entrar gira hasta el suyo, como un marcador. La cifra
-// invisible le da su ancho a la columna, para que un 1 ocupe lo de un 1.
-const cifras = (txt) => [...txt].map((c) => `<span class="sd-dig"><span class="sd-ancho">${c}</span><span class="sd-tira" data-d="${c}" style="--d:${c}">${RUEDA}</span></span>`).join('')
+// Cada cifra vive en su ventanita: al entrar sube desde abajo, como el saludo.
+const cifras = (txt) => [...txt].map((c) => `<span class="sd-dig"><i>${c}</i></span>`).join('')
 const ESTRELLA = 'M0-11C1-3 3-1 11 0 3 1 1 3 0 11-1 3-3 1-11 0-3-1-1-3 0-11Z'
 
 /**
@@ -158,17 +156,14 @@ export function animaEmblema(el, tl, at = 0) {
     el.querySelectorAll('.emb-hora, .emb-min').forEach((g) => tl.fromTo(g, { rotation: -360, svgOrigin: '0 0' }, { rotation: +g.dataset.rot, duration: 1.6, ease: 'expo.out' }, at + 0.25))
     tl.fromTo(el.querySelectorAll('.rj-seg, .rj-orbita'), { opacity: 0 }, { opacity: 1, duration: 0.4, clearProps: 'opacity' }, at + 1.1)
     tl.fromTo(el.querySelector('.sd-brillo'), { autoAlpha: 0, scale: 0, rotation: -90, transformOrigin: '50% 50%' }, { autoAlpha: 1, scale: 1, rotation: 0, duration: 0.8, ease: 'back.out(2)', clearProps: 'transform,opacity,visibility' }, at + 0.7)
-    // La fecha: el mes entra por la izquierda y el día por la derecha, girando hasta su cifra.
-    tl.fromTo(el.querySelector('.sd-mes'), { autoAlpha: 0, x: -14 }, { autoAlpha: 1, x: 0, duration: 0.55, ease: 'expo.out', clearProps: 'transform,opacity,visibility' }, at + 0.15)
-    tl.fromTo(el.querySelector('.sd-dia'), { autoAlpha: 0, x: 14 }, { autoAlpha: 1, x: 0, duration: 0.55, ease: 'expo.out', clearProps: 'transform,opacity,visibility' }, at + 0.25)
-    el.querySelectorAll('.sd-tira').forEach((t, i) => {
-      const d = +t.dataset.d
-      // (y: 0 a propósito: sin él, GSAP suma el giro al desplazamiento que ya trae el CSS y la rueda se pasa de largo.)
-      tl.fromTo(t, { y: 0, yPercent: -(d + 3) * 5 }, { y: 0, yPercent: -(d + 10) * 5, duration: 0.95 + i * 0.1, ease: 'expo.out', clearProps: 'transform' }, at + 0.15 + i * 0.07)
-    })
-    // La diagonal sube como un corte y la placa se pega con un rebote.
-    tl.fromTo(el.querySelector('.sd-barra'), { clipPath: 'inset(100% 0% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.5, ease: 'expo.out', clearProps: 'clipPath' }, at + 0.3)
-    tl.fromTo(el.querySelector('.sd-placa'), { autoAlpha: 0, scale: 0.4, rotation: -14, transformOrigin: '0% 50%' }, { autoAlpha: 1, scale: 1, rotation: 0, duration: 0.6, ease: 'back.out(2.4)', clearProps: 'transform,opacity,visibility' }, at + 0.6)
+    // La fecha: cada cifra sube detrás de su máscara, de izquierda a derecha; la diagonal
+    // corta entre el mes y el día, y la placa se pega al final.
+    const mes = el.querySelectorAll('.sd-mes i')
+    const dia = el.querySelectorAll('.sd-dia i')
+    tl.fromTo(mes, { y: 0, yPercent: 112 }, { yPercent: 0, duration: 0.85, ease: 'expo.out', stagger: 0.07, clearProps: 'transform' }, at + 0.1)
+    tl.fromTo(el.querySelector('.sd-barra'), { clipPath: 'inset(100% 0% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.55, ease: 'expo.inOut', clearProps: 'clipPath' }, at + 0.18)
+    tl.fromTo(dia, { y: 0, yPercent: 112 }, { yPercent: 0, duration: 0.95, ease: 'expo.out', stagger: 0.08, clearProps: 'transform' }, at + 0.3)
+    tl.fromTo(el.querySelector('.sd-placa'), { autoAlpha: 0, y: 8, scale: 0.85, transformOrigin: '0% 50%' }, { autoAlpha: 1, y: 0, scale: 1, duration: 0.5, ease: 'back.out(2)', clearProps: 'transform,opacity,visibility' }, at + 0.7)
   } else if (tipo === 'orbita') {
     tl.fromTo(el.querySelectorAll('.emb-nodos circle'), { scale: 0, transformOrigin: '50% 50%' }, { scale: 1, duration: 0.5, ease: 'back.out(3)', stagger: 0.06 }, at + 0.6)
   } else if (tipo === 'hoja') {

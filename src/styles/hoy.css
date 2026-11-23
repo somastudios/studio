@@ -113,10 +113,9 @@
   overflow: visible;
 }
 
-/* Las ruedas de números. La cifra invisible da el ancho; la tira gira detrás. La inclinación
-   va en cada número y el margen deja sitio a la punta que se asoma. */
+/* Cada cifra en su ventanita: al entrar sube desde abajo. La inclinación va en el número y el
+   margen deja sitio a la punta que se asoma. */
 .sd-dig {
-  position: relative;
   display: inline-block;
   height: 0.8em;
   padding-right: 0.15em;
@@ -125,23 +124,8 @@
   vertical-align: top;
 }
 
-.sd-ancho {
+.sd-dig i {
   display: block;
-  height: 0.8em;
-  visibility: hidden;
-}
-
-.sd-tira {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0.15em;
-  transform: translateY(calc((10 + var(--d)) * -5%));
-}
-
-.sd-tira i {
-  display: flex;
-  justify-content: center;
   height: 0.8em;
   font-style: normal;
   transform: skewX(-10deg);

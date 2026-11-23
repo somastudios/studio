@@ -145,8 +145,22 @@ export const rebota = (t) => {
   const c = 2.2
   return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2)
 }
-/** Avance de 0 a 1 entre dos cuadros. */
-export const tramo = (f, desde, hasta) => (f <= desde ? 0 : f >= hasta ? 1 : (f - desde) / (hasta - desde))
+// El tiempo fino. Los planos se escriben contando cuadros enteros (a 12 por segundo), pero se
+// proyectan a 60: entre un cuadro y el siguiente hay cinco pasos. `fino` dice en cuál vamos
+// (de 0 a 1) y lo usan las funciones de movimiento, así que todo lo que se mueve con `tramo`
+// o con `ahora` avanza de corrido sin tocar la lógica de cada plano.
+let fino = 0
+export const fija = (x) => (fino = x)
+/** La fracción del cuadro en curso: 0, 0.2, 0.4… */
+export const fraccion = () => fino
+/** El cuadro con decimales, para movimientos continuos: Math.sin(ahora(f) * 0.9). */
+export const ahora = (f) => f + fino
+
+/** Avance de 0 a 1 entre dos cuadros (continuo). */
+export const tramo = (f, desde, hasta) => {
+  const t = f + fino
+  return t <= desde ? 0 : t >= hasta ? 1 : (t - desde) / (hasta - desde)
+}
 
 // ───────────────────────── Películas ─────────────────────────
 
@@ -239,11 +253,15 @@ export function proyecta() {
       return
     }
     const parado = quieto()
+    // Calcular un cuadro por primera vez cuesta; después sale de la hoja. Si en esta vuelta
+    // ya se gastó el tiempo, los que falten esperan a la siguiente y la página no se traba.
+    const limite = performance.now() + 7
     for (const c of pantallas) {
       const p = PELIS[c.dataset.px]
       if (!p) continue
       const i = parado ? p.cartel : Math.floor((ahora / 1000) * p.fps) % p.n
       if (c._cuadro !== i) {
+        if (c._cuadro !== undefined && !p.hechos.has(i) && performance.now() > limite) continue
         pinta(c, c.dataset.px, i)
         c._cuadro = i
       }

@@ -1,4 +1,4 @@
-import { lienzo, punto, pon, raya, caja, linea, elipse, sombra, tramos, calca, registra } from './pixel.js'
+import { lienzo, punto, pon, raya, caja, linea, elipse, sombra, tramos, calca, registra, fija } from './pixel.js'
 
 // El reparto y la utilería que comparten las películas de «Hoy».
 //
@@ -9,6 +9,8 @@ import { lienzo, punto, pon, raya, caja, linea, elipse, sombra, tramos, calca, r
 export const W = 84
 export const H = 33
 export const FPS = 12
+// Cada cuadro se proyecta en cinco pasos: 60 por segundo.
+export const PASOS = 5
 
 // ───────────────────────── Reparto ─────────────────────────
 
@@ -641,21 +643,25 @@ export const sacude = (L, dx, dy) => {
 
 /**
  * Arma y registra una película a partir de sus planos: [[cuadros, plano], …]. Cada plano es
- * plano(L, f, n) y dibuja su cuadro f; si devuelve [dx, dy], la cámara tiembla ese cuadro.
+ * plano(L, f, n) y dibuja su cuadro f (entero; el movimiento continuo sale de `tramo` y `ahora`);
+ * si devuelve [dx, dy], la cámara tiembla ese cuadro.
  */
 export function montaje(id, planos, colores = {}, cartel = 0) {
   const total = planos.reduce((s, [n]) => s + n, 0)
   const cuadro = (i) => {
-    let f = i
+    let f = Math.floor(i / PASOS)
+    fija((i % PASOS) / PASOS)
     for (const [n, plano] of planos) {
       if (f < n) {
         const L = lienzo(W, H)
         const temblor = plano(L, f, n)
+        fija(0)
         return temblor ? sacude(L, temblor[0], temblor[1]) : L
       }
       f -= n
     }
+    fija(0)
     return lienzo(W, H)
   }
-  return registra(id, { w: W, h: H, fps: FPS, n: total, cuadro, colores, cartel })
+  return registra(id, { w: W, h: H, fps: FPS * PASOS, n: total * PASOS, cuadro, colores, cartel: cartel * PASOS })
 }

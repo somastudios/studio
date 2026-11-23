@@ -1,4 +1,4 @@
-import { lienzo, punto, pon, raya, caja, linea, elipse, sombra, calca, frena, rebota, tramo } from './pixel.js'
+import { lienzo, punto, pon, raya, caja, linea, elipse, sombra, calca, frena, rebota, tramo, ahora, fraccion } from './pixel.js'
 import { W, H, DALI, ALEX, busto, golpe, destello, confeti, rotulo, dobla, montaje } from './reparto.js'
 
 // «Cayó el pago»: la película de la ficha de Cobrado. Llega la transferencia y llueven
@@ -77,7 +77,7 @@ function planoYaViste(L, f) {
   if (riendo) {
     // Signos de pesos que suben entre los dos.
     for (let i = 0; i < 3; i++) {
-      const y = 26 - ((f - 9) * 2 + i * 9) % 30
+      const y = 26 - ((ahora(f) - 9) * 2 + i * 9) % 30
       rotulo(L, '$', 38 + i * 3 - 3, y, 'y')
     }
   }
@@ -89,7 +89,7 @@ function planoYaViste(L, f) {
 function planoLluvia(L, f) {
   // Rayos que giran despacio detrás de todo.
   for (let i = 0; i < 8; i++) {
-    const a = (i / 8) * Math.PI * 2 + f * 0.05
+    const a = (i / 8) * Math.PI * 2 + ahora(f) * 0.05
     for (let r = 6; r < 60; r += 1) {
       const x = 42 + Math.cos(a) * r * 1.6
       const y = 30 + Math.sin(a) * r
@@ -99,11 +99,11 @@ function planoLluvia(L, f) {
   // Los billetes de lejos, chicos y lentos; los de cerca, grandes y rápidos.
   for (let i = 0; i < 7; i++) {
     const x = (i * 29 + 5) % 84
-    const y = ((i * 17 + f * 2.2) % 50) - 12
-    pon(L, GIRO[(i + Math.floor(f / 2)) % 4], x - 9 + Math.round(Math.sin(f * 0.5 + i) * 2), Math.round(y))
+    const y = ((i * 17 + ahora(f) * 2.2) % 50) - 12
+    pon(L, GIRO[(i + Math.floor(f / 2)) % 4], x - 9 + Math.round(Math.sin(ahora(f) * 0.5 + i) * 2), Math.round(y))
   }
   // Las manos, arriba: los brazos de Dalí y las mangas de Alex.
-  const ola = (i) => Math.round(Math.sin(f * 0.9 + i * 1.7) * 2)
+  const ola = (i) => Math.round(Math.sin(ahora(f) * 0.9 + i * 1.7) * 2)
   ;[
     [12, 'c', 'c'],
     [26, 'c', 'c'],
@@ -116,7 +116,7 @@ function planoLluvia(L, f) {
   })
   for (let i = 0; i < 3; i++) {
     const x = (i * 37 + 16) % 80
-    const y = ((i * 23 + f * 4.5) % 70) - 26
+    const y = ((i * 23 + ahora(f) * 4.5) % 70) - 26
     pon(L, GRANDE[(i * 2 + Math.floor(f / 2)) % 4], x - 18, Math.round(y))
   }
 }
@@ -131,7 +131,7 @@ function planoCuenta(L, f) {
   for (let i = 0; i < pasados; i++) pon(L, GRANDE[0], 45 - i, 13 - i)
   // El que va pasando: se arquea en el aire.
   if (pasados < 5 && f < 5 * CADA) {
-    const k = t / (CADA - 1)
+    const k = Math.min(1, (t + fraccion()) / (CADA - 1))
     const x = 4 + k * 40
     const y = 12 - Math.sin(k * Math.PI) * 9
     pon(L, GRANDE[t === 1 || t === 2 ? 1 : 0], Math.round(x), Math.round(y + (t === 1 || t === 2 ? 4 : 0)))
@@ -172,7 +172,7 @@ function planoCochinito(L, f) {
   const entra = (i) => f === i * CADA + 4
   const traga = [0, 1, 2].some(entra)
   const feliz = f >= 16
-  const brinca = feliz ? Math.round(Math.abs(Math.sin((f - 16) * 0.9)) * 4) : 0
+  const brinca = feliz ? Math.round(Math.abs(Math.sin((ahora(f) - 16) * 0.9)) * 4) : 0
   const aplasta = traga ? 1 : 0
   const cy = 19 + aplasta - brinca
   sombra(L, 56, 30, 14 - brinca, 1)
@@ -200,14 +200,14 @@ function planoCochinito(L, f) {
   for (let i = 0; i < 3; i++) {
     const t = f - i * CADA
     if (t < 0 || t > 4) continue
-    const k = t / 4
+    const k = Math.min(1, (t + fraccion()) / 4)
     const x = -16 + k * 64
     const y = 14 - Math.sin(k * Math.PI) * 16 + k * (cy - 22)
     pon(L, GIRO[t % 4], Math.round(x), Math.round(y))
   }
   if (traga) golpe(L, 57, cy - 10, 7)
   if (feliz) {
-    confeti(L, f - 16, 20)
+    confeti(L, ahora(f) - 16, 20)
     rotulo(L, '$1500', 1, 5 - Math.min(2, f - 16), 'y', 2)
   }
 }

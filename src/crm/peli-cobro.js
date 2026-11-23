@@ -1,4 +1,4 @@
-import { lienzo, punto, pon, raya, caja, linea, elipse, sombra, calca, gira, frena, rebota, tramo } from './pixel.js'
+import { lienzo, punto, pon, raya, caja, linea, elipse, sombra, calca, gira, frena, rebota, tramo, ahora, fraccion } from './pixel.js'
 import { W, H, DALI, busto, golpe, destello, confeti, rotulo, dobla, rayosDeFoco, PALOMA, montaje } from './reparto.js'
 
 // «Se acerca el día»: la película de la ficha de Por cobrar. El plazo corre, Dalí avisa a
@@ -82,7 +82,7 @@ function planoCalendario(L, f) {
   hoja(L, 22, 5, nums[Math.min(2, i + (t >= 3 && !ultimo ? 1 : 0))], ultimo || (i === 1 && t >= 3) ? 'r' : 'k')
   // La hoja que se arranca: se dobla, se va de lado y cae girando.
   if (!ultimo && t >= 3) {
-    const d = t - 3
+    const d = t - 3 + fraccion()
     const vuela = lienzo(W, H)
     hoja(vuela, 22, 5, nums[i])
     calca(L, gira(vuela, 12 + d * 16, 42, 20), 10 + d * 14, 2 + d * d * 4)
@@ -142,7 +142,7 @@ function planoChat(L, f) {
   linea(L, 77, 31, 79, 29, 'w')
   if (!enviado) {
     // Escribiendo.
-    const n = Math.min(54, f * 7)
+    const n = Math.min(54, Math.round(ahora(f) * 7))
     raya(L, 5, 5 + n, 28, 'D')
     if (n > 30) raya(L, 5, 5 + n - 30, 30, 'D')
     if (f % 2) punto(L, 7 + (n > 30 ? n - 30 : n), n > 30 ? 30 : 28, 'k')
@@ -195,7 +195,7 @@ function planoPagado(L, f) {
   // El reloj se voltea y vuelve a empezar.
   const reloj = lienzo(W, H)
   relojDeArena(reloj, 15, f < 8 ? 1 : 0, f)
-  const g = f < 3 ? 0 : f < 8 ? (f - 2) * 36 : 180
+  const g = f < 3 ? 0 : f < 8 ? (ahora(f) - 2) * 36 : 180
   calca(L, g % 180 === 0 ? reloj : gira(reloj, g, 15, 16), 0, f >= 3 && f < 8 ? -1 : 0)
   // El calendario, ya con su paloma.
   hoja(L, 29, 3, 'ok')
@@ -219,7 +219,7 @@ function planoPagado(L, f) {
     raya(sello, 34, 36, 17, 'g')
     raya(sello, 61, 63, 17, 'g')
     calca(L, sello, 0, Math.round((1 - cae) * -26))
-    if (f >= 12) confeti(L, f - 12)
+    if (f >= 12) confeti(L, ahora(f) - 12)
     if (f === 12) {
       golpe(L, 30, 26, 9)
       golpe(L, 68, 8, 9)

@@ -1,4 +1,4 @@
-import { lienzo, punto, pon, raya, caja, linea, elipse, sombra, suave, frena, rebota, tramo } from './pixel.js'
+import { lienzo, punto, pon, raya, caja, linea, elipse, sombra, suave, frena, rebota, tramo, ahora, fraccion } from './pixel.js'
 import { W, H, ALEX, AGENTE, AGENTE_2, busto, nuca, mini, miniIzq, globo, golpe, destello, confeti, rotulo, rayosDeFoco, CORAZON, montaje } from './reparto.js'
 
 // «Los agentes»: la película de la ficha de Clientes. Los clientes llegan de traje y lentes
@@ -58,7 +58,7 @@ function planoOficina(L, f) {
     [74, AGENTE_2, 2.2],
     [66, AGENTE, 1.1],
     [58, AGENTE, 0],
-  ].forEach(([x, P, des]) => miniIzq(L, x + (1 - k) * 34, 27, P, f * 0.9 + des, anda))
+  ].forEach(([x, P, des]) => miniIzq(L, x + (1 - k) * 34, 27, P, ahora(f) * 0.9 + des, anda))
   // Alex se da cuenta.
   if (f >= 19) rotulo(L, '!', 23, 1 - (f === 19 ? -1 : 0), 'r')
 }
@@ -185,7 +185,7 @@ function planoPantalla(L, f) {
       [3, 'g', 7, 'w', 15],
       [3, 'y', 18, 'r', 6],
     ]
-    const escrito = f * f * 0.75
+    const escrito = ahora(f) ** 2 * 0.75
     let cuenta = 0
     RENGLONES.forEach(([sangria, c1, n1, c2, n2], i) => {
       const y = 3 + i * 2
@@ -225,7 +225,7 @@ function planoLesGusto(L, f) {
   globo(L, 53, 0, CORAZON, tramo(f, 9, 12))
   if (f > 12)
     for (let i = 0; i < 3; i++) {
-      const y = 14 - ((f - 12 + i * 4) % 12) * 1.4
+      const y = 14 - ((ahora(f) - 12 + i * 4) % 12) * 1.4
       pon(L, ['r.r', 'rrr', '.r.'], 24 + i * 3 + Math.round(Math.sin(f + i)), Math.round(y))
     }
 }
@@ -234,8 +234,8 @@ function planoLesGusto(L, f) {
 function planoTrato(L, f) {
   const llega = frena(tramo(f, 0, 5))
   const juntos = f >= 5
-  const dy = juntos ? Math.round(Math.sin((f - 5) * 1.6) * 2 * Math.max(0, 1 - (f - 5) / 12)) : 0
-  if (f >= 6) confeti(L, f - 6)
+  const dy = juntos ? Math.round(Math.sin((ahora(f) - 5) * 1.6) * 2 * Math.max(0, 1 - (f - 5) / 12)) : 0
+  if (f >= 6) confeti(L, ahora(f) - 6)
   const y = 17 + dy
   // La manga marina de Alex, por la izquierda; la negra con puño blanco, por la derecha.
   const xa = -30 + llega * 30

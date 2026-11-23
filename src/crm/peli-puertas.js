@@ -1,4 +1,4 @@
-import { lienzo, punto, pon, raya, caja, linea, elipse, sombra, suave, frena, rebota, tramo } from './pixel.js'
+import { lienzo, punto, pon, raya, caja, linea, elipse, sombra, suave, frena, rebota, tramo, ahora, fraccion } from './pixel.js'
 import { W, H, DALI, ALEX, DON, DOÑA, busto, nuca, mini, globo, golpe, confeti, rotulo, TACHE, CORAZON, montaje } from './reparto.js'
 
 // «De puerta en puerta»: la película de la ficha de Prospectos. Dalí y Alex salen a tocar
@@ -62,8 +62,8 @@ function planoCalle(L, f, n) {
   const llega = tramo(f, 0, n - 6)
   const xD = -4 + frena(llega) * 53
   const anda = f < n - 6
-  mini(L, X(xD - 11), 27, ALEX, f * 0.9 + 1.4, anda)
-  mini(L, X(xD), 27, DALI, f * 0.9, anda)
+  mini(L, X(xD - 11), 27, ALEX, ahora(f) * 0.9 + 1.4, anda)
+  mini(L, X(xD), 27, DALI, ahora(f) * 0.9, anda)
   // Dalí levanta el puño.
   if (!anda) {
     const sube = Math.min(3, f - (n - 6))
@@ -86,16 +86,23 @@ function planoToca(L, f, n, amarilla = false) {
   elipse(L, 76, 23, 1.4, 1.4, 'O')
   // El puño viene, toma vuelo y pega. Dos veces.
   const toques = n > 12 ? [5, 9] : [3, 6]
-  let atras = 0
+  // Cuánto se echa atrás en cada cuadro; entre uno y otro, el puño va de corrido.
+  const vuelo = (e) => {
+    let a = 0
+    toques.forEach((t) => {
+      if (e === t - 2) a = 3
+      if (e === t - 1) a = 6
+      if (e === t + 1) a = 2
+    })
+    return a
+  }
+  const atras = vuelo(f) + (vuelo(f + 1) - vuelo(f)) * fraccion()
   let pega = -1
   toques.forEach((t, i) => {
-    if (f === t - 2) atras = 3
-    if (f === t - 1) atras = 6
     if (f === t) pega = i
-    if (f === t + 1) atras = 2
   })
   const entra = frena(tramo(f, 0, 3))
-  const sale = f > toques[1] + 3 ? (f - toques[1] - 3) * 3 : 0
+  const sale = f > toques[1] + 3 ? (ahora(f) - toques[1] - 3) * 3 : 0
   const hx = 4 + entra * 34 - atras - sale
   const hy = 24 - entra * 9 + atras * 0.7 + sale
   // El antebrazo y el puño.
@@ -132,7 +139,7 @@ function planoDesdeDentro(L, f) {
   busto(afuera, 36, 9, DALI, { boca: saluda ? 'rie' : 'sonrie', cierra: t === 11, cejas: saluda ? 1 : 0 })
   if (saluda) {
     // La mano de Dalí, de un lado a otro.
-    const m = Math.round(Math.sin(t * 1.5) * 2)
+    const m = Math.round(Math.sin((t + fraccion()) * 1.5) * 2)
     linea(afuera, 27, 32, 27 + m, 24, 'C', 3)
     pon(afuera, ['.c.c.', 'ccccc', 'cccCc', '.cCC.'], 25 + m, 20)
   }
@@ -269,12 +276,12 @@ function planoDesdeArriba(L, f, n) {
   // El camino a la siguiente puerta, y su señal.
   for (let x = 46; x < 88; x += 3) punto(L, X(x), 18, 'y')
   for (let y = 17; y > 12; y -= 2) punto(L, X(89), y, 'y')
-  const s = Math.round(Math.abs(Math.sin(f * 0.8)) * 2)
+  const s = Math.round(Math.abs(Math.sin(ahora(f) * 0.8)) * 2)
   pon(L, ['.yyy.', 'yykyy', 'yykyy', 'yyyyy', 'yykyy', '.yyy.', '..y..'], X(87), 1 - s)
   // Los dos, desde arriba: se les ve el pelo, los hombros y las manos que van y vienen.
   const wx = 12 + k * 62
   const sube = frena(tramo(f, n - 7, n - 1)) * 3
-  const paso = Math.sin(f * 1.1)
+  const paso = Math.sin(ahora(f) * 1.1)
   const cenital = (x, y, P, fase) => {
     x = Math.round(X(x))
     y = Math.round(y)
@@ -317,7 +324,7 @@ function planoSi(L, f) {
   // Corazoncitos que suben.
   if (f > 9)
     for (let i = 0; i < 3; i++) {
-      const y = 14 - ((f - 9 + i * 4) % 12) * 1.4
+      const y = 14 - ((ahora(f) - 9 + i * 4) % 12) * 1.4
       pon(L, ['r.r', 'rrr', '.r.'], 58 + i * 5 + Math.round(Math.sin(f + i) * 1), Math.round(y))
     }
 }
@@ -329,7 +336,7 @@ function planoChoque(L, f) {
   const despues = f - choca
   // Antes del choque toman vuelo: bajan un pixel.
   const dy = f < 3 ? 1 : despues === 0 ? -2 : despues === 1 ? -1 : despues > 4 && despues % 6 < 3 ? -1 : 0
-  if (despues >= 0) confeti(L, despues)
+  if (despues >= 0) confeti(L, despues + fraccion())
   busto(L, 60, 10 + dy, ALEX, { mira: -1, boca: f > 3 ? 'rie' : 'sonrie', cejas: 1, cierra: despues >= 0 && despues < 5, pelo: despues === 0 ? 2 : despues === 1 ? -1 : 0 })
   busto(L, 24, 10 + dy, DALI, { mira: 1, boca: f > 3 ? 'rie' : 'sonrie', cejas: 1, cierra: despues >= 0 && despues < 5, pelo: despues === 0 ? 1 : 0 })
   // Los brazos suben y se encuentran arriba, en medio.

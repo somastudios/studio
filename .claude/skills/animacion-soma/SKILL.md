@@ -45,7 +45,7 @@ Para verla en una ficha: regístrala en `ESCENAS` (`src/crm/escenas.js`), pon `e
    - desde dentro, contrapicado, desde arriba
 3. **Actúa, no poses.** `busto` recibe `mira`, `cierra`, `boca`, `cejas`, `hombros`, `pelo`. Un personaje que solo está ahí no sirve: que mire algo, parpadee, reaccione un cuadro tarde.
 4. **Movimiento natural.** Usa `frena` para llegar, `rebota` para lo que se pega o brinca, `suave` para la cámara. Antes de un golpe, un cuadro de vuelo hacia atrás. Después, uno de rebote. El pelo llega tarde (`pelo: 1`).
-5. **12 cuadros por segundo, 84 × 33 pixeles.** Un plano dura entre 10 y 28 cuadros. Una película, entre 100 y 200.
+5. **Se escribe a 12 cuadros por segundo y se proyecta a 60.** `f` siempre es un cuadro entero (para las poses: `f === 4`, `f % 2`), y entre cuadro y cuadro hay cinco pasos. Lo que se mueve de corrido debe usar el tiempo fino: `tramo(f, a, b)` ya lo trae, y para lo demás está `ahora(f)` (por ejemplo `Math.sin(ahora(f) * 0.9)`) o `fraccion()`. Si un movimiento se ve a saltos, es que está usando `f` a secas. El cuadro mide 84 × 33 pixeles; un plano dura entre 10 y 28 cuadros y una película entre 100 y 200.
 6. **Los colores son letras** (`PALETA` en `pixel.js`). Una cuadrícula no mezcla colores: para sombras usa `sombra()`, no un color translúcido. Si falta un color, agrégalo a la paleta con una letra libre.
 7. **El reparto vive en `reparto.js`.** Dalí: castaño oscuro, de librito, playera negra. Alex: rizos negros, lentes de armazón, suéter marino. Para cambiarles algo se toca ahí y cambia en todas las películas.
 
@@ -74,6 +74,7 @@ tl.fromTo(el.querySelectorAll('.boil.draw'), { '--draw': 1.06 }, { '--draw': 0, 
 - Las formas son listas de puntos (`P.circle`, `P.line`, `P.arc`, `P.curve`). `boil()` genera tres variantes y el CSS las alterna: el trazo «respira» sin costo por cuadro.
 - `cls: 'draw'` más la variable `--draw` hace que el trazo se dibuje. No lo combines con `vector-effect: non-scaling-stroke`: el dibujo se queda corto.
 - Fija la semilla con `semilla(n)` antes de pintar una vista: si se repinta con los mismos datos, los trazos salen idénticos y no brincan.
+- Para que un texto o un número entre, súbelo detrás de una máscara (`overflow: hidden` y `yPercent: 112 → 0`), como el saludo y la fecha de «Hoy». Nada de ruedas ni contadores que se recorten.
 - Las entradas van en una línea de tiempo de GSAP con `clearProps` al terminar (solo `transform,opacity,visibility`, nunca `all`).
 - Si animas con GSAP algo que ya tiene `transform` en el CSS, da `y: 0` (o `x: 0`) explícito: si no, GSAP suma los dos desplazamientos.
 

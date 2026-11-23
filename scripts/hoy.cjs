@@ -66,7 +66,9 @@ const { chromium } = require('playwright')
       hoja.style.cssText = `position:fixed;inset:0;z-index:99999;background:${color};overflow:auto;padding:6px;display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start`
       const a = Math.max(0, +desde)
       const b = Math.min(peli.n, +hasta)
-      for (let i = a; i < b; i++) {
+      // A 60 por segundo hay cinco pasos por cuadro: en la hoja basta uno de cada cinco.
+      const salto = peli.fps > 30 ? 5 : 1
+      for (let i = a * salto; i < Math.min(peli.n, b * salto); i += salto) {
         const c = document.createElement('canvas')
         c.width = peli.w
         c.height = peli.h
@@ -75,7 +77,7 @@ const { chromium } = require('playwright')
         hoja.appendChild(c)
       }
       document.querySelector('#app').appendChild(hoja)
-      return { n: b - a, w: peli.w * 4 + 6, h: peli.h * 4 + 6, total: peli.n }
+      return { n: Math.ceil((Math.min(peli.n, b * salto) - a * salto) / salto), w: peli.w * 4 + 6, h: peli.h * 4 + 6, total: peli.n }
     }, [nombre, color, desde, hasta])
     const cols = Math.max(1, Math.floor(1400 / info.w))
     await p.setViewportSize({ width: cols * info.w + 12, height: Math.ceil(info.n / cols) * info.h + 12 })
