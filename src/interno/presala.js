@@ -47,7 +47,7 @@ export function vistaPresala({ consulta }) {
         ({ fam, lista }) => `<div class="ps-fam"><p class="a-k">${esc(fam.nombre)}</p><div class="ps-rejilla">
           ${lista.map((n) => `<button type="button" class="ps-nicho ${st.nicho === n.id ? 'vivo' : ''}" data-nicho="${esc(n.id)}" aria-pressed="${st.nicho === n.id}">${icoNicho(n.icono)}<span>${esc(n.nombre)}</span></button>`).join('')}
         </div></div>`,
-      ).join('') || `<p class="a-p">No lo encontré. Elige «Otro giro» y cuéntame a qué se dedica.</p>`
+      ).join('') || `<p class="a-p">No hay ningún giro con ese nombre, deberías elegir «Otro giro».</p>`
   }
 
   function pintaAntes() {
@@ -64,11 +64,11 @@ export function vistaPresala({ consulta }) {
 
   function pintaPie() {
     const c = conocido()
-    app.querySelector('.ps-conocido').textContent = c && !previo ? 'Ya tiene expediente. Esta visita se suma a su historial.' : ''
+    app.querySelector('.ps-conocido').textContent = c && !previo ? 'Este negocio ya tiene expediente, la visita se sumará a su historial.' : ''
     const listo = st.negocio.trim() && st.nicho
     const b = app.querySelector('[data-empezar]')
     b.disabled = !listo
-    app.querySelector('.ps-falta').textContent = listo ? 'Se abre a pantalla completa. Para salir: Escape dos veces.' : !st.negocio.trim() ? 'Falta el nombre del negocio.' : 'Falta elegir el tipo de negocio.'
+    app.querySelector('.ps-falta').textContent = listo ? 'La presentación se abrirá a pantalla completa, presiona Escape dos veces para salir.' : !st.negocio.trim() ? 'Falta el nombre del negocio.' : 'Falta elegir el tipo de negocio.'
   }
 
   app.innerHTML = `
@@ -95,7 +95,7 @@ export function vistaPresala({ consulta }) {
       <section class="ps-paso">
         <p class="a-k">03 · ¿Quién va?</p>
         <div class="ps-van">${personas.map((p) => `<button type="button" class="ps-persona" data-va="${esc(p.id)}" aria-pressed="${st.van.has(p.id)}"><b>${esc(p.nombre)}</b><span>${esc(p.linea || '')}</span></button>`).join('')}</div>
-        <label class="a-sw ps-graba"><input type="checkbox" data-graba ${grabadora.soportada ? '' : 'disabled'} /><i></i><span><b>Grabar la conversación</b><br /><span class="a-ayuda ps-mic">${grabadora.soportada ? 'Pídele permiso antes de empezar. Así no anotas, y luego repasas qué le interesó.' : 'Este navegador no permite grabar audio.'}</span></span></label>
+        <label class="a-sw ps-graba"><input type="checkbox" data-graba ${grabadora.soportada ? '' : 'disabled'} /><i></i><span><b>Grabar la conversación</b><br /><span class="a-ayuda ps-mic">${grabadora.soportada ? 'Deberías pedirle permiso antes de grabar, así podrás repasar después qué le interesó.' : 'Este navegador no permite grabar audio.'}</span></span></label>
       </section>
 
       <footer class="ps-pie">
@@ -124,8 +124,8 @@ export function vistaPresala({ consulta }) {
       const ok = await grabadora.pedirPermiso()
       if (!ok) {
         st.graba = e.target.checked = false
-        nota.textContent = 'No me dejó usar el micrófono. Revisa el permiso del navegador e intenta de nuevo.'
-      } else nota.textContent = 'Micrófono listo. Empiezo a grabar con la presentación. Acuérdate de pedirle permiso.'
+        nota.textContent = 'El navegador bloqueó el micrófono, revisa el permiso e inténtalo de nuevo.'
+      } else nota.textContent = 'El micrófono está listo, la grabación empezará con la presentación.'
     } else grabadora.soltar()
   }
   const alTeclear = (e) => {

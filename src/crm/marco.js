@@ -111,7 +111,7 @@ function construir(app) {
       crm.marcas?.()
     } else if (e.target.closest('[data-salir]')) {
       if (!sesion.usuario) return ir('/entrar')
-      const ok = await confirmar({ titulo: '¿Cerrar sesión?', texto: store.estado.pendientes ? `Hay ${store.estado.pendientes} cambios que no han subido. Si cierras sesión ahora, se pierden.` : 'La copia de este dispositivo se borra. Todo sigue guardado en la nube.', si: 'Cerrar sesión', peligro: !!store.estado.pendientes })
+      const ok = await confirmar({ titulo: '¿Cerrar sesión?', texto: store.estado.pendientes ? `Hay ${store.estado.pendientes} cambios sin subir, si cierras sesión ahora se perderán.` : 'Si cierras sesión, la copia de este dispositivo se borrará y todo seguirá en la nube.', si: 'Cerrar sesión', peligro: !!store.estado.pendientes })
       if (!ok) return
       await salir()
       ir('/entrar')

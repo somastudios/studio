@@ -100,12 +100,12 @@ const MENSAJES = {
   'Invalid login credentials': 'El correo o la contraseña no coinciden.',
   'Email not confirmed': 'Falta confirmar ese correo.',
   codigo: 'Ese no es el código de equipo.',
-  existe: 'Ya hay una cuenta con ese correo. Prueba entrar.',
+  existe: 'Ya hay una cuenta con ese correo, deberías entrar con ella.',
   corta: 'La contraseña necesita al menos 8 caracteres.',
-  red: 'No alcanzo el servidor. Revisa tu internet e intenta de nuevo.',
+  red: 'No hay conexión con el servidor, revisa tu internet e inténtalo de nuevo.',
 }
 
-const traducir = (m) => MENSAJES[m] || m || 'Algo no salió bien. Intenta de nuevo.'
+const traducir = (m) => MENSAJES[m] || m || 'No se pudo completar, inténtalo de nuevo.'
 
 export async function entrar(correo, clave) {
   try {

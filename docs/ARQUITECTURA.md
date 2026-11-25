@@ -38,21 +38,18 @@ public/soma-connect.js  el fragmento que enlaza un sistema entregado con el CRM
 
 ## Voz
 
-Escribimos como escribe Anthropic en las interfaces de Claude: claro, sereno, directo y honesto.
+La voz es la de la skill `soma-copywriting`: un narrador de videojuego localizado, o la interfaz de Claude. Dice las cosas como son, observa tu situación y sugiere lo que te conviene, sin hacer show.
 
-- Frases cortas. Una idea por frase. Sujeto, verbo, consecuencia.
-- Concreto antes que genérico: "Cuando la arrachera baja de ocho kilos, usted se entera" en vez de "optimice su inventario".
-- Decimos qué hace algo y también qué no hace. Los límites generan confianza.
-- Sin signos de exclamación, sin superlativos, sin jerga. Nunca: "potente", "revolucionario", "solución integral", "lleve su negocio al siguiente nivel", "increíble", "de última generación", "inteligente" como adorno.
-- Los botones empiezan con verbo y dicen lo que pasa: "Guardar cita", "Enviar pedido". No "Aceptar" ni "OK".
-- Mayúscula solo al inicio de la frase. Los titulares de la presentación se ponen en mayúsculas por CSS, no al escribirlos.
-- Suena a una persona que ayuda, no a un sistema. El CRM saluda según la hora ("Buenas tardes, Dalí") y habla en primera persona cuando hace algo por ti: "Si algo está por vencer, te aviso aquí", "No encuentro el audio", "Aquí calculo lo que va a ver el cliente".
-- Pregunta antes que instrucción: "¿Cuáles le suenan?" en vez de "Seleccione las que apliquen". "¿Ya te llegó este pago?" en vez de "¿Marcar como recibido?".
-- Corto gana. Si una frase explica cómo funciona el sistema por dentro, sobra.
-- Estados vacíos: dicen qué aparecerá ahí y cómo ("Todo al corriente", "Semana libre"). Errores: qué pasó y qué hacer, sin culpar a nadie.
-- Al cliente se le habla de **usted**. Dentro del CRM y la presala, al equipo se le habla de **tú**.
-- Español de México, natural. Nada de "ordenador", "móvil" o "vosotros". Sí: "celular", "cobrar", "apartar", "fiado".
-- El cliente del negocio no es "usuario": es "comensal", "paciente", "alumno", lo que corresponda al giro.
+- Frases declarativas en una sola respiración, unidas con coma: «Todavía no tienes prospectos, deberías preparar tu primera visita.»
+- Futuro simple de narrador («aparecerá», «se pausará», «recibirá») y sugerencias con «deberías» o «podrías».
+- El sistema no habla en primera persona («te aviso», «no encuentro»): describe lo que pasa («El audio no está aquí»).
+- Nada de metáforas, juegos de palabras, tríadas, rayas, ni dos frases con remate. Tampoco preguntas de adorno; las preguntas son solo para pedir un dato («¿Qué día le queda bien?»).
+- Cada texto contesta qué pasa, qué hago o qué sigue. Si no contesta ninguna, sobra.
+- Personalidad según el momento: nada en errores, pagos y borrados; una sugerencia en ayudas; una observación con gracia en saludos y pantallas vacías.
+- Botones: verbo y objeto, tres palabras o menos. Títulos: seis palabras o menos. Avisos y ayudas: una sola frase de veinte palabras o menos.
+- Solo se afirma lo que es cierto: la línea bajo el saludo de «Hoy» tiene una variante por estado.
+- En el CRM y la presala se habla de **tú**. En la presentación, al cliente, de **usted**, con las mismas reglas.
+- Español de México, natural: «celular», «cobrar», «apartar». El cliente del negocio no es «usuario»: es «comensal», «paciente», «alumno», lo que corresponda al giro.
 
 ## Contrato de un nicho
 

@@ -20,7 +20,7 @@ export function vistaEntrar() {
         <div class="en-marca"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="24" fill="none" stroke="currentColor" stroke-width="6.4"/><circle cx="32" cy="32" r="9.4" fill="#216fff"/></svg><p><b>SOMA</b> Studio</p></div>
         <form class="en-caja" novalidate>
           <h1 class="a-h1 en-h">${crear ? 'Crear cuenta' : 'Entrar'}</h1>
-          <p class="a-p">${crear ? 'Solo para el equipo. Ten a la mano el código.' : 'Qué bueno verte. Entra para seguir donde te quedaste.'}</p>
+          <p class="a-p">${crear ? 'Para crear tu cuenta necesitarás el código de equipo.' : 'Este es el CRM de Soma, entra para seguir donde te quedaste.'}</p>
           <div class="a-campos en-campos">
             ${crear ? `<label class="a-campo"><span>Tu nombre</span><input class="a-in" name="nombre" autocomplete="name" required /></label>` : ''}
             <label class="a-campo"><span>Correo</span><input class="a-in" name="correo" type="email" autocomplete="email" required /></label>
@@ -33,7 +33,7 @@ export function vistaEntrar() {
         </form>
         <div class="en-local">
           <p class="a-k">Sin cuenta</p>
-          <p class="a-p">${store.estado.persistente ? 'Puedes usar todo sin cuenta, solo en este dispositivo. Cuando inicies sesión, lo que hayas registrado se sube solo.' : 'Puedes probar todo sin cuenta. Ojo: este navegador no guarda, así que al cerrar se borra.'}</p>
+          <p class="a-p">${store.estado.persistente ? 'Puedes usar todo sin cuenta, lo que registres se subirá cuando inicies sesión.' : 'Puedes probar todo sin cuenta, pero este navegador no guardará nada al cerrar.'}</p>
           <button type="button" class="a-btn a-btn--pri" data-local>${store.estado.persistente ? 'Usar solo en este dispositivo' : 'Probar sin cuenta'}</button>
           <a class="a-enlace en-gen" href="#/general">Ver la presentación general</a>
         </div>
@@ -52,7 +52,7 @@ export function vistaEntrar() {
   const enviar = async (e) => {
     e.preventDefault()
     const c = leerCampos(app)
-    if (!c.correo || !c.clave || (modo === 'crear' && (!c.nombre || !c.codigo))) return pintar('Falta llenar algo.')
+    if (!c.correo || !c.clave || (modo === 'crear' && (!c.nombre || !c.codigo))) return pintar('Falta llenar un campo.')
     const b = app.querySelector('.en-ok')
     b.disabled = true
     b.textContent = 'Un momento…'

@@ -101,8 +101,25 @@ export function vistaHoy() {
     const r = resumenCobranza()
     const total = store.lista('prospectos').length
     const porDia = [...agrupar(citas, (c) => (c.inicio ? dia(c.inicio) : 'por-acordar'))]
+    // La lectura: una frase que dice cómo viene el día, antes de los números. Solo afirma lo
+    // que es cierto ahora mismo; hay una variante por estado.
+    const hoyCitas = citas.filter((c) => c.inicio && dia(c.inicio) === hoy)
+    const cuantas = (n, una, varias) => (n === 1 ? una : varias.replace('{n}', n))
+    const lectura = r.vencidas.length
+      ? cuantas(r.vencidas.length, 'Una membresía ya venció, deberías avisarle hoy.', '{n} membresías ya vencieron, deberías avisarles hoy.')
+      : r.porVencer.length
+        ? cuantas(r.porVencer.length, 'Una membresía está por vencer, podrías avisarle antes.', '{n} membresías están por vencer, podrías avisarles antes.')
+        : hoyCitas.length
+          ? cuantas(hoyCitas.length, `Hoy tienes una cita, es a las ${fecha(hoyCitas[0].inicio, 'hora')}.`, `Hoy tienes {n} citas, la primera es a las ${fecha(hoyCitas[0].inicio, 'hora')}.`)
+          : total === 0
+            ? 'Este es tu día, aquí verás tus citas y lo que hay por cobrar.'
+            : porVisitar
+              ? cuantas(porVisitar, 'No tienes citas hoy, te falta visitar a un prospecto.', 'No tienes citas hoy, te falta visitar a {n} prospectos.')
+              : new Date().getHours() >= 19
+                ? 'Es tarde, lo que no termines hoy seguirá aquí mañana.'
+                : 'No tienes pendientes hoy, el día estará tranquilo.'
     main.innerHTML = `
-      ${cab({ k: `${ICO_CITA}<span>${esc(fecha(new Date(), 'larga'))}</span>`, t: sesion.nombre ? `${saludo()}, ${esc(sesion.nombre.split(' ')[0])}` : saludo(), emblema: emblemaFecha(), acc: `<button type="button" class="a-btn hoy-cita" data-nueva-cita><i></i><span class="hoy-cita-tx">${ICO_CITA}Nueva cita</span>${ICO_IR}</button>` })}
+      ${cab({ extra: `<p class="hoy-lectura">${esc(lectura)}</p>`, k: `${ICO_CITA}<span>${esc(fecha(new Date(), 'larga'))}</span>`, t: sesion.nombre ? `${saludo()}, ${esc(sesion.nombre.split(' ')[0])}` : saludo(), emblema: emblemaFecha(), acc: `<button type="button" class="a-btn hoy-cita" data-nueva-cita><i></i><span class="hoy-cita-tx">${ICO_CITA}Nueva cita</span>${ICO_IR}</button>` })}
       <div class="crm-fichas">
         ${ficha('azul', 'puertas', '/crm/prospectos', total - store.lista('prospectos', (p) => ['cliente', 'perdido'].includes(p.etapa)).length, 'Prospectos en proceso')}
         ${ficha('amarillo', 'agentes', '/crm/prospectos', store.lista('prospectos', { etapa: 'cliente' }).length, 'Clientes')}
@@ -111,21 +128,21 @@ export function vistaHoy() {
       </div>
       ${
         total === 0
-          ? `<section class="a-seccion">${vacio('Todavía no hay nada por aquí', '¿Preparamos la primera visita? Al terminar, su expediente aparece aquí solo.', '<a class="a-btn a-btn--pri" href="#/presala">Preparar la primera visita</a>')}</section>`
+          ? `<section class="a-seccion">${vacio('Todavía no tienes prospectos', 'Deberías preparar tu primera visita, su expediente aparecerá aquí al terminar.', '<a class="a-btn a-btn--pri" href="#/presala">Preparar visita</a>')}</section>`
           : `
       <section class="a-seccion">${cabHoy('Próximos siete días', 'Ver la agenda', '/crm/agenda')}
         ${
           citas.length
             ? porDia.map(([d, lista]) => `<p class="a-k crm-dia">${d === 'por-acordar' ? 'Por acordar por mensaje' : `${esc(fecha(d, 'larga'))} · ${esc(relativo(d))}`}</p><div class="a-lista">${lista.map(filaCita).join('')}</div>`).join('')
-            : vacio('Semana libre', 'Las citas que apartes en una visita llegan aquí solas.')
+            : vacio('No tienes citas esta semana', 'Las citas que apartes en una visita aparecerán aquí.')
         }
       </section>
       <section class="a-seccion">${cabHoy('Por cobrar', 'Ver cobranza', '/crm/cobranza')}
-        ${cobrar.length ? `<div class="a-lista">${cobrar.map(filaMembresia).join('')}</div>` : vacio('Todo al corriente', 'Si algo está por vencer, te aviso aquí.')}
+        ${cobrar.length ? `<div class="a-lista">${cobrar.map(filaMembresia).join('')}</div>` : vacio('Nadie te debe nada', 'Las membresías por vencer aparecerán aquí con su aviso listo.')}
       </section>
       ${
         frios.length
-          ? `<section class="a-seccion"><div class="a-seccion-cab"><h2 class="a-h2">Se están enfriando</h2><span class="a-k">Sin cita y sin noticias en 5 días o más</span></div>
+          ? `<section class="a-seccion"><div class="a-seccion-cab"><h2 class="a-h2">Se están enfriando</h2><span class="a-k">Sin cita ni noticias en 5 días</span></div>
               <div class="a-lista">${frios.map((p) => `<a class="a-item" style="--cols:1fr auto auto" href="#/crm/prospecto/${p.id}"><span><span class="a-item-t">${esc(p.negocio)}</span><br><span class="a-item-s">${esc(giro(p))}${p.proxima_accion ? ` · ${esc(p.proxima_accion)}` : ''}</span></span>${chipEtapa(p.etapa)}<span class="a-item-s">${esc(relativo(p.actualizado))}</span></a>`).join('')}</div></section>`
           : ''
       }
@@ -179,8 +196,8 @@ export function vistaProspectos() {
               })
               .join('')}</div>`
           : todos.length
-            ? vacio('No encontré nada con eso', 'Prueba otra etapa o borra la búsqueda.')
-            : vacio('Aún no hay prospectos', 'El primero llega solo cuando termines una visita. Si ya platicaste con alguien, agrégalo a mano.', '<a class="a-btn a-btn--pri" href="#/presala">Preparar una visita</a>')
+            ? vacio('No hay nada con ese nombre', 'Deberías probar con otra etapa o borrar la búsqueda.')
+            : vacio('Todavía no tienes prospectos', 'El primero aparecerá aquí cuando termines una visita, también puedes agregarlo a mano.', '<a class="a-btn a-btn--pri" href="#/presala">Preparar una visita</a>')
       }`
     if (teniaFoco) {
       const b = main.querySelector('[data-busca]')
@@ -247,7 +264,7 @@ export function vistaAgenda() {
         const n = proximas.filter((c) => dia(c.inicio) === dia(d)).length
         return `<div class="crm-dia-celda ${k === 0 ? 'es-hoy' : ''}"><span class="a-k">${esc(fecha(d, 'media').split(' ')[0])}</span><b class="crm-dia-n a-num">${d.getDate()}</b><span class="crm-dia-p">${'<i></i>'.repeat(Math.min(3, n))}</span></div>`
       }).join('')}</div>
-      ${proximas.length ? grupo(proximas) : vacio('Nada en la agenda', 'Las citas de tus visitas llegan aquí solas. También puedes crear una.')}
+      ${proximas.length ? grupo(proximas) : vacio('No tienes citas por venir', 'Las citas de tus visitas aparecerán aquí, también puedes crear una.')}
       ${sinFecha.length ? `<section class="a-seccion"><div class="a-seccion-cab"><h2 class="a-h2">Por acordar por mensaje</h2></div><div class="a-lista">${sinFecha.map(filaCita).join('')}</div></section>` : ''}
       ${pasadas.length ? `<section class="a-seccion"><div class="a-seccion-cab"><h2 class="a-h2">Anteriores</h2></div>${grupo(pasadas)}</section>` : ''}`
   })
@@ -294,7 +311,7 @@ export function vistaCobranza() {
         pestana === 'membresias'
           ? mem.length
             ? `<div class="a-lista">${mem.map((x) => filaMembresia(x).replace('<button type="button" class="a-btn a-btn--ch" data-avisar>', '<button type="button" class="a-btn a-btn--ch a-btn--fantasma" data-editar-membresia>Editar</button><button type="button" class="a-btn a-btn--ch" data-avisar>').replace('--cols:1.4fr 1fr auto auto', '--cols:1.4fr 1fr auto auto auto')).join('')}</div>`
-            : vacio('Aún no hay membresías', 'Nacen cuando un cliente dice que sí. Aquí vas a ver quién va al corriente y a quién avisarle.')
+            : vacio('Todavía no tienes membresías', 'Aparecerán aquí cuando un cliente acepte su propuesta.')
           : pagos.length
             ? [...agrupar(pagos, (p) => (p.fecha || p.creado || '').slice(0, 7))]
                 .map(
@@ -316,7 +333,7 @@ export function vistaCobranza() {
                   ).join('')}</div>`,
                 )
                 .join('')
-            : vacio('Aún no hay pagos', 'Cada pago que registres queda aquí, con su fecha y quién lo recibió.')
+            : vacio('Todavía no has registrado pagos', 'Cada pago quedará aquí con su fecha y quién lo recibió.')
       }</div>`
   })
   const q = [
@@ -328,7 +345,7 @@ export function vistaCobranza() {
     alTocar(m.main, '[data-copia-enlace]', async (b) => aviso((await copiar(store.uno('pagos', b.closest('[data-pago]').dataset.pago).enlace)) ? 'Enlace copiado.' : 'No se pudo copiar.')),
     alTocar(m.main, '[data-confirma]', async (b) => {
       const p = store.uno('pagos', b.closest('[data-pago]').dataset.pago)
-      if (await confirmar({ titulo: '¿Ya te llegó este pago?', texto: 'Márcalo solo si ya lo confirmaste por fuera. Si pagó con el enlace, se marca solo.', si: 'Sí, ya llegó' })) confirmarPago(p)
+      if (await confirmar({ titulo: 'Marcar pago como recibido', texto: 'Hazlo solo si ya lo confirmaste por fuera, los pagos con enlace se marcan solos.', si: 'Marcar recibido' })) confirmarPago(p)
     }),
   ]
   return () => {
@@ -372,7 +389,7 @@ export function accionesSistema(main) {
     alTocar(main, '[data-suspender]', async (b) => {
       const s = de(b)
       const suspender = s.estado !== 'suspendido'
-      if (suspender && !(await confirmar({ titulo: `¿Suspender «${s.nombre}»?`, texto: 'Se pausa la próxima vez que alguien lo abra. Lo reactivas aquí cuando quieras.', si: 'Suspender', peligro: true }))) return
+      if (suspender && !(await confirmar({ titulo: `¿Suspender «${s.nombre}»?`, texto: 'El sistema se pausará la próxima vez que alguien lo abra, podrás reactivarlo aquí.', si: 'Suspender', peligro: true }))) return
       store.guardar('sistemas', { id: s.id, estado: suspender ? 'suspendido' : 'activo' })
       store.anotar(s.prospecto_id, 'sistema', suspender ? `Se suspendió «${s.nombre}».` : `Se reactivó «${s.nombre}».`, null, sesion.nombre)
     }),
@@ -383,8 +400,8 @@ export function vistaSistemas() {
   const m = marco('sistemas', (main) => {
     const L = store.lista('sistemas').sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '', 'es'))
     main.innerHTML = `
-      ${cab({ k: 'Lo que hemos entregado', t: 'Sistemas', emblema: vineta('sistemas'), extra: '<p class="a-p" style="margin-top:12px">Cada sistema conectado te avisa aquí que sigue vivo. Si su membresía vence, él solo muestra un aviso o se pausa.</p>', acc: '<button type="button" class="a-btn a-btn--pri" data-nuevo-sistema>Nuevo sistema</button>' })}
-      ${L.length ? L.map(filaSistema).join('') : vacio('Aún no hay sistemas', 'Cuando entregues uno, regístralo aquí. Te doy una línea para pegarle y desde entonces lo cuidas a distancia.')}`
+      ${cab({ k: 'Lo que hemos entregado', t: 'Sistemas', emblema: vineta('sistemas'), extra: '<p class="a-p" style="margin-top:12px">Estos son los sistemas que entregaste, cada uno avisa aquí que sigue funcionando.</p>', acc: '<button type="button" class="a-btn a-btn--pri" data-nuevo-sistema>Nuevo sistema</button>' })}
+      ${L.length ? L.map(filaSistema).join('') : vacio('Todavía no has entregado sistemas', 'Deberías registrar aquí cada sistema que entregues, así podrás cuidarlo a distancia.')}`
   })
   const q = [...accionesSistema(m.main), alTocar(m.main, '[data-nuevo-sistema]', () => editarSistema())]
   return () => {

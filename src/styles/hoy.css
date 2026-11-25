@@ -651,3 +651,13 @@
     font-size: 13px;
   }
 }
+
+/* La lectura del día: una frase bajo el saludo que dice cómo viene, antes de los números. */
+.hoy-lectura {
+  max-width: 30ch;
+  margin-top: 4px;
+  font-size: 16.5px;
+  line-height: 1.28;
+  color: var(--fg-2);
+  text-wrap: balance;
+}

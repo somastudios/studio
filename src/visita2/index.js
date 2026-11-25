@@ -15,6 +15,7 @@ import { esc, ahora, fecha, dinero, plantilla } from '../app/util.js'
 import { escena, tx, linea } from '../visita1/base.js'
 import { portada } from '../visita1/apertura.js'
 import { despedida } from '../visita1/cierre.js'
+import { conEspacios } from '../visita1/espacios.js'
 import { precioPlazo } from '../crm/cobranza.js'
 
 // La segunda visita: recordar lo que dijo, dejarle probar su sistema y, ahora sí, hablar de precio.
@@ -251,7 +252,7 @@ export function vistaVisita2({ id }) {
     },
   })
 
-  const scenes = [portada(E, V2.portada), recap, demo, precio, pago, decision, despedida(E, { alLlegar: finalizar, T: V2.cierre })]
+  const scenes = conEspacios([portada(E, V2.portada), recap, demo, precio, pago, decision, despedida(E, { alLlegar: finalizar, T: V2.cierre })], [[pago.id, 'entrega', 'ink']])
   const d = montarDeck({
     scenes,
     titulo: `${E.negocio} · Soma`,

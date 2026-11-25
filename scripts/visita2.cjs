@@ -41,7 +41,10 @@ const fs = require('fs')
   await p.locator('[data-plazo="12"]').click().catch((e) => errores.push('plazo: ' + e.message.split('\n')[0]))
   await foto('precio-12', 700)
   await p.keyboard.press('ArrowRight'); await foto('pago')
-  await p.keyboard.press('ArrowRight'); await foto('decision')
+  await p.keyboard.press('ArrowRight'); await p.waitForTimeout(1800)
+  // El espacio en construcción (si está encendido en src/config.js).
+  if (await p.locator('.ve').count()) { await foto('espacio-entrega', 900); await p.keyboard.press('ArrowRight') }
+  await foto('decision')
   await p.locator('[data-op="mensual"]').click().catch((e) => errores.push('decision: ' + e.message.split('\n')[0]))
   await foto('decision-elegida', 1000)
   await p.keyboard.press('ArrowRight'); await foto('cierre', 3200)

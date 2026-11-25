@@ -9,3 +9,10 @@ export const FUNCIONES = `${SUPABASE_URL}/functions/v1`
 /** Moneda y región de todo el sistema. */
 export const MONEDA = 'MXN'
 export const REGION = 'es-MX'
+
+/**
+ * Escenas en construcción de la presentación (ver src/visita1/espacios.js). Con `true` se
+ * muestran, marcadas como «Espacio en construcción», para ver dónde irá cada cosa. Antes de
+ * llevar la presentación con un cliente, déjalo en `false`.
+ */
+export const ESPACIOS_EN_OBRA = true

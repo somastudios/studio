@@ -24,10 +24,10 @@ export const C = {
 
   s0: {
     nav: 'Portada',
-    kicker: 'Ingeniería de soluciones para empresas',
+    kicker: 'Soluciones digitales para negocios',
     lema: 'We solve what holds you back.',
     sub: 'Resolvemos lo que detiene a su negocio.',
-    cta: 'Comenzar',
+    cta: 'Empezar',
   },
 
   s1: {
@@ -37,14 +37,14 @@ export const C = {
     old: '¿Cuánto cuesta una página web?',
     oursLabel: 'La nuestra',
     ours: '¿Qué está deteniendo a su negocio?',
-    body: 'No llegamos con un producto que colocar. Antes de proponer cualquier cosa, entendemos cómo opera su negocio y dónde se está frenando. La solución se diseña después, alrededor de eso.',
+    body: 'Antes de proponerle algo, entendemos cómo trabaja su negocio y dónde se detiene. La solución se diseña después.',
   },
 
   s2: {
     nav: 'Dónde se detiene',
     title: ['¿Dónde se', 'detiene?'],
-    intro: 'Un negocio rara vez se detiene en todo. Suele detenerse en un punto.',
-    prompt: 'Seleccione un área',
+    intro: 'Un negocio casi nunca se detiene en todo, suele detenerse en un punto.',
+    prompt: 'Toque un área',
     signals: 'Señales habituales',
     areas: [
       {
@@ -100,11 +100,11 @@ export const C = {
     causeLabel: 'Causa posible',
     answerLabel: 'Respuesta',
     causes: [
-      { name: 'Visibilidad', cause: 'Quien lo busca no lo encuentra.', answer: 'Presencia en búsquedas locales y un sitio comercial.' },
-      { name: 'Conversión', cause: 'Lo visitan, pero no compran ni reservan.', answer: 'Páginas de destino y optimización comercial.' },
-      { name: 'Precio', cause: 'No se conoce el costo real de lo que se vende.', answer: 'Análisis de costos y márgenes por producto.' },
-      { name: 'Atención', cause: 'Las consultas tardan horas en responderse.', answer: 'Automatización de la primera respuesta.' },
-      { name: 'Retención', cause: 'Compran una vez y no regresan.', answer: 'CRM y programa de fidelización.' },
+      { name: 'Visibilidad', cause: 'Quien lo busca no lo encuentra.', answer: 'Aparecer en Google Maps y tener un sitio donde lo encuentren.' },
+      { name: 'Conversión', cause: 'Lo visitan, pero no compran ni reservan.', answer: 'Un sitio que explique rápido qué vende y cómo pedirlo.' },
+      { name: 'Precio', cause: 'No se conoce el costo real de lo que se vende.', answer: 'Saber cuánto cuesta y cuánto deja cada producto.' },
+      { name: 'Atención', cause: 'Las consultas tardan horas en responderse.', answer: 'Una respuesta automática al primer mensaje.' },
+      { name: 'Retención', cause: 'Compran una vez y no regresan.', answer: 'Un registro de clientes y motivos para volver.' },
     ],
   },
 
@@ -112,7 +112,7 @@ export const C = {
     nav: 'Método',
     title: 'Cómo trabajamos',
     steps: [
-      { name: 'Diagnóstico', text: 'Una pregunta a la vez. Escuchamos cómo opera su negocio y separamos los síntomas de sus causas.' },
+      { name: 'Diagnóstico', text: 'Escuchamos cómo trabaja su negocio, una pregunta a la vez, y separamos el síntoma de su causa.' },
       { name: 'Soluciones', text: 'Para cada causa existen varias rutas. Elegimos la que respeta la forma en que usted quiere operar.' },
       { name: 'Demostración', text: 'Le mostramos la solución funcionando con datos de ejemplo, antes de que tome cualquier decisión.' },
       { name: 'Plano', text: 'Dejamos por escrito el alcance: módulos, integraciones, prioridades e indicadores de éxito.' },
@@ -133,30 +133,30 @@ export const C = {
       { key: 'waiter', text: '¿Quiere conservar la atención del mesero?' },
       { key: 'kitchen', text: '¿El cuello de botella está en cocina?' },
     ],
-    tag: 'Restricción registrada · Atención humana',
+    tag: 'Anotado · quiere conservar al mesero',
     routes: [
       { name: 'Pedidos por QR', text: 'El cliente ordena desde su teléfono y la orden llega directa a cocina.' },
       { name: 'Asistente para meseros', text: 'El trato personal se conserva. La tecnología trabaja detrás: comandas digitales, panel de cocina y solicitudes por mesa.' },
       { name: 'Gestión de cocina', text: 'Cola de preparación con prioridades y aviso al mesero cuando un platillo está listo.' },
-      { name: 'Seguir diagnosticando', text: 'Si ninguna ruta aplica, lo decimos. No forzamos una solución.' },
+      { name: 'Seguir diagnosticando', text: 'Si ninguna ruta le sirve, se lo decimos y seguimos preguntando.' },
     ],
   },
 
   s6: {
     nav: 'Qué construimos',
     title: ['Qué', 'construimos'],
-    note: 'Si su problema requiere una especialidad que no tenemos, se lo decimos y buscamos al aliado correcto. Prometemos la mejor ruta, no lo imposible.',
+    note: 'Si su problema pide una especialidad que no tenemos, se lo decimos y buscamos a quien sí la tenga.',
     items: [
       { name: 'Software a medida', text: 'Sistemas diseñados alrededor de un proceso específico de su empresa.' },
-      { name: 'Sitios y tiendas', text: 'Presencia comercial, catálogos y comercio en línea que convierten visitas en ventas.' },
+      { name: 'Sitios y tiendas', text: 'Su negocio en internet, con catálogo y venta en línea.' },
       { name: 'Aplicaciones internas', text: 'Herramientas para su personal: piso, cocina, taller u oficina.' },
       { name: 'CRM y seguimiento', text: 'Clientes, prospectos e historial en un solo lugar.' },
       { name: 'Automatización', text: 'Tareas repetitivas que dejan de depender de la memoria de alguien.' },
       { name: 'Sistemas administrativos', text: 'Inventarios, órdenes, cotizaciones y control operativo.' },
-      { name: 'Inteligencia artificial', text: 'Asistentes y análisis aplicados a casos concretos, con supervisión humana.' },
+      { name: 'Inteligencia artificial', text: 'Asistentes que responden o resumen por usted, siempre con alguien revisando.' },
       { name: 'Integraciones', text: 'Conectamos lo que ya utiliza: pagos, mensajería, mapas y calendarios.' },
-      { name: 'Producción audiovisual', text: 'Fotografía y video de producto para su comunicación comercial.' },
-      { name: 'Analítica', text: 'Indicadores claros para decidir con datos.' },
+      { name: 'Fotografía y video', text: 'Fotos y video de sus productos, listos para publicar.' },
+      { name: 'Tableros', text: 'Los números de su negocio en una sola pantalla.' },
     ],
   },
 
@@ -164,11 +164,11 @@ export const C = {
     nav: 'Principios',
     title: ['Seis', 'principios'],
     items: [
-      { name: 'Problema primero', text: 'No proponemos tecnología sin entender antes la necesidad.' },
-      { name: 'Adaptabilidad', text: 'Cada negocio opera distinto. La solución se ajusta a usted, no al revés.' },
-      { name: 'Innovación', text: 'Buscamos la manera más inteligente de resolver, no la más habitual.' },
-      { name: 'Eficiencia', text: 'Menos tiempo perdido, menos errores, menos recursos desperdiciados.' },
-      { name: 'Resolución', text: 'No nos limitamos a señalar el problema: construimos lo que lo resuelve.' },
+      { name: 'Problema primero', text: 'Entendemos la necesidad antes de proponer tecnología.' },
+      { name: 'Adaptabilidad', text: 'Cada negocio trabaja distinto, la solución se ajusta al suyo.' },
+      { name: 'Innovación', text: 'Buscamos la manera más simple de resolverlo.' },
+      { name: 'Eficiencia', text: 'Lo que construimos le ahorra tiempo y errores.' },
+      { name: 'Resolución', text: 'Señalamos el problema y construimos lo que lo resuelve.' },
       { name: 'Evolución', text: 'Lo que construimos puede crecer al ritmo de su negocio.' },
     ],
   },
@@ -176,8 +176,8 @@ export const C = {
   s8: {
     nav: 'Alcances',
     title: 'Tres alcances',
-    body: 'Su inversión define hasta dónde llega el alcance. La calidad es la misma en los tres.',
-    note: 'Los rangos de inversión se presentan junto con la propuesta, después del diagnóstico.',
+    body: 'Su inversión define hasta dónde llega el alcance, la calidad es la misma en los tres.',
+    note: 'Los precios se verán junto con la propuesta, después del diagnóstico.',
     items: [
       { name: 'Essential', tag: 'Un problema prioritario, resuelto.', text: 'Un sitio comercial, un sistema de reservaciones, un CRM básico, un menú digital o un cotizador.' },
       { name: 'Advanced', tag: 'Varias áreas, conectadas.', text: 'Sitio, CRM, automatizaciones, tablero de indicadores y administración de usuarios trabajando juntos.' },

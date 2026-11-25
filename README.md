@@ -78,7 +78,9 @@ Durante una presentación: `M` abre el índice, `F` pantalla completa, `D` abre 
 - [ ] Giros que faltan: panadería, taller mecánico, lavandería, autolavado, despacho e inmobiliaria. No urgen: mientras tanto, «Otro giro» los cubre con problemas generales.
 - [ ] Demos que faltan: 28 pantallas de 51 (módulos cocina, fila, caja, seguimiento, lealtad, presencia, costos, tareas, entregas, cotizador, órdenes, expediente y mensualidades). Las rutas sin demo se presentan igual, sin el botón «Ver demostración».
 - [x] Copywriting de las dos visitas (`src/content/visita.js`), el CRM, la presala y la entrada: ya están en la voz nueva (ver «Voz» en `docs/ARQUITECTURA.md`).
-- [ ] Copywriting que falta pasar a esa voz: el catálogo de soluciones (`src/content/soluciones.js`), los 22 giros (`src/content/nichos/`), la presentación general (`src/content/es.js`) y los textos dentro de las demos. Léanlos con calma antes de reescribir: ahí está el conocimiento de cada giro.
+- [x] Copywriting del CRM, la presala, las dos visitas y la presentación general: revisado con la skill `soma-copywriting`.
+- [ ] Copywriting que falta revisar con la skill: el catálogo de soluciones (`src/content/soluciones.js`), los 22 giros (`src/content/nichos/`) y los textos dentro de las demos. Ahí está el conocimiento de cada giro: se lee con calma antes de reescribir.
+- [ ] Espacios en construcción de la presentación (`src/visita1/espacios.js`): «Trabajo real», «Quien ya lo usa» y «Después del sí». Hay que llenarlos con fotos, video y casos reales, y apagar `ESPACIOS_EN_OBRA` en `src/config.js` antes de presentar a un cliente.
 
 **Pulido**
 - [x] CRM, primera pasada: navegación con iconos boil vivos y el punto azul como cursor, emblemas con datos reales que se dibujan al entrar a cada sección, pestañas con subrayado que se desliza, cifras que cuentan y vista de celular con barra inferior.

@@ -83,7 +83,7 @@ export function vistaAjustes() {
       </form>
 
       <section class="a-seccion"><div class="a-seccion-cab"><h2 class="a-h2">Equipo y cuenta</h2></div>
-        <p class="a-p">${sesion.usuario ? `Sesión iniciada como ${esc(sesion.nombre || 'integrante')}. Lo que registras se sincroniza con el resto del equipo.` : 'Estás sin cuenta, solo en este dispositivo. Inicia sesión para compartir con el equipo y no depender de este navegador.'}</p>
+        <p class="a-p">${sesion.usuario ? `Sesión iniciada como ${esc(sesion.nombre || 'integrante')}. Lo que registras se sincroniza con el resto del equipo.` : 'Estás usando el CRM sin cuenta, deberías iniciar sesión para compartirlo con el equipo.'}</p>
         <div class="a-fila" style="margin-top:12px">
           ${sesion.usuario ? '<button type="button" class="a-btn a-btn--ch" data-codigo>Cambiar el código de equipo</button><button type="button" class="a-btn a-btn--ch" data-salir>Cerrar sesión</button>' : '<a class="a-btn a-btn--ch a-btn--pri" href="#/entrar">Iniciar sesión</a>'}
           <a class="a-btn a-btn--ch" href="#/demos">Galería de demos</a><a class="a-btn a-btn--ch" href="#/iconos">Iconos</a><a class="a-btn a-btn--ch" href="#/general">Presentación general</a>

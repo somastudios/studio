@@ -6,6 +6,7 @@ import { store } from '../data/store.js'
 import { crearEstado } from './estado.js'
 import { grabadora } from './grabadora.js'
 import { portada, acuerdo, suele } from './apertura.js'
+import { conEspacios } from './espacios.js'
 import { diagnostico } from './diagnostico.js'
 import { ronda, alcance, expediente, agenda, despedida } from './cierre.js'
 import premisa from '../scenes/01-premisa.js'
@@ -29,7 +30,13 @@ export function vistaVisita1({ id }) {
     store.sincronizar()
   }
 
-  const scenes = [portada(E), acuerdo(E), premisa, suele(E), diagnostico(E), ronda(E), metodo, alcance(E), expediente(E), agenda(E), despedida(E, { alLlegar: () => finalizar('terminada') })]
+  const scenes = conEspacios(
+    [portada(E), acuerdo(E), premisa, suele(E), diagnostico(E), ronda(E), metodo, alcance(E), expediente(E), agenda(E), despedida(E, { alLlegar: () => finalizar('terminada') })],
+    [
+      [metodo.id, 'trabajo', 'ink'],
+      [metodo.id, 'casos', 'paper'],
+    ],
+  )
 
   async function salir() {
     if (!cerrada) {

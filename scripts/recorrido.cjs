@@ -67,7 +67,14 @@ const fs = require('fs')
   await sigue()
   await foto('metodo', 3000)
   for (let k = 0; k < 4; k++) { await sigue(); await p.waitForTimeout(1100) }
+  // Los espacios en construcción (si están encendidos en src/config.js).
   await sigue()
+  if (await p.locator('.ve').count()) {
+    await foto('espacio-trabajo', 2600)
+    await sigue()
+    await foto('espacio-casos', 2600)
+    await sigue()
+  }
   await foto('alcance', 2800)
   await toca('[data-alcance]', 1); await toca('[data-presupuesto]', 1); await toca('[data-forma="mensual"]')
   await foto('alcance-elegido', 900)

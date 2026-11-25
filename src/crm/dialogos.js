@@ -108,9 +108,9 @@ export async function avisar({ prospecto, membresia = null, cita = null, tipo = 
   await dialogo({
     titulo: `Avisar a ${prospecto.negocio}`,
     html: `
-      <p class="dlg-texto">Sale desde tu WhatsApp o tu correo. Ajústalo si quieres.</p>
+      <p class="dlg-texto">El mensaje saldrá desde tu WhatsApp o tu correo, puedes ajustarlo antes.</p>
       <label class="a-campo" style="margin-top:14px"><span>Mensaje</span><textarea class="a-in" name="mensaje" rows="6">${esc(texto)}</textarea></label>
-      ${prospecto.telefono ? '' : '<p class="a-error" style="margin-top:10px">No tengo su WhatsApp. Puedes copiar el mensaje.</p>'}
+      ${prospecto.telefono ? '' : '<p class="a-error" style="margin-top:10px">Este prospecto no tiene WhatsApp registrado, puedes copiar el mensaje.</p>'}
       <div class="a-fila" style="margin-top:16px">
         <button type="button" class="a-btn a-btn--pri" data-canal="whatsapp" ${prospecto.telefono ? '' : 'disabled'}>Abrir WhatsApp</button>
         <button type="button" class="a-btn" data-canal="correo" ${prospecto.correo ? '' : 'disabled'}>Abrir correo</button>
@@ -171,7 +171,7 @@ export async function dlgPago({ prospecto, membresia = null }) {
         dlg.querySelectorAll('[data-m]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.m === m)))
         dlg.querySelector('[data-zona-ref]').hidden = m === 'stripe'
         pri.textContent = m === 'stripe' ? 'Crear enlace de pago' : 'Registrar pago'
-        ayuda.textContent = m === 'stripe' ? 'Creo un enlace seguro para que pague con tarjeta. Se marca solo cuando Stripe lo confirma.' : m === 'efectivo' ? 'Queda registrado a tu nombre, con la fecha de hoy.' : ''
+        ayuda.textContent = m === 'stripe' ? 'Se creará un enlace para que pague con tarjeta, el pago se marcará solo cuando Stripe lo confirme.' : m === 'efectivo' ? 'Queda registrado a tu nombre, con la fecha de hoy.' : ''
       }
       pon('transferencia')
       dlg.addEventListener('click', (e) => {
@@ -233,7 +233,7 @@ export async function editarMembresia(m, prospecto) {
       ${lista('Sistema', 'sistema_id', [['', 'Sin sistema enlazado'], ...sistemas.map((s) => [s.id, s.nombre])], m?.sistema_id)}
       ${area('Notas', 'notas', m?.notas, 2)}
     </div>
-    <p class="a-ayuda" style="margin-top:12px">El pago único no vence. Si enlazas el sistema, él solo avisa o se pausa cuando la membresía vence.</p>`,
+    <p class="a-ayuda" style="margin-top:12px">Si enlazas el sistema, mostrará un aviso o se pausará cuando la membresía venza.</p>`,
     acciones: GUARDAR,
     antesDeCerrar(id, dlg) {
       if (id !== 'ok') return
@@ -273,7 +273,7 @@ export async function editarPropuesta(p, prospecto) {
     alAbrir(dlg) {
       const calc = () => {
         const f = leerCampos(dlg)
-        if (!f.precio_mensual) return (dlg.querySelector('[data-calculo]').textContent = 'Los precios los pones tú. Aquí calculo lo que va a ver el cliente.')
+        if (!f.precio_mensual) return (dlg.querySelector('[data-calculo]').textContent = 'Aquí se calcula lo que verá el cliente con los precios que pongas.')
         const a = precioPlazo(f, 6)
         const b = precioPlazo(f, 12)
         dlg.querySelector('[data-calculo]').textContent = `El cliente verá: ${dinero(f.precio_mensual)} al mes · 6 meses por ${dinero(a.total)}${a.ahorro ? ` (ahorra ${dinero(a.ahorro)})` : ''} · 12 meses por ${dinero(b.total)}${b.ahorro ? ` (ahorra ${dinero(b.ahorro)})` : ''}${f.precio_contado && f.precio_mensual ? ` · el pago único equivale a ${Math.round(f.precio_contado / f.precio_mensual)} mensualidades` : ''}.`
@@ -355,7 +355,7 @@ export async function dlgCredenciales(s) {
           <div><p class="a-fuerte">${esc(c.etiqueta || 'Acceso')}</p><p class="a-item-s selectable">${esc(c.usuario || '')}${c.url ? ` · ${esc(c.url)}` : ''}</p><p class="a-num selectable crm-secreto" data-secreto hidden></p></div>
           <div class="a-fila"><button type="button" class="a-btn a-btn--ch" data-ver>Ver contraseña</button><button type="button" class="a-btn a-btn--ch a-btn--fantasma" data-quitar>Quitar</button></div>
         </div>`,
-      ).join('') || `<p class="a-p">Aún no hay accesos guardados.</p>`
+      ).join('') || `<p class="a-p">Todavía no hay accesos guardados.</p>`
   }
   await dialogo({
     titulo: `Accesos de «${s.nombre}»`,
@@ -408,7 +408,7 @@ export async function dlgCredenciales(s) {
             if (e.target.isConnected) e.target.textContent = 'Ver contraseña'
           }, 30000)
         } else if (fila && e.target.closest('[data-quitar]')) {
-          if (await confirmar({ titulo: '¿Quitar este acceso?', texto: 'Deja de aparecer aquí y en los demás dispositivos.', si: 'Quitar', peligro: true })) {
+          if (await confirmar({ titulo: '¿Quitar este acceso?', texto: 'Si lo quitas, dejará de aparecer en todos los dispositivos.', si: 'Quitar', peligro: true })) {
             store.borrar('credenciales', fila.dataset.id)
             pinta(dlg)
           }
