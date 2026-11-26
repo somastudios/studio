@@ -1,0 +1,1100 @@
+<title>Trazo vivo Soma</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap">
+<style>
+  /* Disposición: una columna de 1040 px. Arriba el título y dos selectores; luego la rejilla de
+     estados (cada tarjeta: una lámina hundida con su escena y el texto debajo), el menú de
+     iconos y, al final, cómo está hecho. */
+  :root {
+    --fondo: #efece4;
+    --alto: #f8f6f0;
+    --bajo: #ebe8df;
+    --lamina: #e8e4da;
+    --tinta: #050506;
+    --tinta-2: rgb(5 5 6 / 0.62);
+    --tinta-3: rgb(5 5 6 / 0.36);
+    --linea: rgb(5 5 6 / 0.09);
+    --riel: rgb(5 5 6 / 0.11);
+    --luz: #fff;
+    --borde: rgb(255 255 255 / 0.88);
+    --sombra: 5 5 6;
+    --amb: 0.2;
+    --pri-c: #2d2e36;
+    --pri: #050506;
+    --pri-s: #000;
+    --pri-tx: #efece4;
+    --pri-borde: #3a3b44;
+    --acento: #216fff;
+    --acento-c: #4f8dff;
+    --bloque: rgb(5 5 6 / 0.13);
+    --codigo: #f4f1ea;
+    --fuente: 'Archivo', ui-sans-serif, system-ui, sans-serif;
+    --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) {
+      --fondo: #0c0c0f;
+      --alto: #24252c;
+      --bajo: #17181d;
+      --lamina: #0f0f13;
+      --tinta: #efece4;
+      --tinta-2: rgb(239 236 228 / 0.62);
+      --tinta-3: rgb(239 236 228 / 0.34);
+      --linea: rgb(239 236 228 / 0.1);
+      --riel: rgb(0 0 0 / 0.5);
+      --luz: rgb(255 255 255 / 0.1);
+      --borde: rgb(255 255 255 / 0.07);
+      --sombra: 0 0 0;
+      --amb: 0.6;
+      --pri-c: #fbfaf6;
+      --pri: #e6e2d8;
+      --pri-s: #9d998e;
+      --pri-tx: #050506;
+      --pri-borde: #fff;
+      --acento: #3f83ff;
+      --acento-c: #7aa8ff;
+      --bloque: rgb(239 236 228 / 0.2);
+      --codigo: #08080a;
+      color-scheme: dark;
+    }
+  }
+
+  :root[data-theme='dark'] {
+    --fondo: #0c0c0f;
+    --alto: #24252c;
+    --bajo: #17181d;
+    --lamina: #0f0f13;
+    --tinta: #efece4;
+    --tinta-2: rgb(239 236 228 / 0.62);
+    --tinta-3: rgb(239 236 228 / 0.34);
+    --linea: rgb(239 236 228 / 0.1);
+    --riel: rgb(0 0 0 / 0.5);
+    --luz: rgb(255 255 255 / 0.1);
+    --borde: rgb(255 255 255 / 0.07);
+    --sombra: 0 0 0;
+    --amb: 0.6;
+    --pri-c: #fbfaf6;
+    --pri: #e6e2d8;
+    --pri-s: #9d998e;
+    --pri-tx: #050506;
+    --pri-borde: #fff;
+    --acento: #3f83ff;
+    --acento-c: #7aa8ff;
+    --bloque: rgb(239 236 228 / 0.2);
+    --codigo: #08080a;
+    color-scheme: dark;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background: var(--fondo);
+    color: var(--tinta);
+    font-family: var(--fuente);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .hoja {
+    max-width: 1072px;
+    margin: 0 auto;
+    padding-block: 30px 80px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    display: grid;
+    gap: 40px;
+  }
+
+  /* ───────── Texto ───────── */
+
+  .etiqueta {
+    margin: 0;
+    color: var(--tinta-2);
+    font: 650 13px/1 var(--fuente);
+    font-stretch: 64%;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .titulo {
+    display: flex;
+    align-items: center;
+    gap: 0.36em;
+    margin: 10px 0 0;
+    font: 850 clamp(34px, 7vw, 52px) / 1 var(--fuente);
+    font-stretch: 88%;
+    letter-spacing: -0.01em;
+  }
+
+  .titulo::before {
+    content: '';
+    flex: none;
+    width: 0.17em;
+    height: 0.86em;
+    border-radius: 999px;
+    background: var(--acento);
+  }
+
+  .lead {
+    margin: 14px 0 0;
+    max-width: 34em;
+    color: var(--tinta-2);
+    font: 400 17px/1.45 var(--fuente);
+    text-wrap: pretty;
+  }
+
+  .seccion {
+    display: grid;
+    gap: 16px;
+  }
+
+  .seccion-cab {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    font: 850 22px/1 var(--fuente);
+    font-stretch: 90%;
+  }
+
+  .seccion-cab::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--linea);
+  }
+
+  /* ───────── Selectores (hundido + pieza levantada) ───────── */
+
+  .mandos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px 26px;
+    margin-top: 22px;
+  }
+
+  .mando {
+    display: grid;
+    gap: 8px;
+  }
+
+  .selector {
+    display: inline-flex;
+    gap: 2px;
+    padding: 4px;
+    border-radius: 999px;
+    background: var(--riel);
+    box-shadow:
+      inset 0 1.5px 3px rgb(var(--sombra) / 0.12),
+      0 1px 0 var(--luz);
+  }
+
+  .selector button {
+    min-height: 40px;
+    padding: 0 18px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: none;
+    color: var(--tinta-2);
+    font: 650 15px/1 var(--fuente);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .selector button[aria-pressed='true'] {
+    border-color: var(--borde);
+    background: linear-gradient(180deg, var(--alto), var(--bajo));
+    color: var(--tinta);
+    box-shadow:
+      inset 0 1px 0 var(--luz),
+      0 1px 1.5px rgb(var(--sombra) / 0.14),
+      0 4px 8px -4px rgb(var(--sombra) / 0.22);
+  }
+
+  .selector button:focus-visible,
+  .btn:focus-visible {
+    outline: 3px solid var(--acento);
+    outline-offset: 3px;
+  }
+
+  /* ───────── Tarjetas de estado ───────── */
+
+  .estados {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+    gap: 18px;
+  }
+
+  .tarjeta {
+    border: 1px solid var(--borde);
+    border-radius: 26px;
+    background: linear-gradient(180deg, var(--alto), color-mix(in srgb, var(--alto) 55%, var(--bajo)));
+    box-shadow:
+      inset 0 1px 0 var(--luz),
+      0 1px 1.5px rgb(var(--sombra) / 0.08),
+      0 10px 22px -10px rgb(var(--sombra) / var(--amb));
+  }
+
+  .estado {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+  }
+
+  /* La lámina: donde vive el dibujo. Hundida y de un solo color, para que las piezas que
+     tapan (la hoja, la puerta) puedan pintarse de ese mismo color. */
+  .lamina {
+    border-radius: 16px;
+    background: var(--lamina);
+    box-shadow:
+      inset 0 2px 5px rgb(var(--sombra) / 0.1),
+      0 1px 0 var(--luz);
+    overflow: hidden;
+  }
+
+  .lamina svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .estado-tx {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 7px;
+    padding: 16px 10px 12px;
+  }
+
+  .estado-t {
+    margin: 2px 0 0;
+    font: 750 18.5px/1.15 var(--fuente);
+    text-wrap: balance;
+  }
+
+  .estado-d {
+    margin: 0;
+    color: var(--tinta-2);
+    font: 400 15px/1.42 var(--fuente);
+    text-wrap: pretty;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    min-height: 44px;
+    margin-top: 8px;
+    padding: 0 18px;
+    border: 1px solid var(--pri-borde);
+    border-radius: 999px;
+    background: linear-gradient(180deg, var(--pri-c), var(--pri));
+    color: var(--pri-tx);
+    font: 650 15px/1 var(--fuente);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.22),
+      0 3px 0 var(--pri-s),
+      0 12px 18px -8px rgb(var(--sombra) / 0.5);
+    transition:
+      transform 0.14s var(--ease),
+      box-shadow 0.14s var(--ease);
+  }
+
+  .btn:active {
+    transform: translateY(3px);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.22),
+      0 0 0 var(--pri-s);
+  }
+
+  /* ───────── El trazo ───────── */
+
+  .ln {
+    fill: none;
+    stroke: var(--tinta);
+    stroke-width: 2.3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .fino {
+    stroke-width: 1.8;
+  }
+
+  .tenue {
+    opacity: 0.42;
+  }
+
+  .tapa {
+    fill: var(--lamina);
+  }
+
+  .blq {
+    fill: var(--bloque);
+    stroke: none;
+  }
+
+  .azul {
+    fill: var(--acento);
+    stroke: none;
+  }
+
+  .ln-azul {
+    stroke: var(--acento);
+  }
+
+  .ln-claro {
+    stroke: #fff;
+  }
+
+  /* Lo que se dibuja: el trazo mide 1 de largo y se destapa moviendo el guion. */
+  .tz {
+    stroke-dasharray: 1.02 1.1;
+    stroke-dashoffset: 1.06;
+  }
+
+  .punteada {
+    stroke-dasharray: 0.001 0.085;
+  }
+
+  /* ───────── Menú de iconos ───────── */
+
+  .dos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+    gap: 18px;
+    align-items: start;
+  }
+
+  .menu {
+    display: grid;
+    gap: 10px;
+  }
+
+  .lista {
+    margin: 0;
+    padding: 4px 16px;
+    list-style: none;
+  }
+
+  .renglon {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 60px;
+    border-bottom: 1px solid var(--linea);
+    font: 600 16.5px/1.2 var(--fuente);
+  }
+
+  .renglon:last-child {
+    border-bottom: 0;
+  }
+
+  .renglon > :last-child {
+    margin-left: auto;
+    color: var(--tinta-3);
+  }
+
+  .aro {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--lamina);
+    box-shadow:
+      inset 0 1.5px 3px rgb(var(--sombra) / 0.1),
+      0 1px 0 var(--luz);
+  }
+
+  .ic {
+    display: block;
+    width: 24px;
+    height: 24px;
+  }
+
+  .ic .ln {
+    stroke: currentColor;
+    stroke-width: 1.7;
+  }
+
+  .ic--chica {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* ───────── Cómo está hecho ───────── */
+
+  .hecho {
+    display: grid;
+    gap: 18px;
+    padding: 22px;
+  }
+
+  .hecho ul {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    max-width: 44em;
+  }
+
+  .hecho li {
+    display: flex;
+    gap: 12px;
+    color: var(--tinta-2);
+    font: 400 16px/1.42 var(--fuente);
+  }
+
+  .hecho li::before {
+    content: '';
+    flex: none;
+    width: 7px;
+    height: 7px;
+    margin-top: 0.5em;
+    border-radius: 50%;
+    background: var(--acento);
+  }
+
+  .hecho b {
+    color: var(--tinta);
+    font-weight: 650;
+  }
+
+  .codigo {
+    margin: 0;
+    padding: 16px 18px;
+    border-radius: 16px;
+    background: var(--codigo);
+    color: var(--tinta);
+    font: 400 13px/1.6 var(--mono);
+    box-shadow:
+      inset 0 2px 5px rgb(var(--sombra) / 0.1),
+      0 1px 0 var(--luz);
+    overflow-x: auto;
+  }
+
+  @media (min-width: 720px) {
+    .hoja {
+      padding-block: 48px 110px;
+      gap: 52px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn {
+      transition: none;
+    }
+  }
+</style>
+
+<main class="hoja">
+  <header>
+    <p class="etiqueta">Soma · animación</p>
+    <h1 class="titulo">Trazo vivo</h1>
+    <p class="lead">Las líneas tiemblan como dibujadas a mano y se calculan de nuevo en cada cuadro, a 60 por segundo.</p>
+    <div class="mandos">
+      <div class="mando">
+        <p class="etiqueta" id="e-fondo">Fondo</p>
+        <div class="selector" role="group" aria-labelledby="e-fondo" data-mando="fondo">
+          <button type="button" id="b-blanco" data-v="light" aria-pressed="false">Blanco</button>
+          <button type="button" id="b-negro" data-v="dark" aria-pressed="false">Negro</button>
+        </div>
+      </div>
+      <div class="mando">
+        <p class="etiqueta" id="e-hervor">Hervor</p>
+        <div class="selector" role="group" aria-labelledby="e-hervor" data-mando="hervor">
+          <button type="button" id="b-suave" data-v="suave" aria-pressed="true">Suave</button>
+          <button type="button" id="b-treses" data-v="treses" aria-pressed="false">En treses</button>
+          <button type="button" id="b-quieto" data-v="quieto" aria-pressed="false">Quieto</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section class="seccion">
+    <h2 class="seccion-cab">Estados</h2>
+    <div class="estados" id="estados"></div>
+  </section>
+
+  <section class="seccion">
+    <h2 class="seccion-cab">Iconos</h2>
+    <div class="dos" id="menus"></div>
+  </section>
+
+  <section class="seccion">
+    <h2 class="seccion-cab">Cómo está hecho</h2>
+    <div class="tarjeta hecho">
+      <ul>
+        <li><span><b>Cada forma es una lista de puntos</b>, el dibujo se arma de nuevo en cada cuadro.</span></li>
+        <li><span><b>Tres ondas recorren cada línea</b>, dos lentas y una rápida, por eso tiembla sin brincar.</span></li>
+        <li><span><b>En treses el reloj avanza 8 veces por segundo</b>, es el hervor clásico de la animación a mano.</span></li>
+        <li><span><b>El bloque gris va desfasado 5 unidades</b>, como una tinta impresa fuera de registro.</span></li>
+        <li><span><b>El punto azul es el personaje</b>, en cada escena hace una sola cosa.</span></li>
+        <li><span><b>Toda la escena depende del tiempo</b>, se puede detener o capturar en cualquier instante.</span></li>
+      </ul>
+      <pre class="codigo">// Una forma son puntos. Un trazo vivo: T(forma, opciones).
+T(P.rect(44, 26, 72, 70, 8), { cls: 'ln tapa' })   // contorno que tapa lo de atrás
+T(P.rect(49, 31, 72, 70, 8), { cls: 'blq' })       // su bloque gris, desfasado 5
+
+// Una escena: qué cambia según el tiempo t, en segundos. Corre en bucle cada `dur`.
+paso(q, t) {
+  traza(q('renglon'), suave(tramo(t, 0.3, 1.3)))   // se dibuja entre 0.3 s y 1.3 s
+  pon(q('punto'), { x: 86, y: 72, sx: rebota(tramo(t, 3.5, 3.8)) })
+}</pre>
+    </div>
+  </section>
+</main>
+
+<script>
+  ;(() => {
+    // ═══════════════ Motor ═══════════════
+    const TAU = Math.PI * 2
+    const TRESES = 8 // dibujos por segundo en el modo «En treses»
+    let modo = 'suave'
+
+    function azar(semilla) {
+      let a = semilla >>> 0
+      return () => {
+        a = (a + 0x6d2b79f5) | 0
+        let t = Math.imul(a ^ (a >>> 15), 1 | a)
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+      }
+    }
+
+    const F = (n) => Math.round(n * 100) / 100
+    const grados = (g) => (g * Math.PI) / 180
+    const igual = (a, b) => Math.abs(a[0] - b[0]) < 1e-6 && Math.abs(a[1] - b[1]) < 1e-6
+    const tramos = (a, b, cada = 20) => Math.max(1, Math.round(Math.hypot(b[0] - a[0], b[1] - a[1]) / cada))
+
+    /** Formas: devuelven { pts, closed }. Ángulos en grados, 0° a la derecha y −90° arriba. */
+    const P = {
+      circ(cx, cy, r, n) {
+        return P.elipse(cx, cy, r, r, n || Math.max(8, Math.round(7 + r * 0.5)))
+      },
+      elipse(cx, cy, rx, ry, n = 14) {
+        return { pts: Array.from({ length: n }, (_, i) => [cx + Math.cos(-Math.PI / 2 + (i / n) * TAU) * rx, cy + Math.sin(-Math.PI / 2 + (i / n) * TAU) * ry]), closed: true }
+      },
+      arco(cx, cy, r, a0, a1, n = 8) {
+        return { pts: Array.from({ length: n }, (_, i) => [cx + Math.cos(grados(a0 + ((a1 - a0) * i) / (n - 1))) * r, cy + Math.sin(grados(a0 + ((a1 - a0) * i) / (n - 1))) * r]), closed: false }
+      },
+      linea(x1, y1, x2, y2, n) {
+        n = n || tramos([x1, y1], [x2, y2], 16) + 2
+        return { pts: Array.from({ length: n }, (_, i) => [x1 + ((x2 - x1) * i) / (n - 1), y1 + ((y2 - y1) * i) / (n - 1)]), closed: false }
+      },
+      curva(x0, y0, x1, y1, x2, y2, x3, y3, n = 12) {
+        return { pts: Array.from({ length: n }, (_, i) => bezier(i / (n - 1), x0, y0, x1, y1, x2, y2, x3, y3)), closed: false }
+      },
+      /** Pasa por los puntos, redondeando. */
+      suave(pts, closed = false) {
+        return { pts, closed }
+      },
+      /** Esquinas vivas: cada vértice va dos veces y los lados largos se parten para que tiemblen. */
+      poli(v, closed = false) {
+        const pts = []
+        const n = v.length
+        for (let i = 0; i < (closed ? n : n - 1); i++) {
+          const a = v[i]
+          const b = v[(i + 1) % n]
+          pts.push([a[0], a[1]])
+          if (i > 0 || closed) pts.push([a[0], a[1]])
+          const k = tramos(a, b)
+          for (let j = 1; j < k; j++) pts.push([a[0] + ((b[0] - a[0]) * j) / k, a[1] + ((b[1] - a[1]) * j) / k])
+        }
+        if (!closed) pts.push([v[n - 1][0], v[n - 1][1]])
+        return { pts, closed }
+      },
+      rect(x, y, w, h, r = 5) {
+        const pts = []
+        const borde = [
+          [x + r, y, x + w - r, y, x + w - r, y + r, -45],
+          [x + w, y + r, x + w, y + h - r, x + w - r, y + h - r, 45],
+          [x + w - r, y + h, x + r, y + h, x + r, y + h - r, 135],
+          [x, y + h - r, x, y + r, x + r, y + r, 225],
+        ]
+        for (const [x1, y1, x2, y2, cx, cy, a] of borde) {
+          const k = tramos([x1, y1], [x2, y2], 22)
+          for (let j = 0; j <= k; j++) pts.push([x1 + ((x2 - x1) * j) / k, y1 + ((y2 - y1) * j) / k])
+          pts.push([cx + Math.cos(grados(a)) * r, cy + Math.sin(grados(a)) * r])
+        }
+        return { pts, closed: true }
+      },
+    }
+
+    function bezier(t, x0, y0, x1, y1, x2, y2, x3, y3) {
+      const m = 1 - t
+      return [m * m * m * x0 + 3 * m * m * t * x1 + 3 * m * t * t * x2 + t * t * t * x3, m * m * m * y0 + 3 * m * m * t * y1 + 3 * m * t * t * y2 + t * t * t * y3]
+    }
+
+    /** Deja lista una forma: por cada punto, por dónde pasa la línea y cuánto puede moverse. */
+    function prepara({ pts, closed }, amp, r) {
+      const n = pts.length
+      const s = [0]
+      let L = 0
+      for (let i = 1; i < n; i++) s.push((L += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1])))
+      if (closed) L += Math.hypot(pts[0][0] - pts[n - 1][0], pts[0][1] - pts[n - 1][1])
+      const vecino = (i, paso) => {
+        let j = i
+        for (let k = 0; k < n; k++) {
+          j += paso
+          if (closed) j = (j + n) % n
+          else if (j < 0 || j >= n) return pts[i]
+          if (!igual(pts[j], pts[i])) return pts[j]
+        }
+        return pts[i]
+      }
+      const nudos = pts.map((p, i) => {
+        const a = vecino(i, -1)
+        const b = vecino(i, 1)
+        const l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1
+        const punta = !closed && (i === 0 || i === n - 1) ? 0.45 : 1
+        return [p[0], p[1], (b[0] - a[0]) / l, (b[1] - a[1]) / l, (s[i] / (L || 1)) * TAU, punta]
+      })
+      const giro = () => (r() < 0.5 ? -1 : 1)
+      return {
+        nudos,
+        closed,
+        amp,
+        // cuántas ondas caben en la línea (enteras si es cerrada, para que empate)
+        k: closed ? [2 + Math.floor(r() * 2), 5 + Math.floor(r() * 3), 9 + Math.floor(r() * 4)] : [0.55 + r() * 0.8, 1.9 + r() * 1.4, 3.7 + r() * 2],
+        // dónde empieza cada una
+        f: [r() * TAU, r() * TAU, r() * TAU, r() * TAU],
+        // qué tan rápido corre (vueltas por segundo): dos lentas y una rápida
+        v: [giro() * (0.85 + r() * 0.4) * TAU, giro() * (1.5 + r() * 0.8) * TAU, giro() * (2.7 + r() * 0.9) * TAU],
+      }
+    }
+
+    /** El `d` de una o varias formas en el instante h. */
+    function dibuja(lista, h) {
+      let d = ''
+      for (const { nudos, closed, amp, k, f, v } of lista) {
+        const n = nudos.length
+        const q = nudos.map(([x, y, tx, ty, t, punta]) => {
+          const a = amp * punta
+          const lado = a * (0.58 * Math.sin(k[0] * t + f[0] + v[0] * h) + 0.28 * Math.sin(k[1] * t + f[1] + v[1] * h) + 0.14 * Math.sin(k[2] * t + f[2] + v[2] * h))
+          const largo = a * 0.35 * Math.sin(k[0] * t + f[3] + v[0] * h * 0.7)
+          return [x - ty * lado + tx * largo, y + tx * lado + ty * largo]
+        })
+        const g = (i) => (closed ? q[((i % n) + n) % n] : q[Math.max(0, Math.min(n - 1, i))])
+        d += `M${F(q[0][0])} ${F(q[0][1])}`
+        for (let i = 0; i < (closed ? n : n - 1); i++) {
+          const p0 = g(i - 1)
+          const p1 = g(i)
+          const p2 = g(i + 1)
+          const p3 = g(i + 2)
+          if (igual(p1, p2)) continue
+          d += `C${F(p1[0] + (p2[0] - p0[0]) / 6)} ${F(p1[1] + (p2[1] - p0[1]) / 6)} ${F(p2[0] - (p3[0] - p1[0]) / 6)} ${F(p2[1] - (p3[1] - p1[1]) / 6)} ${F(p2[0])} ${F(p2[1])}`
+        }
+        if (closed) d += 'Z'
+      }
+      return d
+    }
+
+    const VIVOS = new Map()
+    let serie = 1
+
+    /** Un trazo vivo, listo para insertar. `n` le pone nombre para moverlo desde la escena. */
+    function T(formas, { amp = 0.9, cls = 'ln', n = '' } = {}) {
+      const id = serie++
+      const r = azar(id * 7919)
+      const lista = (Array.isArray(formas) ? formas : [formas]).map((f) => prepara(f, amp, r))
+      VIVOS.set(String(id), lista)
+      return `<path class="${cls}" data-hv="${id}"${n ? ` data-n="${n}"` : ''} pathLength="1" d="${dibuja(lista, 0)}"/>`
+    }
+
+    const G = (n, dentro) => `<g data-n="${n}">${dentro}</g>`
+
+    // ═══════════════ Para las escenas ═══════════════
+    const tope = (x) => (x < 0 ? 0 : x > 1 ? 1 : x)
+    const tramo = (t, a, b) => tope((t - a) / (b - a))
+    const mezcla = (a, b, p) => a + (b - a) * p
+    const suave = (x) => x * x * (3 - 2 * x)
+    const frena = (x) => 1 - Math.pow(1 - x, 3)
+    const acelera = (x) => x * x
+    const rebota = (x) => (x <= 0 ? 0 : x >= 1 ? 1 : 1 + 2.70158 * Math.pow(x - 1, 3) + 1.70158 * Math.pow(x - 1, 2))
+    const salto = (p) => 4 * p * (1 - p)
+    /** 1 justo en `c` y baja a 0 en `largo` segundos. */
+    const golpe = (t, c, largo = 0.3) => (t < c ? 0 : 1 - tope((t - c) / largo))
+
+    function pon(el, { x = 0, y = 0, r = 0, sx = 1, sy = sx, ox = 0, oy = 0, o } = {}) {
+      el.setAttribute('transform', `translate(${F(x + ox)} ${F(y + oy)}) rotate(${F(r)}) scale(${F(sx)} ${F(sy)}) translate(${-ox} ${-oy})`)
+      if (o !== undefined) el.style.opacity = F(o)
+    }
+    const traza = (el, p) => (el.style.strokeDashoffset = F(1.06 * (1 - p)))
+    const ve = (el, o) => (el.style.opacity = F(o))
+
+    const punto = (r = 5, n = 'pt') => G(n, T(P.circ(0, 0, r), { cls: 'azul', amp: 0.4 }))
+
+    // ═══════════════ Escenas ═══════════════
+    // Cada una: `dur` (segundos del bucle), `cartel` (el instante que la representa quieta),
+    // `svg()` (el dibujo, de 160 × 120) y `paso(q, t)` (lo que cambia con el tiempo).
+
+    const garabato = ([x0, x1, y], p) => [mezcla(x0, x1, p), y + 1.7 * Math.sin((p * (x1 - x0) * TAU) / 7.6)]
+    const renglon = (r, n) => T(P.suave(Array.from({ length: 25 }, (_, i) => garabato(r, i / 24))), { cls: 'ln fino tz', amp: 0.35, n })
+    const R1 = [61, 97, 43]
+    const R2 = [61, 92, 58]
+    const R3 = [61, 80, 73]
+    const DESCANSO = [116, 54]
+
+    const ESCENAS = {
+      // Guardando: un lápiz escribe tres renglones en el expediente y pone el punto final.
+      escribe: {
+        dur: 5.4,
+        cartel: 3.9,
+        svg: () =>
+          T(P.poli([[57, 27], [111, 27], [111, 105], [57, 105]], true), { cls: 'blq' }) +
+          T(P.poli([[52, 22], [94, 22], [106, 34], [106, 100], [52, 100]], true), { cls: 'ln tapa' }) +
+          T(P.poli([[94, 22], [94, 34], [106, 34]]), { cls: 'ln fino' }) +
+          G('texto', renglon(R1, 'r1') + renglon(R2, 'r2') + renglon(R3, 'r3') + punto(3.4)) +
+          G(
+            'lapiz',
+            T(P.poli([[0, 0], [2.6, -9.4], [19, -33], [26.6, -27.6], [10.2, -4.2]], true), { cls: 'ln tapa', amp: 0.5 }) +
+              T([P.linea(2.6, -9.4, 10.2, -4.2), P.linea(15.4, -27.8, 23, -22.4)], { cls: 'ln fino', amp: 0.3 }),
+          ),
+        paso(q, t) {
+          const p1 = suave(tramo(t, 0.4, 1.4))
+          const p2 = suave(tramo(t, 1.6, 2.6))
+          const p3 = suave(tramo(t, 2.8, 3.4))
+          traza(q('r1'), p1)
+          traza(q('r2'), p2)
+          traza(q('r3'), p3)
+          const FIN = [86.5, 73.4]
+          const pasa = (a, b, p) => [mezcla(a[0], b[0], suave(p)), mezcla(a[1], b[1], suave(p)) - 6 * salto(p)]
+          let pos
+          if (t < 0.4) pos = pasa(DESCANSO, garabato(R1, 0), tramo(t, 0, 0.4))
+          else if (t < 1.4) pos = garabato(R1, p1)
+          else if (t < 1.6) pos = pasa(garabato(R1, 1), garabato(R2, 0), tramo(t, 1.4, 1.6))
+          else if (t < 2.6) pos = garabato(R2, p2)
+          else if (t < 2.8) pos = pasa(garabato(R2, 1), garabato(R3, 0), tramo(t, 2.6, 2.8))
+          else if (t < 3.4) pos = garabato(R3, p3)
+          else if (t < 3.62) pos = pasa(garabato(R3, 1), FIN, tramo(t, 3.4, 3.62))
+          else if (t < 3.9) pos = FIN
+          else pos = pasa(FIN, DESCANSO, tramo(t, 3.9, 4.5))
+          const escribe = (t > 0.4 && t < 1.4) || (t > 1.6 && t < 2.6) || (t > 2.8 && t < 3.4)
+          pon(q('lapiz'), { x: pos[0], y: pos[1], r: escribe ? 3.5 * Math.sin(t * 15) : 0 })
+          pon(q('pt'), { x: FIN[0], y: FIN[1], sx: rebota(tramo(t, 3.62, 3.9)) })
+          ve(q('texto'), 1 - tramo(t, 4.8, 5.3))
+        },
+      },
+
+      // Sincronizando: el punto va y viene entre el teléfono y la nube.
+      nube: {
+        dur: 3.6,
+        cartel: 1.1,
+        svg: () => {
+          const nube = [[76, 56], [69, 49], [73, 40], [83, 38], [88, 28], [101, 24], [112, 30], [116, 39], [126, 40], [131, 48], [126, 56], [101, 57]]
+          return (
+            T(P.suave(nube.map(([x, y]) => [x + 5, y + 5]), true), { cls: 'blq' }) +
+            T(P.rect(35, 63, 26, 42, 5), { cls: 'blq' }) +
+            T(P.curva(43, 55, 44, 34, 56, 40, 68, 47), { cls: 'ln fino punteada tenue', amp: 0.5 }) +
+            G('cielo', T(P.suave(nube, true), { cls: 'ln tapa' })) +
+            G('tel', T(P.rect(30, 58, 26, 42, 5), { cls: 'ln tapa' }) + T(P.linea(39, 93, 47, 93, 3), { cls: 'ln fino', amp: 0.3 })) +
+            punto(4.6)
+          )
+        },
+        paso(q, t) {
+          const fase = (t / 3.6) * TAU
+          const p = 0.5 - 0.5 * Math.cos(fase)
+          const [x, y] = bezier(p, 43, 55, 44, 34, 56, 40, 68, 47)
+          pon(q('pt'), { x, y })
+          // cada uno se infla un instante cuando el punto lo toca
+          pon(q('cielo'), { ox: 100, oy: 44, sx: 1 + 0.05 * salto(tramo(t, 1.62, 2.12)) })
+          pon(q('tel'), { ox: 43, oy: 79, sx: 1 + 0.06 * salto(tramo((t + 0.2) % 3.6, 0, 0.5)) })
+        },
+      },
+
+      // Sin prospectos: el punto llega brincando, toca dos veces, le abren y entra.
+      puerta: {
+        dur: 5.6,
+        cartel: 2.05,
+        svg: () =>
+          T(P.poli([[62, 29], [110, 29], [110, 100], [62, 100]], true), { cls: 'blq' }) +
+          T(P.poli([[60, 28], [100, 28], [100, 100], [60, 100]], true), { cls: 'blq', amp: 0.4 }) +
+          punto(5) +
+          G('hoja', T(P.poli([[60, 28], [100, 28], [100, 100], [60, 100]], true), { cls: 'ln tapa', amp: 0.6 }) + T(P.rect(68, 38, 24, 20, 3), { cls: 'ln fino tenue', amp: 0.4 }) + T(P.circ(92.5, 68, 2.3, 8), { cls: 'ln fino', amp: 0.2 })) +
+          T(P.poli([[56, 100], [56, 24], [104, 24], [104, 100]]), { cls: 'ln' }) +
+          T(P.linea(26, 100, 134, 100), { cls: 'ln' }) +
+          G('toc', T([P.linea(51, 80, 47, 73, 3), P.linea(46, 85, 39, 82, 3), P.linea(54, 76, 54, 68, 3)], { cls: 'ln fino', amp: 0.3 })),
+        paso(q, t) {
+          let x = 16
+          let y = 94
+          let s = rebota(tramo(t, 0, 0.3))
+          let o = 1
+          const llega = tramo(t, 0.2, 1.3)
+          x = mezcla(16, 44, llega)
+          y = 94 - 13 * salto(llega >= 1 ? 0 : (llega * 2) % 1)
+          x += 6 * salto(tramo(t, 1.5, 1.72)) + 6 * salto(tramo(t, 1.86, 2.08))
+          const entra = tramo(t, 3.1, 3.8)
+          x += suave(entra) * 36
+          y -= 15 * salto(entra)
+          s *= 1 - 0.35 * entra
+          o = 1 - tramo(t, 3.8, 4.1)
+          pon(q('pt'), { x, y, sx: s, o })
+          ve(q('toc'), Math.max(golpe(t, 1.61, 0.26), golpe(t, 1.97, 0.26)))
+          const abre = suave(tramo(t, 2.35, 2.95)) - suave(tramo(t, 4.2, 4.8))
+          pon(q('hoja'), { ox: 60, oy: 64, sx: 1 - 0.7 * abre, sy: 1 })
+        },
+      },
+
+      // Sin citas: el punto recorre los días y aparta uno.
+      calendario: {
+        dur: 5.8,
+        cartel: 4.4,
+        svg: () =>
+          T(P.rect(49, 31, 72, 70, 8), { cls: 'blq' }) +
+          T(P.rect(44, 26, 72, 70, 8), { cls: 'ln tapa' }) +
+          T(P.linea(44.5, 45, 115.5, 45), { cls: 'ln fino' }) +
+          T([P.linea(62, 20, 62, 33, 3), P.linea(98, 20, 98, 33, 3)], { cls: 'ln', amp: 0.4 }) +
+          T(
+            [56, 72, 88, 104].flatMap((x) => [58, 71, 84].map((y) => P.linea(x - 3.4, y, x + 3.4, y, 3))),
+            { cls: 'ln fino tenue', amp: 0.3 },
+          ) +
+          G('cerco', T(P.circ(104, 84, 9.5, 14), { cls: 'ln fino ln-azul tz', amp: 0.5 })) +
+          punto(4.6),
+        paso(q, t) {
+          const D = [[56, 58], [88, 58], [72, 71], [104, 84]]
+          const H = [[1.0, 1.5], [2.0, 2.5], [3.0, 3.5]]
+          let [x, y] = D[0]
+          H.forEach(([a, b], i) => {
+            const p = tramo(t, a, b)
+            if (p > 0) {
+              x = mezcla(D[i][0], D[i + 1][0], suave(p))
+              y = mezcla(D[i][1], D[i + 1][1], suave(p)) - 11 * salto(p)
+            }
+          })
+          const fuera = tramo(t, 5.2, 5.7)
+          const cae = Math.max(golpe(t, 1.5, 0.22), golpe(t, 2.5, 0.22), golpe(t, 3.5, 0.22))
+          pon(q('pt'), { x, y: y + cae * 1.2, sx: rebota(tramo(t, 0.15, 0.5)) * (1 + 0.22 * cae), sy: rebota(tramo(t, 0.15, 0.5)) * (1 - 0.3 * cae), o: 1 - fuera })
+          traza(q('cerco').firstChild, suave(tramo(t, 3.75, 4.35)))
+          ve(q('cerco'), 1 - fuera)
+        },
+      },
+
+      // Nadie debe: una moneda cae al frasco y se acomoda en la pila.
+      frasco: {
+        dur: 4.6,
+        cartel: 2.4,
+        svg: () =>
+          T(P.rect(60, 44, 50, 60, 11), { cls: 'blq' }) +
+          T(P.rect(55, 39, 50, 60, 11), { cls: 'ln tapa' }) +
+          T(P.elipse(80, 90, 14, 4.2), { cls: 'ln fino tapa', amp: 0.35 }) +
+          T(P.elipse(80, 84, 14, 4.2), { cls: 'ln fino tapa', amp: 0.35 }) +
+          T(P.elipse(80, 78, 14, 4.2), { cls: 'ln fino tapa', amp: 0.35 }) +
+          punto(6.4) +
+          T(P.elipse(80, 39.5, 21.5, 4.6, 16), { cls: 'ln tapa', amp: 0.5 }) +
+          G('chispa', T([P.linea(64, 25, 59, 18, 3), P.linea(80, 21, 80, 12, 3), P.linea(96, 25, 101, 18, 3)], { cls: 'ln fino', amp: 0.3 })),
+        paso(q, t) {
+          const cae = acelera(tramo(t, 0.5, 1.25))
+          let y = mezcla(4, 71, cae) - 7 * salto(tramo(t, 1.25, 1.6))
+          const plana = suave(tramo(t, 1.6, 1.95))
+          const fuera = tramo(t, 3.9, 4.4)
+          pon(q('pt'), { x: 80, y: y + plana * 1.2, sx: 1 + 1.2 * plana, sy: 1 - 0.36 * plana, o: tramo(t, 0.4, 0.55) * (1 - fuera) })
+          ve(q('chispa'), golpe(t, 1.25, 0.45))
+          pon(q('chispa'), { ox: 80, oy: 30, sx: 0.8 + 0.3 * tramo(t, 1.25, 1.7) })
+        },
+      },
+
+      // Pago registrado: el recibo se llena y le cae su sello.
+      recibo: {
+        dur: 5.2,
+        cartel: 3,
+        svg: () => {
+          const papel = [[56, 16], [104, 16], [104, 96], [98, 90], [92, 96], [86, 90], [80, 96], [74, 90], [68, 96], [62, 90], [56, 96]]
+          return (
+            T(P.poli(papel.map(([x, y]) => [x + 5, y + 5]), true), { cls: 'blq' }) +
+            T(P.poli(papel, true), { cls: 'ln tapa' }) +
+            G('cuenta', T(P.linea(64, 30, 96, 30), { cls: 'ln fino tz', amp: 0.4, n: 'l1' }) + T(P.linea(64, 42, 88, 42), { cls: 'ln fino tz', amp: 0.4, n: 'l2' }) + T(P.linea(64, 54, 96, 54), { cls: 'ln fino tz', amp: 0.4, n: 'l3' })) +
+            G('rayos', T([P.linea(73, 60, 68, 55, 3), P.linea(107, 62, 113, 58, 3), P.linea(109, 82, 115, 86, 3), P.linea(74, 88, 69, 93, 3)], { cls: 'ln fino', amp: 0.3 })) +
+            G('sello', T(P.circ(0, 0, 11.5, 14), { cls: 'azul', amp: 0.55 }) + T(P.poli([[-5.2, 0.4], [-1.6, 4.3], [5.6, -4.2]]), { cls: 'ln ln-claro tz', amp: 0.3, n: 'palomita' }))
+          )
+        },
+        paso(q, t) {
+          traza(q('l1'), suave(tramo(t, 0.25, 0.7)))
+          traza(q('l2'), suave(tramo(t, 0.55, 0.95)))
+          traza(q('l3'), suave(tramo(t, 0.85, 1.3)))
+          const baja = acelera(tramo(t, 1.6, 1.85))
+          const bote = salto(tramo(t, 1.85, 2.15))
+          const fuera = tramo(t, 4.5, 5)
+          pon(q('sello'), { x: 91, y: 74, r: -12, sx: mezcla(2.3, 1, baja) * (1 + 0.14 * bote), sy: mezcla(2.3, 1, baja) * (1 - 0.1 * bote), o: tramo(t, 1.6, 1.72) * (1 - fuera) })
+          traza(q('palomita'), suave(tramo(t, 2.1, 2.5)))
+          ve(q('rayos'), golpe(t, 1.85, 0.4))
+          ve(q('cuenta'), 1 - fuera)
+        },
+      },
+
+      // Sin resultados: una lupa recorre los renglones y debajo no hay nada.
+      lupa: {
+        dur: 6.4,
+        cartel: 1.2,
+        svg: () =>
+          T([P.linea(34, 40, 114, 40), P.linea(34, 60, 98, 60), P.linea(34, 80, 108, 80)], { cls: 'ln fino tenue', amp: 0.5 }) +
+          G(
+            'lente',
+            T(P.circ(5, 5, 18, 16), { cls: 'blq' }) +
+              T(P.linea(13.5, 13.5, 27, 27, 4), { cls: 'ln', amp: 0.4 }) +
+              T(P.circ(0, 0, 18, 16), { cls: 'ln tapa', amp: 0.7 }) +
+              punto(4.8),
+          ),
+        paso(q, t) {
+          const a = (t / 6.4) * TAU
+          const vx = Math.cos(a) * 30
+          const vy = 2 * Math.cos(2 * a + 0.6) * 15
+          const l = Math.hypot(vx, vy) || 1
+          pon(q('lente'), { x: 76 + 30 * Math.sin(a), y: 58 + 15 * Math.sin(2 * a + 0.6) })
+          pon(q('pt'), { x: (vx / l) * 7.5, y: (vy / l) * 7.5 })
+        },
+      },
+
+      // Sin sistemas: una ventana con su señal de vida.
+      ventana: {
+        dur: 3.8,
+        cartel: 2.3,
+        svg: () =>
+          T(P.rect(41, 29, 88, 68, 8), { cls: 'blq' }) +
+          T(P.rect(36, 24, 88, 68, 8), { cls: 'ln tapa' }) +
+          T(P.linea(36.5, 41, 123.5, 41), { cls: 'ln fino' }) +
+          T([P.circ(46.5, 32.6, 2.1, 7), P.circ(54.5, 32.6, 2.1, 7)], { cls: 'ln fino tenue', amp: 0.2 }) +
+          G('onda', T(P.circ(0, 0, 5, 10), { cls: 'ln fino ln-azul', amp: 0.3 })) +
+          punto(3.6) +
+          T(P.poli([[46, 68], [62, 68], [67, 61], [72, 68], [79, 68], [84, 50], [90, 82], [95, 68], [114, 68]]), { cls: 'ln tz', amp: 0.5, n: 'pulso' }),
+        paso(q, t) {
+          const fuera = tramo(t, 3.2, 3.7)
+          traza(q('pulso'), tramo(t, 0.3, 2.1))
+          ve(q('pulso'), 1 - fuera)
+          const late = (t % 1.9) / 1.9
+          pon(q('pt'), { x: 113, y: 32.6, sx: 1 + 0.25 * golpe(late, 0, 0.2) })
+          pon(q('onda'), { x: 113, y: 32.6, sx: 0.7 + 1.7 * frena(late), o: 0.9 * (1 - late) })
+        },
+      },
+    }
+
+    const ESTADOS = [
+      { e: 'escribe', k: 'Carga', t: 'Guardando el expediente…', d: 'Esto tardará unos segundos.' },
+      { e: 'nube', k: 'Carga', t: 'Sincronizando tus cambios…', d: 'Puedes seguir trabajando, todo se guarda primero en este dispositivo.' },
+      { e: 'puerta', k: 'Vacío', t: 'Todavía no tienes prospectos', d: 'Deberías preparar tu primera visita, su expediente aparecerá aquí al terminar.', b: 'Preparar visita' },
+      { e: 'calendario', k: 'Vacío', t: 'No tienes citas esta semana', d: 'Las citas que apartes en una visita aparecerán aquí.' },
+      { e: 'frasco', k: 'Vacío', t: 'Nadie te debe nada', d: 'Las membresías por vencer aparecerán aquí con su aviso listo.' },
+      { e: 'recibo', k: 'Éxito', t: 'El pago quedó registrado', d: 'Está a tu nombre, con la fecha de hoy.' },
+      { e: 'lupa', k: 'Búsqueda', t: 'No hay nada con ese nombre', d: 'Deberías probar con otra palabra.' },
+      { e: 'ventana', k: 'Vacío', t: 'Todavía no has entregado sistemas', d: 'Deberías registrar aquí cada sistema que entregues, así podrás cuidarlo a distancia.' },
+    ]
+
+    // ═══════════════ Iconos (retícula de 24) ═══════════════
+    const ICONOS = {
+      perfil: [P.circ(12, 8.2, 3.6, 10), P.arco(12, 21.6, 7.6, 205, 335, 7)],
+      pagos: [P.rect(3, 5.5, 18, 13, 2.6), P.linea(3.3, 10, 20.7, 10, 4), P.linea(6.5, 14.6, 10.5, 14.6, 3)],
+      uso: [P.arco(12, 15, 8.6, 172, 368, 12), P.linea(12, 15, 15.8, 9.4, 3), P.circ(12, 15, 1.1, 6)],
+      avisos: [P.suave([[4.8, 17.2], [6.6, 15], [7, 11], [8.6, 7.4], [12, 5.6], [15.4, 7.4], [17, 11], [17.4, 15], [19.2, 17.2]]), P.linea(4.8, 17.2, 19.2, 17.2, 4), P.arco(12, 18.3, 2.2, 15, 165, 5), P.linea(12, 3.6, 12, 5.4, 3)],
+      agenda: [P.rect(4, 5.5, 16, 14.5, 2.6), P.linea(4.3, 10, 19.7, 10, 4), P.linea(8.5, 3.5, 8.5, 7, 3), P.linea(15.5, 3.5, 15.5, 7, 3)],
+      privacidad: [P.rect(5.5, 10.8, 13, 9.6, 2.6), P.arco(12, 10.8, 4.1, 180, 360, 7), P.circ(12, 15.5, 1.2, 6)],
+      compartir: [P.linea(12, 15.2, 12, 4.6, 4), P.poli([[8, 8.4], [12, 4.4], [16, 8.4]]), P.poli([[5, 14], [5, 19.6], [19, 19.6], [19, 14]])],
+      ajustes: [P.linea(4, 8, 6.6, 8, 3), P.circ(9, 8, 2.3, 8), P.linea(11.4, 8, 20, 8, 4), P.linea(4, 16, 12.6, 16, 4), P.circ(15, 16, 2.3, 8), P.linea(17.4, 16, 20, 16, 3)],
+      conectores: [P.rect(4, 4, 7, 7, 1.8), P.rect(4, 13, 7, 7, 1.8), P.rect(13, 13, 7, 7, 1.8), P.circ(16.5, 7.5, 3.4, 9)],
+      voz: [P.linea(5, 10.4, 5, 13.6, 3), P.linea(8.5, 7.5, 8.5, 16.5, 3), P.linea(12, 4.5, 12, 19.5, 4), P.linea(15.5, 8.5, 15.5, 15.5, 3), P.linea(19, 10.4, 19, 13.6, 3)],
+      ir: [P.poli([[9, 5.5], [15.5, 12], [9, 18.5]])],
+    }
+    const icono = (clave, cls = '') => `<svg class="ic ${cls}" viewBox="0 0 24 24" aria-hidden="true">${T(ICONOS[clave], { amp: 0.22 })}</svg>`
+
+    const MENUS = [
+      ['Cuenta', [['perfil', 'Perfil'], ['pagos', 'Pagos'], ['uso', 'Uso'], ['avisos', 'Avisos'], ['privacidad', 'Privacidad']]],
+      ['Herramientas', [['agenda', 'Agenda'], ['compartir', 'Compartir'], ['ajustes', 'Ajustes'], ['conectores', 'Conectores'], ['voz', 'Voz y dictado']]],
+    ]
+
+    // ═══════════════ Montaje ═══════════════
+    const h = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    document.getElementById('estados').innerHTML = ESTADOS.map(
+      (s) => `
+      <article class="tarjeta estado">
+        <div class="lamina"><svg viewBox="0 0 160 120" data-esc="${s.e}" role="img" aria-label="${h(s.t)}">${ESCENAS[s.e].svg()}</svg></div>
+        <div class="estado-tx">
+          <p class="etiqueta">${s.k}</p>
+          <h3 class="estado-t">${h(s.t)}</h3>
+          <p class="estado-d">${h(s.d)}</p>
+          ${s.b ? `<button type="button" class="btn" id="b-${s.e}">${h(s.b)}</button>` : ''}
+        </div>
+      </article>`,
+    ).join('')
+    document.getElementById('menus').innerHTML = MENUS.map(
+      ([nombre, filas]) => `
+      <div class="menu">
+        <p class="etiqueta">${nombre}</p>
+        <div class="tarjeta"><ul class="lista">${filas.map(([ic, tx]) => `<li class="renglon"><span class="aro">${icono(ic)}</span><span>${tx}</span>${icono('ir', 'ic--chica')}</li>`).join('')}</ul></div>
+      </div>`,
+    ).join('')
+
+    // Cada <svg> es un lienzo: sus trazos vivos y, si es una escena, su `paso`.
+    const LIENZOS = [...document.querySelectorAll('svg')].map((svg) => {
+      const escena = ESCENAS[svg.dataset.esc]
+      const cache = new Map()
+      const q = (n) => cache.get(n) || (cache.set(n, svg.querySelector(`[data-n="${n}"]`)), cache.get(n))
+      return { svg, escena, q, visto: true, vivos: [...svg.querySelectorAll('[data-hv]')].map((el) => ({ el, lista: VIVOS.get(el.dataset.hv) })) }
+    })
+    const DE = new Map(LIENZOS.map((l) => [l.svg, l]))
+    if ('IntersectionObserver' in window) {
+      const ojo = new IntersectionObserver((vistos) => vistos.forEach((v) => (DE.get(v.target).visto = v.isIntersecting)), { rootMargin: '120px' })
+      LIENZOS.forEach((l) => ojo.observe(l.svg))
+    }
+
+    const reducido = matchMedia('(prefers-reduced-motion: reduce)').matches
+    let fijo = null
+
+    /** Pinta todo en el instante s (segundos). */
+    function pinta(s, todo) {
+      const hervor = modo === 'quieto' ? 0 : modo === 'treses' ? Math.floor(s * TRESES) * 7.31 : s
+      for (const l of LIENZOS) {
+        if (!l.visto && !todo) continue
+        for (const v of l.vivos) v.el.setAttribute('d', dibuja(v.lista, hervor))
+        if (l.escena) l.escena.paso(l.q, reducido && fijo === null ? l.escena.cartel : s % l.escena.dur)
+      }
+    }
+    function cuadro(ms) {
+      if (fijo !== null) return
+      pinta(ms / 1000)
+      requestAnimationFrame(cuadro)
+    }
+    if (reducido) pinta(0, true)
+    else requestAnimationFrame(cuadro)
+
+    // Para revisar: trazo.fija(2.5) detiene todo en ese segundo; trazo.sigue() lo suelta.
+    window.trazo = {
+      fija(s) {
+        fijo = s
+        pinta(s, true)
+      },
+      sigue() {
+        fijo = null
+        requestAnimationFrame(cuadro)
+      },
+    }
+
+    // ═══════════════ Selectores ═══════════════
+    const raiz = document.documentElement
+    const oscuro = () => (raiz.dataset.theme ? raiz.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches)
+    const marca = (grupo, valor) => grupo.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === valor)))
+    const fondo = document.querySelector('[data-mando="fondo"]')
+    const hervor = document.querySelector('[data-mando="hervor"]')
+    marca(fondo, oscuro() ? 'dark' : 'light')
+    fondo.addEventListener('click', (e) => {
+      const b = e.target.closest('button')
+      if (!b) return
+      raiz.dataset.theme = b.dataset.v
+      marca(fondo, b.dataset.v)
+    })
+    hervor.addEventListener('click', (e) => {
+      const b = e.target.closest('button')
+      if (!b) return
+      modo = b.dataset.v
+      marca(hervor, modo)
+      if (reducido || fijo !== null) pinta(fijo ?? 0, true)
+    })
+  })()
+</script>
