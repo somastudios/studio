@@ -27,6 +27,8 @@
     --acento: #216fff;
     --acento-c: #4f8dff;
     --bloque: rgb(5 5 6 / 0.13);
+    --pelo: #17181d;
+    --rizo: rgb(239 236 228 / 0.5);
     --codigo: #f4f1ea;
     --fuente: 'Archivo', ui-sans-serif, system-ui, sans-serif;
     --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
@@ -56,6 +58,8 @@
       --acento: #3f83ff;
       --acento-c: #7aa8ff;
       --bloque: rgb(239 236 228 / 0.2);
+      --pelo: #41434f;
+      --rizo: rgb(239 236 228 / 0.42);
       --codigo: #08080a;
       color-scheme: dark;
     }
@@ -83,6 +87,8 @@
     --acento: #3f83ff;
     --acento-c: #7aa8ff;
     --bloque: rgb(239 236 228 / 0.2);
+    --pelo: #41434f;
+    --rizo: rgb(239 236 228 / 0.42);
     --codigo: #08080a;
     color-scheme: dark;
   }
@@ -577,6 +583,14 @@
     fill: var(--tinta);
   }
 
+  .cabello {
+    fill: var(--pelo);
+  }
+
+  .rizo {
+    stroke: var(--rizo);
+  }
+
   .luz {
     fill: var(--lamina);
     stroke: none;
@@ -977,6 +991,7 @@ paso(q, t) {
     // 1. Piensa: plano medio. Se da golpecitos en la barbilla con el dedo, duda, suspira y apoya
     //    la barbilla en el puño. Le salen tres globos y en el último hay un enredo; frunce el
     //    ceño, le escurre una gota. El globo crece hasta llenar el cuadro: entramos a la idea.
+    //    Antes de todo eso se le resbalan los lentes y se los sube con el dedo.
     // 2. Se enreda: el enredo se retuerce, le dan dos tirones, se suelta y queda un círculo
     //    limpio que se vuelve el punto azul. La interrogación se endereza: ya es admiración.
     // 3. Lo tiene: salimos del globo, revienta, parpadea sin creerlo, se agacha y salta. Atrapa
@@ -1010,73 +1025,93 @@ paso(q, t) {
     /** La boca: m la corre de lado, s la curva (sonrisa o mueca) y ab la abre. */
     function bocaPts(m, s, ab) {
       const x = (u) => 150 + m * 3 + u * (7 + 1.6 * Math.max(0, s))
-      const arriba = (u) => 118 + s * (4.6 * (1 - u * u) - 2.2) * (1 - 0.75 * ab) - m * u
-      return [...US.map((u) => [x(u), arriba(u)]), ...US.slice().reverse().map((u) => [x(u), arriba(u) + ab * 9.5 * (1 - u * u)])]
+      const arriba = (u) => 120.5 + s * (4.6 * (1 - u * u) - 2.2) * (1 - 0.75 * ab) - m * u
+      return [...US.map((u) => [x(u), arriba(u)]), ...US.slice().reverse().map((u) => [x(u), arriba(u) + ab * 9 * (1 - u * u)])]
     }
+    // El pelo: una mata china más ancha que la cabeza. Por arriba, un arco de rizos; por abajo,
+    // el fleco, con un mechón que cae entre las cejas.
+    const MATA = [
+      ...Array.from({ length: 31 }, (_, i) => {
+        const a = grados(172 + (196 * i) / 30)
+        const rizo = 1 + 0.065 * Math.cos(i * 1.9)
+        return [150 + Math.cos(a) * 45 * rizo, 86 + Math.sin(a) * 40 * rizo]
+      }),
+      [187, 101], [182, 92], [176, 80], [168, 76], [160, 80], [154, 87], [149, 79], [141, 75], [132, 80], [124, 78], [118, 92], [113, 101],
+    ]
+    const RIZOS = [[126, 63, 7, 150, 400], [146, 55, 8, 180, 425], [168, 58, 7, 200, 440], [185, 73, 6, 220, 450], [114, 77, 6, 120, 360], [158, 70, 5.5, 160, 380], [137, 71, 5, 200, 420]]
 
-    /** La persona, de medio cuerpo. `k` es el prefijo de sus nombres (sale en dos planos). */
+    /** La persona, de medio cuerpo: Alex. `k` es el prefijo de sus nombres (sale en dos planos). */
     function persona(k) {
       const w = muneca(0)
       return (
         T(P.suave(corre(CUERPO, 6, 6), true), { cls: 'blq', n: k + 'tblq' }) +
         T(P.suave(CUERPO, true), { cls: 'ln tapa', n: k + 'torso' }) +
-        T(P.suave([[135, 147], [150, 155], [165, 147]]), { cls: 'ln fino', amp: 0.3 }) +
-        T([P.linea(139, 128, 138, 148, 3), P.linea(161, 128, 162, 148, 3)], { cls: 'ln', amp: 0.4 }) +
+        T(P.suave(CUERPO, true), { cls: 'blq', n: k + 'tinte' }) +
+        T([P.suave([[133, 148], [150, 157], [167, 148]]), P.suave([[137, 145.5], [150, 152], [163, 145.5]])], { cls: 'ln fino', amp: 0.3 }) +
+        T([P.linea(139, 128, 138, 146, 3), P.linea(161, 128, 162, 146, 3)], { cls: 'ln', amp: 0.4 }) +
         G(
           k + 'cab',
-          T([P.arco(117.5, 102, 5.6, 105, 255, 5), P.arco(182.5, 102, 5.6, -75, 75, 5)], { cls: 'ln', amp: 0.3 }) +
+          T([P.arco(117.5, 104, 5.6, 105, 255, 5), P.arco(182.5, 104, 5.6, -75, 75, 5)], { cls: 'ln', amp: 0.3 }) +
             T(P.circ(150, 100, 34, 18), { cls: 'ln tapa', amp: 0.8 }) +
-            T(P.suave([[121, 86], [126, 69], [139, 62], [137, 75], [149, 60], [160, 58], [157, 72], [169, 63], [179, 75], [179, 89]]), { cls: 'ln', amp: 0.7, n: k + 'pelo' }) +
-            T(P.suave([[150.5, 100], [147.2, 107.5], [151, 109.5]]), { cls: 'ln fino', amp: 0.2 }) +
+            T(P.suave([[150.5, 104], [147.4, 110.6], [151, 112.4]]), { cls: 'ln fino', amp: 0.2 }) +
             `<ellipse class="lleno" data-n="${k}oi"/><ellipse class="lleno" data-n="${k}od"/>` +
-            G(k + 'fi', T(P.arco(0, 2, 4.6, 205, 335, 5), { cls: 'ln fino', amp: 0.15 })) +
-            G(k + 'fd', T(P.arco(0, 2, 4.6, 205, 335, 5), { cls: 'ln fino', amp: 0.15 })) +
-            G(k + 'ci', T(P.linea(-6.5, 0.8, 6.5, -1.2, 3), { cls: 'ln fino', amp: 0.3 })) +
-            G(k + 'cd', T(P.linea(-6.5, -1.2, 6.5, 0.8, 3), { cls: 'ln fino', amp: 0.3 })) +
+            G(k + 'fi', T(P.arco(0, 2, 4.4, 205, 335, 5), { cls: 'ln fino', amp: 0.15 })) +
+            G(k + 'fd', T(P.arco(0, 2, 4.4, 205, 335, 5), { cls: 'ln fino', amp: 0.15 })) +
             T(D(bocaPts(0, 0, 0)), { cls: 'ln fino boca', amp: 0.2, n: k + 'boca' }) +
-            T([P.linea(124.5, 110, 127.5, 105.5, 3), P.linea(129.5, 111.5, 132.5, 107, 3), P.linea(167.5, 107, 170.5, 111.5, 3), P.linea(172.5, 105.5, 175.5, 110, 3)], { cls: 'ln fino tenue', amp: 0.15, n: k + 'rub' }) +
-            G(k + 'gota', T(P.suave([[0, -5.2], [2.7, -0.4], [2.3, 2.8], [0, 4], [-2.3, 2.8], [-2.7, -0.4]], true), { cls: 'ln fino tapa', amp: 0.15 })),
+            T([P.linea(123.5, 113, 126.5, 108.5, 3), P.linea(128.5, 115, 131.5, 110.5, 3), P.linea(168.5, 110.5, 171.5, 115, 3), P.linea(173.5, 108.5, 176.5, 113, 3)], { cls: 'ln fino tenue', amp: 0.15, n: k + 'rub' }) +
+            G(k + 'gota', T(P.suave([[0, -5.2], [2.7, -0.4], [2.3, 2.8], [0, 4], [-2.3, 2.8], [-2.7, -0.4]], true), { cls: 'ln fino tapa', amp: 0.15 })) +
+            G(k + 'pelo', T(P.suave(MATA, true), { cls: 'ln cabello', amp: 1 }) + T(RIZOS.map((r) => P.arco(...r, 7)), { cls: 'ln fino rizo', amp: 0.5 })) +
+            G(k + 'ci', T(P.linea(-6.5, 0.8, 6.5, -1.2, 3), { cls: 'ln', amp: 0.3 })) +
+            G(k + 'cd', T(P.linea(-6.5, -1.2, 6.5, 0.8, 3), { cls: 'ln', amp: 0.3 })) +
+            // los lentes: dos armazones, el puente y las patas hasta las orejas
+            G(
+              k + 'lentes',
+              T([P.rect(129.5, 90.5, 19, 15, 4), P.rect(151.5, 90.5, 19, 15, 4)], { cls: 'ln', amp: 0.35 }) +
+                T([P.suave([[148.5, 96], [150, 94.6], [151.5, 96]]), P.linea(129.5, 94.5, 118.5, 96, 3), P.linea(170.5, 94.5, 181.5, 96, 3)], { cls: 'ln fino', amp: 0.2 }),
+            ),
         ) +
         T(D(capsula(CODO, w, 18)), { cls: 'ln tapa', amp: 0.5, n: k + 'ante' }) +
+        T(D(capsula(CODO, w, 18)), { cls: 'blq', amp: 0.5, n: k + 'manga' }) +
         manoSvg(k + 'm')
       )
     }
 
     /** Pone a la persona en una pose. Lo que no se da queda en reposo. */
-    function actua(q, k, { gira = 0, dy = 0, sy = 1, mira = [0, 0], abre = 1, feliz = 0, cejas = [0, 0, 0, 0], boca = [0, 0, 0], brazo = 0, dedo = 0, mano = [0, 0, 0], pelo = 0, rubor = 0, gota = -1, resp = 0 } = {}) {
+    function actua(q, k, { gira = 0, dy = 0, sy = 1, mira = [0, 0], abre = 1, feliz = 0, cejas = [0, 0, 0, 0], boca = [0, 0, 0], brazo = 0, dedo = 0, mano = [0, 0, 0], pelo = 0, lentes = [0, 0], rubor = 0, gota = -1, resp = 0 } = {}) {
       const [ai, ad] = Array.isArray(abre) ? abre : [abre, abre]
       pon(q(k + 'cab'), { r: gira, y: dy, ox: 150, oy: 136, sx: 2 - sy, sy })
-      ojo(q(k + 'oi'), 139 + mira[0], 98 + mira[1], 3.3 + 0.3 * Math.max(0, ai - 1), 3.3 * ai)
-      ojo(q(k + 'od'), 161 + mira[0], 98 + mira[1], 3.3 + 0.3 * Math.max(0, ad - 1), 3.3 * ad)
+      ojo(q(k + 'oi'), 139 + mira[0], 98 + mira[1], 3.1 + 0.3 * Math.max(0, ai - 1), 3.1 * ai)
+      ojo(q(k + 'od'), 161 + mira[0], 98 + mira[1], 3.1 + 0.3 * Math.max(0, ad - 1), 3.1 * ad)
       ve(q(k + 'oi'), 1 - feliz)
       ve(q(k + 'od'), 1 - feliz)
       pon(q(k + 'fi'), { x: 139, y: 98, o: feliz })
       pon(q(k + 'fd'), { x: 161, y: 98, o: feliz })
-      pon(q(k + 'ci'), { x: 138, y: 84 + cejas[0], r: cejas[1] })
-      pon(q(k + 'cd'), { x: 162, y: 84 + cejas[2], r: cejas[3] })
+      pon(q(k + 'ci'), { x: 138, y: 84.5 + cejas[0], r: cejas[1] })
+      pon(q(k + 'cd'), { x: 162, y: 84.5 + cejas[2], r: cejas[3] })
       forma(q(k + 'boca'), bocaPts(boca[0], boca[1], boca[2] || 0))
-      pon(q(k + 'pelo'), { r: pelo, ox: 150, oy: 72 })
+      pon(q(k + 'pelo'), { r: pelo, ox: 150, oy: 84 })
+      pon(q(k + 'lentes'), { y: lentes[0], r: lentes[1], ox: 150, oy: 98 })
       ve(q(k + 'rub'), rubor)
-      pon(q(k + 'gota'), { x: 180, y: 80 + 17 * Math.max(0, gota), o: gota < 0 ? 0 : salto(Math.min(1, gota)) ** 0.4 })
-      pon(q(k + 'torso'), { ox: 150, oy: 214, sx: 1, sy: 1 + resp })
-      pon(q(k + 'tblq'), { ox: 150, oy: 214, sx: 1, sy: 1 + resp })
+      pon(q(k + 'gota'), { x: 177.5, y: 104 + 15 * Math.max(0, gota), o: gota < 0 ? 0 : salto(Math.min(1, gota)) ** 0.4 })
+      for (const n of ['torso', 'tblq', 'tinte']) pon(q(k + n), { ox: 150, oy: 214, sx: 1, sy: 1 + resp })
       const w = muneca(brazo)
       w[0] += mano[0]
       w[1] += mano[1]
       forma(q(k + 'ante'), capsula(CODO, w, 18))
+      forma(q(k + 'manga'), capsula(CODO, w, 18))
       pon(q(k + 'm'), { x: w[0], y: w[1], r: mezcla(-39, 3, brazo) + mano[2] })
       forma(q(k + 'mi'), indice(dedo))
     }
 
     const GLOBO = [258, 46]
     const PENSANDO = {
-      abre: [197, 74],
+      abre: [205, 77],
       cierra: [234, 56],
-      cartel: 13.2,
+      cartel: 13.6,
       planos: [
         {
           nombre: 'Piensa',
-          dur: 5.2,
+          dur: 5.6,
           svg: () =>
             persona('a') +
             G('ah1', T(P.circ(0, 0, 5, 8), { cls: 'ln fino tapa', amp: 0.3 })) +
@@ -1084,38 +1119,43 @@ paso(q, t) {
             T(D(nube(GLOBO[0], GLOBO[1], 34)), { cls: 'ln tapa', n: 'aglobo' }) +
             T(D(madeja(GLOBO[0], GLOBO[1], 13, 1, 0)), { cls: 'ln fino tz', amp: 0.5, n: 'alio' }),
           paso(q, t) {
-            const lejos = 1 - rebota(tramo(t, 1.5, 2.05)) // 1: la mano aún no llega a la barbilla
-            const duda = 1 - suave(tramo(t, 1.4, 1.8)) // 1: se da golpecitos con el dedo
-            const toque = Math.max(0, Math.sin((t - 0.3) * TAU * 2.3)) * duda * tramo(t, 0.25, 0.45)
+            const lejos = 1 - rebota(tramo(t, 1.8, 2.35)) // 1: la mano aún no llega a la barbilla
+            const duda = 1 - suave(tramo(t, 1.7, 2.05)) // 1: trae el dedo estirado
+            const toque = Math.max(0, Math.sin((t - 0.3) * TAU * 2.3)) * tramo(t, 0.25, 0.45) * (1 - tramo(t, 0.92, 1.08))
+            // se le resbalan los lentes y se los sube con el dedo
+            const resbala = suave(tramo(t, 0.65, 1.15)) * (1 - rebota(tramo(t, 1.4, 1.64)))
+            const sube = suave(tramo(t, 1.12, 1.4)) * (1 - suave(tramo(t, 1.66, 1.9)))
+            const empuja = salto(tramo(t, 1.38, 1.66))
             const barre = Math.sin(t * 2.7)
-            const mirar = suave(tramo(t, 2.0, 2.4))
-            const suspiro = salto(tramo(t, 1.85, 2.4))
-            const frunce = suave(tramo(t, 3.1, 3.9))
+            const mirar = suave(tramo(t, 2.3, 2.7))
+            const suspiro = salto(tramo(t, 2.15, 2.7))
+            const frunce = suave(tramo(t, 3.4, 4.2))
             actua(q, 'a', {
-              gira: mezcla(3.5, -5, suave(tramo(t, 1.5, 2.05))) + 1.3 * Math.sin(t * 1.3) - 1.4 * toque,
-              dy: 1.3 * toque + 2 * suave(tramo(t, 1.9, 2.15)),
-              sy: 1 - 0.03 * salto(tramo(t, 1.92, 2.25)),
-              mira: [mezcla(2.7 * barre, 3, mirar), mezcla(1.5, -2.6, mirar)],
-              abre: (1 - 0.92 * campana(t, 1.0, 0.08) - 0.92 * campana(t, 2.78, 0.08)) * (1 - 0.34 * frunce),
-              cejas: [-3.2 * duda * (0.5 + 0.5 * barre) + 1.6 * frunce, -5 * duda + 13 * frunce, 1.1 * duda + 1.6 * frunce, -13 * frunce],
-              boca: [0.9 * Math.sin(t * 2.2) * (1 - 0.6 * suspiro), -0.3 - 0.25 * frunce, 0.5 * suspiro],
+              gira: mezcla(3.5, -5, suave(tramo(t, 1.8, 2.35))) + 1.3 * Math.sin(t * 1.3) - 1.4 * toque + 2 * empuja,
+              dy: 1.3 * toque + 2 * suave(tramo(t, 2.2, 2.45)) - 1.2 * empuja,
+              sy: 1 - 0.03 * salto(tramo(t, 2.22, 2.55)),
+              mira: [mezcla(2.7 * barre * (1 - sube), 3, mirar), mezcla(1.5 - 2.4 * sube, -2.6, mirar)],
+              abre: (1 - 0.92 * campana(t, 0.55, 0.08) - 0.85 * empuja - 0.92 * campana(t, 3.02, 0.08)) * (1 - 0.34 * frunce),
+              cejas: [-3.2 * duda * (0.5 + 0.5 * barre) + 1.6 * frunce - 2 * empuja, -5 * duda + 13 * frunce, 1.1 * duda + 1.6 * frunce - 2 * empuja, -13 * frunce],
+              boca: [0.9 * Math.sin(t * 2.2) * (1 - 0.6 * suspiro) * (1 - sube), -0.3 - 0.25 * frunce, 0.5 * suspiro],
               dedo: duda * rebota(tramo(t, 0.12, 0.4)),
-              mano: [8 * lejos, 8 * lejos - 3.2 * toque, 3 * lejos - 4 * toque],
-              pelo: 2.2 * toque,
-              gota: t > 3.55 ? tramo(t, 3.55, 4.5) : -1,
+              mano: [8 * lejos - 1.5 * sube, 8 * lejos - 3.2 * toque - 24.5 * sube - 3 * empuja, 3 * lejos - 4 * toque],
+              pelo: 2.2 * toque - 2 * empuja,
+              lentes: [3.4 * resbala, 2.2 * resbala],
+              gota: t > 3.85 ? tramo(t, 3.85, 4.8) : -1,
               resp: 0.012 * Math.sin(t * 1.8) - 0.035 * suspiro,
             })
-            pon(q('ah1'), { x: 197, y: 74, sx: rebota(tramo(t, 2.05, 2.3)) })
-            pon(q('ah2'), { x: 215, y: 58, sx: rebota(tramo(t, 2.35, 2.6)) })
+            pon(q('ah1'), { x: 205, y: 77, sx: rebota(tramo(t, 2.35, 2.6)) })
+            pon(q('ah2'), { x: 220, y: 60, sx: rebota(tramo(t, 2.65, 2.9)) })
             // el globo aparece; al final toma vuelo y crece hasta llenar el cuadro
-            const entra = suave(tramo(t, 4.35, 5.2))
+            const entra = suave(tramo(t, 4.75, 5.6))
             const c = [mezcla(GLOBO[0], 160, entra), mezcla(GLOBO[1], 100, entra)]
-            const R = mezcla(34 * rebota(tramo(t, 2.65, 3.02)) * (1 - 0.13 * salto(tramo(t, 4.1, 4.42))), 250, Math.pow(entra, 1.5))
+            const R = mezcla(34 * rebota(tramo(t, 2.95, 3.32)) * (1 - 0.13 * salto(tramo(t, 4.5, 4.82))), 250, Math.pow(entra, 1.5))
             forma(q('aglobo'), nube(c[0], c[1], Math.max(0.5, R)))
-            ve(q('aglobo'), t < 2.65 ? 0 : 1)
+            ve(q('aglobo'), t < 2.95 ? 0 : 1)
             const lio = q('alio')
             forma(lio, madeja(c[0], c[1], mezcla(13, 52, entra), 1, t * 1.6))
-            traza(lio, suave(tramo(t, 3.05, 3.65)))
+            traza(lio, suave(tramo(t, 3.35, 3.95)))
             agita(lio, mezcla(1, 2.2, entra))
             lio.style.strokeWidth = F(mezcla(2.2, 3.1, entra))
           },
@@ -1136,7 +1176,7 @@ paso(q, t) {
             const e = 1 - elastico(suelta)
             const R = mezcla(mezcla(52, 40, suave(suelta)) * (1 - 0.13 * tiron), 22, suave(tramo(t, 3.15, 3.55)))
             const brinca = brinco(tramo(t, 3.75, 4.2), 9)
-            const pts = corre(madeja(160, 100, R, e, 5.2 * 1.6 + t * (1.6 + 2.4 * tiron)), 0, brinca.dy)
+            const pts = corre(madeja(160, 100, R, e, 5.6 * 1.6 + t * (1.6 + 2.4 * tiron)), 0, brinca.dy)
             forma(q('blio'), pts)
             forma(q('bidea'), pts)
             agita(q('blio'), mezcla(2.2 + 1.3 * tiron, 0.45, suave(suelta)))
@@ -1171,8 +1211,8 @@ paso(q, t) {
             forma(q('cglobo'), nube(g[0], g[1], R))
             ve(q('cglobo'), 1 - tramo(t, 1.11, 1.19))
             pon(q('cray'), { x: GLOBO[0], y: GLOBO[1], sx: mezcla(0.7, 1.2, frena(tramo(t, 1.13, 1.6))), o: golpe(t, 1.13, 0.45) })
-            pon(q('ch2'), { x: 215, y: 58, sx: 1 + 0.5 * tramo(t, 1.23, 1.37), o: 1 - tramo(t, 1.23, 1.37) })
-            pon(q('ch1'), { x: 197, y: 74, sx: 1 + 0.5 * tramo(t, 1.35, 1.49), o: 1 - tramo(t, 1.35, 1.49) })
+            pon(q('ch2'), { x: 220, y: 60, sx: 1 + 0.5 * tramo(t, 1.23, 1.37), o: 1 - tramo(t, 1.23, 1.37) })
+            pon(q('ch1'), { x: 205, y: 77, sx: 1 + 0.5 * tramo(t, 1.35, 1.49), o: 1 - tramo(t, 1.35, 1.49) })
             // el punto cae, rebota en el dedo y se queda flotando encima
             const cae = acelera(tramo(t, 1.3, 1.9))
             const sube = rebota(tramo(t, 1.9, 2.45))
@@ -1207,6 +1247,7 @@ paso(q, t) {
               dedo: frena(tramo(t, 1.66, 1.9)),
               mano: [0, 4.5 * pega, -4 * salto(tramo(t, 1.52, 1.9)) + 2 * presume * Math.sin(t * 7.5)],
               pelo: -10 * salto(tramo(t, 1.62, 1.92)) + 6 * salto(tramo(t, 1.92, 2.3)) + 3 * presume * Math.sin(t * 7.5 - 1),
+              lentes: [2.5 * agacha - 3 * salto(tramo(t, 1.66, 1.94)) + 3.6 * salto(tramo(t, 1.94, 2.3)), 5 * salto(tramo(t, 1.98, 2.4))],
               rubor: suave(tramo(t, 2.4, 2.7)),
               resp: 0.012 * Math.sin(t * 1.8) + 0.04 * salto(tramo(t, 1.62, 2.0)),
             })
@@ -1571,7 +1612,7 @@ paso(q, t) {
     }
 
     const CORTOS = [
-      { id: 'pensando', c: PENSANDO, k: 'Carga', t: 'Soma está pensando…', d: 'Las preguntas difíciles tardan más.', tec: ['3 planos', 'Actúa por partes', 'Entrar al globo', 'El enredo se suelta', 'El pelo llega tarde'], estelar: true },
+      { id: 'pensando', c: PENSANDO, k: 'Carga', t: 'Soma está pensando…', d: 'Las preguntas difíciles tardan más.', tec: ['3 planos', 'Actúa por partes', 'Se sube los lentes', 'Entrar al globo', 'El enredo se suelta'], estelar: true },
       { id: 'puerta', c: PUERTA, k: 'Vacío', t: 'Todavía no tienes prospectos', d: 'Deberías preparar tu primera visita, su expediente aparecerá aquí al terminar.', b: 'Preparar visita', tec: ['3 planos', 'Corte a detalle', 'Puerta → expediente'] },
       { id: 'cobro', c: COBRO, k: 'Éxito', t: 'El pago quedó registrado', d: 'Está a tu nombre, con la fecha de hoy.', tec: ['3 planos', 'Frasco → recibo', 'Monedas → renglones'] },
     ]
