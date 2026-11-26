@@ -1,10 +1,11 @@
 /* UI Soma · hoja base
    Piezas que se levantan del papel: una sola luz arriba, esquinas generosas y formas simples.
-   Todo sale de las variables de abajo. Una «piel» es otro juego de valores para las mismas
-   variables (ver el final del archivo). Prefijo `s-` para no chocar con nada. */
+   Todo sale de las variables de abajo. Hay dos fondos, Blanco (el de siempre) y Negro (al final
+   del archivo); para otra marca se cambian los valores de estas mismas variables con lo que
+   ya tenga el proyecto. Prefijo `s-` para no chocar con nada. */
 
 :root,
-.s-papel {
+.s-blanco {
   /* La mesa y las superficies */
   --s-fondo: #efece4;
   --s-alto: #f8f6f0; /* la superficie, arriba */
@@ -37,7 +38,7 @@
 
   /* El grosor de las piezas */
   --s-canto: 3px; /* botón principal */
-  --s-canto-2: 0px; /* botón secundario: en papel no tiene canto */
+  --s-canto-2: 0px; /* botón secundario y tarjetas: normalmente sin canto */
   --s-canto-2-color: #c9c4b8;
   --s-canto-ficha: 6px;
 
@@ -693,7 +694,7 @@
   --b2: 60% 90% at 112% 60%;
 }
 
-.s-ficha--tinta {
+.s-ficha--negro {
   --f: #17181d;
   --f-c: #34363f;
   --f-o: #050506;
@@ -739,11 +740,11 @@
   }
 }
 
-/* ═════════════════════════ Pieles ═════════════════════════
-   Las mismas piezas con otro material. Se pone la clase en el contenedor (o en <body>). */
+/* ═════════════════════════ Negro ═════════════════════════
+   Las mismas piezas de noche: la luz baja, los filos casi no se ven y el azul sube un tono.
+   Se pone la clase en el contenedor (o en <body>). */
 
-/* Tinta: de noche. La luz baja, los filos casi no se ven, el azul sube un tono. */
-.s-tinta {
+.s-negro {
   --s-fondo: #0c0c0f;
   --s-alto: #24252c;
   --s-bajo: #17181d;
@@ -771,118 +772,6 @@
 }
 
 /* De noche lo levantado es más claro que su riel, no más oscuro. */
-.s-tinta .s-selector button[aria-pressed='true'] {
+.s-negro .s-selector button[aria-pressed='true'] {
   background: linear-gradient(180deg, #41434e, #30323b);
-}
-
-/* Arcade: sin degradados ni sombras suaves. Contorno de tinta y cantos gruesos; todo lo que
-   se presiona tiene canto. Para marcas jóvenes y menús con carácter. */
-.s-arcade {
-  --s-fondo: #fff6d6;
-  --s-alto: #fff;
-  --s-bajo: #fff;
-  --s-hundido: #fff;
-  --s-luz: transparent;
-  --s-borde: var(--s-tinta);
-  --s-borde-w: 2px;
-  --s-linea: rgb(5 5 6 / 0.14);
-  --s-riel: #fff;
-  --s-amb: 0;
-  --s-pri-c: #050506;
-  --s-pri-borde: #050506;
-  --s-pri-s: #216fff;
-  --s-acento-c: #216fff;
-  --s-acento-s: #050506;
-  --s-canto: 5px;
-  --s-canto-2: 4px;
-  --s-canto-2-color: #050506;
-  --s-canto-ficha: 7px;
-  --s-r-campo: 14px;
-  --s-r-tarjeta: 20px;
-  --s-r-ficha: 24px;
-}
-
-.s-arcade .s-ficha {
-  border: 2px solid var(--s-tinta);
-  background: var(--f);
-  --f-s: var(--s-tinta);
-  box-shadow: 0 var(--s-canto-ficha) 0 var(--f-s);
-}
-
-.s-arcade .s-campo {
-  border: 2px solid var(--s-tinta);
-  box-shadow: inset 0 3px 0 rgb(5 5 6 / 0.08);
-}
-
-.s-arcade .s-riel,
-.s-arcade .s-selector,
-.s-arcade .s-interruptor i {
-  border: 2px solid var(--s-tinta);
-  box-shadow: none;
-}
-
-.s-arcade .s-riel {
-  height: 14px;
-}
-
-.s-arcade .s-riel > i,
-.s-arcade .s-interruptor input:checked + i {
-  background: var(--s-acento);
-  box-shadow: none;
-}
-
-.s-arcade .s-interruptor i::after {
-  top: 2px;
-  left: 2px;
-  width: 24px;
-  height: 24px;
-  border: 2px solid var(--s-tinta);
-  background: #fff;
-  box-shadow: none;
-}
-
-.s-arcade .s-selector button[aria-pressed='true'] {
-  background: var(--s-tinta);
-  color: #fff;
-  box-shadow: none;
-}
-
-.s-arcade .s-pildora {
-  box-shadow: 0 5px 0 var(--s-acento);
-}
-
-.s-arcade .s-pildora:active {
-  transform: translateY(5px);
-  box-shadow: 0 0 0 var(--s-acento);
-}
-
-/* Porcelana: blanco frío, sombras azuladas, cantos mínimos. Para clínicas, despachos y todo
-   lo que tiene que verse limpio antes que divertido. */
-.s-porcelana {
-  --s-fondo: #edf1f5;
-  --s-alto: #fff;
-  --s-bajo: #f3f6f9;
-  --s-hundido: #f6f8fb;
-  --s-tinta: #0e1a2b;
-  --s-tinta-2: rgb(14 26 43 / 0.62);
-  --s-tinta-3: rgb(14 26 43 / 0.36);
-  --s-linea: rgb(14 26 43 / 0.09);
-  --s-borde: #fff;
-  --s-sombra: 28 52 92;
-  --s-amb: 0.22;
-  --s-pri-c: #1d3252;
-  --s-pri: #0e1a2b;
-  --s-pri-s: #050b14;
-  --s-pri-tx: #fff;
-  --s-pri-borde: #2c456b;
-  --s-acento-c: #3fc1b0;
-  --s-acento: #12a594;
-  --s-acento-s: #0b7a6d;
-  --s-acento-rgb: 18 165 148;
-  --s-canto: 2px;
-  --s-canto-2-color: #cfd8e3;
-  --s-canto-ficha: 4px;
-  --s-r-campo: 14px;
-  --s-r-tarjeta: 20px;
-  --s-r-ficha: 24px;
 }

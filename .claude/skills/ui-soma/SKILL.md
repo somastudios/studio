@@ -1,6 +1,6 @@
 ---
 name: ui-soma
-description: Diseña y construye interfaces con el estilo de Soma, piezas con volumen ligero que se levantan del papel, esquinas muy redondeadas y formas básicas combinadas (píldoras, círculos, aros, barras, puntos). Úsala cuando pidan una pantalla, un componente, botones, tarjetas, un tablero o «que se vea como el CRM de Soma», «UI AAA», «botones 3D», «con border radius», «el botón del círculo con el más», o cuando haya que rediseñar algo que se ve plano o genérico. Trae la hoja de estilos base (base.css), una galería (galeria.html) y cuatro pieles (Papel, Tinta, Arcade, Porcelana) para adaptar el mismo lenguaje a otra marca.
+description: Diseña y construye interfaces con el estilo de Soma, piezas con volumen ligero que se levantan del papel, esquinas muy redondeadas y formas básicas combinadas (píldoras, círculos, aros, barras, puntos). Úsala cuando pidan una pantalla, un componente, botones, tarjetas, un tablero o «que se vea como el CRM de Soma», «UI AAA», «botones 3D», «con border radius», «el botón del círculo con el más», o cuando haya que rediseñar algo que se ve plano o genérico. Trae la hoja de estilos base (base.css) y una galería (galeria.html), en Blanco y en Negro, y explica cómo acomodar el mismo lenguaje a los colores y la tipografía que ya tenga el proyecto.
 ---
 
 # UI al estilo Soma
@@ -10,7 +10,7 @@ La idea completa cabe en una frase: **la pantalla es una mesa de papel con una s
 En esta carpeta hay dos archivos más:
 
 - `base.css`: las piezas ya hechas, con variables. Cópiala al proyecto o toma solo lo que haga falta.
-- `galeria.html`: todas las piezas juntas, en las cuatro pieles. Ábrela para ver cómo quedan antes de escribir.
+- `galeria.html`: todas las piezas juntas, en Blanco y en Negro. Ábrela para ver cómo quedan antes de escribir.
 
 ## 1. Cómo se hace el volumen
 
@@ -107,7 +107,7 @@ La pieza grande: un dato y, si se quiere, una ilustración abajo. Cada color son
 | Amarillo | `#ffe184` | `#ffc93c` | `#f3a41d` | `#c98510` |
 | Verde | `#8de8b3` | `#24cf72` | `#17b862` | `#12924d` |
 | Rojo | `#ff9d96` | `#ff574a` | `#f03d33` | `#c12e26` |
-| Tinta | `#34363f` | `#17181d` | `#050506` | `#000` |
+| Negro | `#34363f` | `#17181d` | `#050506` | `#000` |
 
 El volumen de una ficha sale de cuatro cosas: el degradado en diagonal (claro, base, oscuro), **dos brillos curvos**, el canto de 6 px y la sombra teñida. El brillo curvo es un círculo enorme que asoma por una esquina, hecho con un `radial-gradient` de borde duro:
 
@@ -119,7 +119,7 @@ background:
 ```
 
 - Cada ficha mueve sus brillos a otra esquina (`--b1`, `--b2`). Cuatro fichas iguales se ven clonadas.
-- El texto sobre color es tinta (`#050506`), no blanco. El blanco solo va sobre la ficha de tinta.
+- El texto sobre color es negro (`#050506`), no blanco. El blanco solo va sobre la ficha negra.
 - El número va enorme, condensado y pesado (`font-weight: 900; font-stretch: 72%; line-height: .86`), con la etiqueta a un lado, en dos renglones cortos.
 - Para un color que no está en la tabla: `<a class="s-ficha s-ficha--de" style="--f: #b68cff">`, los otros tres tonos se calculan con `color-mix`.
 - El color significa algo y significa lo mismo en toda la app (en el CRM: azul prospectos, amarillo clientes, verde cobrado, rojo por cobrar). No se usa para decorar.
@@ -138,26 +138,55 @@ Una sola familia con eje de ancho. En Soma es **Archivo** variable (`wdth 62–1
 
 Nada de monoespaciadas para etiquetas: se ven de consola. Si la marca del cliente usa otra familia, que tenga un corte condensado; si no lo tiene, las etiquetas van en mayúsculas, peso 700 y `letter-spacing: .08em`.
 
-## 6. Pieles
+## 6. Blanco, Negro y el proyecto
 
-El esqueleto es el mismo y cambia el material. Una piel es otro juego de valores para las variables de `base.css`; se pone su clase en el contenedor.
+Hay dos fondos. Las piezas son las mismas en los dos.
 
-| Piel | Clase | Cómo es | Para qué |
-|---|---|---|---|
-| Papel | `s-papel` (la de siempre) | Papel cálido, sombras suaves, tinta y azul | Soma, herramientas internas, tableros |
-| Tinta | `s-tinta` | De noche: la luz baja, lo levantado es más claro que su riel, el azul sube un tono | Modo oscuro, cocina, pantallas siempre encendidas |
-| Arcade | `s-arcade` | Sin degradados ni sombras suaves: contorno de tinta de 2 px y cantos gruesos en todo lo que se presiona | Marcas jóvenes, menús con carácter, promociones |
-| Porcelana | `s-porcelana` | Blanco frío, sombras azuladas, cantos de 2 px | Clínicas, despachos, lo que debe verse limpio antes que divertido |
+| Fondo | Clase | Cómo es |
+|---|---|---|
+| Blanco | `s-blanco` (el de siempre) | Un blanco cálido de papel (`#efece4`), sombras suaves, botón principal negro y acento azul |
+| Negro | `s-negro` | De noche: la luz baja, los filos casi no se ven, lo levantado es más claro que su riel y el azul sube un tono |
 
-Para hacerle una piel a un cliente se toman cinco decisiones, en este orden:
+No se mezclan en una misma pantalla. Las fichas de color funcionan igual sobre los dos.
 
-1. **La mesa**: el color del fondo. Casi nunca blanco puro; un blanco con temperatura (cálido o frío) deja que las piezas sean más claras que la mesa.
-2. **La luz**: qué tan fuertes son el filo y la sombra (`--s-luz`, `--s-amb`) y de qué color es la sombra (`--s-sombra`).
-3. **El canto**: 0 a 2 px es serio, 3 px es Soma, 5 px o más es juego.
-4. **El radio**: siempre generoso. Entre pieles se mueve poco (14 a 16, 20 a 22, 24 a 26).
-5. **El acento**: un solo color, con sus tres tonos (`--s-acento-c`, `--s-acento`, `--s-acento-s`).
+**Fuera de Soma no hay estilos con nombre: el estilo se acomoda a lo que ya tenga el proyecto.** Antes de escribir una sola pieza:
 
-Las pieles no se mezclan en una misma pantalla. Las fichas de color son la excepción: funcionan sobre cualquiera.
+1. **Lee el proyecto.** Busca sus colores, su tipografía y sus radios donde vivan: variables de CSS, el tema de Tailwind, los tokens del sistema de diseño, el logotipo, las pantallas que ya existen.
+2. **Elige el fondo.** Si el proyecto es claro, parte de Blanco; si es oscuro, de Negro.
+3. **Cambia solo los valores de las variables**, con lo que encontraste. El esqueleto (las cinco capas, las alturas y las formas) no se toca.
+
+| Lo que tiene el proyecto | Variables que cambian |
+|---|---|
+| Su color de fondo | `--s-fondo`, y de ahí `--s-alto`, `--s-bajo` y `--s-hundido`: la superficie un poco más clara que la mesa |
+| Su color de texto | `--s-tinta` y sus dos transparencias; `--s-sombra` toma ese mismo tono para que la sombra no sea gris |
+| Su color de marca | `--s-acento`, con su tono claro (`--s-acento-c`) y su canto (`--s-acento-s`) |
+| Su botón principal | `--s-pri` y los suyos. Si la marca ya es oscura, el principal puede ser el color de marca |
+| Su tipografía | `--s-fuente` (ver la sección 5 si no tiene corte condensado) |
+| Su carácter | `--s-canto`: 0 a 2 px si es serio, 3 px como Soma, más si es juguetón |
+
+```css
+/* Ejemplo: un proyecto que ya tiene un verde de marca y un azul marino para el texto. */
+.marca {
+  --s-fondo: #edf1f5;
+  --s-alto: #fff;
+  --s-bajo: #f3f6f9;
+  --s-hundido: #f6f8fb;
+  --s-tinta: #0e1a2b;
+  --s-tinta-2: rgb(14 26 43 / .62);
+  --s-tinta-3: rgb(14 26 43 / .36);
+  --s-sombra: 28 52 92;
+  --s-pri-c: #1d3252;
+  --s-pri: #0e1a2b;
+  --s-pri-s: #050b14;
+  --s-acento-c: color-mix(in oklab, #12a594 70%, #fff);
+  --s-acento: #12a594;
+  --s-acento-s: color-mix(in oklab, #12a594 72%, #000);
+  --s-acento-rgb: 18 165 148;
+  --s-canto: 2px;
+}
+```
+
+Lo que no cambia aunque cambie la marca: los radios generosos, la luz de arriba, un solo principal por pantalla y la mesa nunca en blanco puro (con `#fff` de fondo las piezas ya no pueden ser más claras que la mesa). Si el proyecto ya tiene componentes propios, se les pone el volumen a ellos con sus nombres; no se mete una segunda familia de clases al lado.
 
 ## 7. Movimiento
 
@@ -173,7 +202,7 @@ Las pieles no se mezclan en una misma pantalla. Las fichas de color son la excep
 - `:focus-visible` con un contorno de 3 px del color de acento, separado 3 px. Nunca se quita el foco sin poner otro.
 - `:hover` solo dentro de `@media (hover: hover)`, para que no se quede pegado en teléfono. `-webkit-tap-highlight-color: transparent` en lo que ya tiene su propio estado al presionar.
 - Cada pieza tiene sus estados: normal, cursor encima, presionado, foco, deshabilitado (45 % de opacidad, sin eventos) y, si aplica, cargando.
-- El texto siempre pasa contraste: tinta sobre color, papel sobre tinta, y el texto secundario al 62 %, nunca menos.
+- El texto siempre pasa contraste: negro sobre color, claro sobre negro, y el texto secundario al 62 %, nunca menos.
 - Nada empuja la página hacia los lados. Se revisa a 320, 390, 768 y 1280 de ancho.
 - Los textos de la interfaz se escriben con la skill `soma-copywriting`.
 
@@ -184,16 +213,16 @@ Las pieles no se mezclan en una misma pantalla. Las fichas de color son la excep
 | Neumorfismo (pieza del mismo color que el fondo, con sombra clara y oscura) | No se distingue qué se toca y no pasa contraste |
 | Vidrio con desenfoque | Es otro lenguaje; aquí las piezas son sólidas |
 | Sombras grises grandes y parejas alrededor | La luz viene de arriba: la sombra cae, no rodea |
-| Bordes grises de 1 px en todo | El borde es luz (claro) o tinta (Arcade), nunca gris |
+| Bordes grises de 1 px en todo | El borde es luz: una línea clara, nunca gris |
 | Resplandores y degradados de varios colores | Un color por pieza, en sus cuatro tonos |
 | Canto en todo | Si todo está levantado, nada lo está |
 | Radios de 4 a 8 px | Rompen el lenguaje |
-| Blanco puro de fondo en Papel | Las piezas ya no pueden ser más claras que la mesa |
+| `#fff` de fondo | Las piezas ya no pueden ser más claras que la mesa; Blanco es un blanco cálido |
 
 ## 10. Cómo trabajar
 
 1. **Entiende la pantalla.** Qué viene a hacer aquí la persona y cuál es la única acción principal.
-2. **Elige la piel.** Si es de Soma, Papel. Si es de un cliente, toma las cinco decisiones de la sección 6 y dilas en una línea antes de escribir.
+2. **Elige el fondo y lee el proyecto.** Si es de Soma, Blanco o Negro tal cual. Si es de otra marca, sigue la sección 6 y di en una línea qué tomaste del proyecto antes de escribir.
 3. **Reparte alturas.** Una lista corta: qué va hundido, qué apoyado, qué levantado y qué con canto.
 4. **Arma con piezas de `base.css`.** Si falta una, constrúyela combinando formas de la sección 3 y con las mismas variables; no inventes sombras ni radios nuevos.
 5. **Dale sus estados** a todo lo que se toca.

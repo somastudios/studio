@@ -203,7 +203,7 @@ Las cuatro fichas de «Hoy» llevan una película de pixel art con cortes de cá
 - Cada película es un archivo con sus planos: `peli-puertas.js` (Prospectos), `peli-clientes.js` (Clientes), `peli-cobrado.js` (Cobrado) y `peli-cobro.js` (Por cobrar). `escenas.js` las registra.
 - Para revisar una película cuadro por cuadro: `node scripts/hoy.cjs <puerto> <carpeta> 390 844 22 0 9999` deja una hoja `cuadros-<película>.png`.
 - La guía completa para hacer una nueva (y para los trazos SVG) está en `.claude/skills/animacion-soma/SKILL.md`.
-- La guía del estilo de la interfaz (piezas con volumen, formas, fichas de color y pieles) está en `.claude/skills/ui-soma/SKILL.md`, con su hoja base y una galería.
+- La guía del estilo de la interfaz (piezas con volumen, formas, fichas de color, en blanco y en negro) está en `.claude/skills/ui-soma/SKILL.md`, con su hoja base y una galería.
 
 ## El lenguaje visual del CRM
 
