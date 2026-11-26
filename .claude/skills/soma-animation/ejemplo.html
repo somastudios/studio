@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trazo vivo · ejemplo mínimo</title>
+<link rel="stylesheet" href="trazo.css">
+<style>
+  body { margin: 0; padding: 24px 16px; background: #efece4; color: #050506; font: 16px/1.4 system-ui, sans-serif; }
+  @media (prefers-color-scheme: dark) { body { background: #0c0c0f; color: #efece4; } }
+  main { max-width: 760px; margin: 0 auto; display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }
+  p { margin: 10px 2px 0; }
+</style>
+</head>
+<body>
+<main>
+  <div>
+    <div class="lamina"><svg id="bucle" viewBox="0 0 160 120" role="img" aria-label="Una campana suena"></svg></div>
+    <p>Un bucle: una sola idea que se repite.</p>
+  </div>
+  <div>
+    <div class="lamina"><svg id="corto" class="cine" viewBox="0 0 320 200" role="img" aria-label="Una hoja se guarda en su carpeta"></svg></div>
+    <p id="pista">Un corto de dos planos.</p>
+  </div>
+</main>
+<script src="trazo.js"></script>
+<script>
+  const { P, D, T, G, monta, remuestra, mezclaPts, corre, tramo, mezcla, suave, frena, acelera, rebota, elastico, salto, golpe, brinco, sacude, pon, camara, traza, ve, forma, punto, corona } = Trazo
+
+  // ── Un bucle (160 × 120): la campana toma vuelo, suena dos veces y el punto brinca.
+  const CAMPANA = [[59, 81], [64, 74], [66, 56], [72, 42], [85, 36], [98, 42], [104, 56], [106, 74], [111, 81], [85, 82.5]]
+  monta(document.querySelector('#bucle'), {
+    dur: 3.2,
+    cartel: 1.0,
+    svg: () =>
+      G(
+        'campana',
+        T(P.suave(corre(CAMPANA, 5, 5), true), { cls: 'blq' }) +
+          T(P.suave(CAMPANA, true), { cls: 'ln tapa' }) +
+          T(P.linea(85, 30, 85, 36, 3), { cls: 'ln' }),
+      ) +
+      G('badajo', T(P.arco(85, 83, 5, 10, 170, 5), { cls: 'ln' })) +
+      G('ondas', T([P.arco(85, 60, 36, -35, 35, 6), P.arco(85, 60, 36, 145, 215, 6)], { cls: 'ln fino tenue' })) +
+      punto(4.5),
+    paso(q, t) {
+      // toma vuelo hacia un lado, se va al otro y se queda meciéndose
+      const vuelo = salto(tramo(t, 0.2, 0.5))
+      const mece = golpe(t, 0.5, 1.5) * Math.sin((t - 0.5) * 13)
+      const r = -7 * vuelo + 13 * mece
+      pon(q('campana'), { ox: 85, oy: 34, r })
+      pon(q('badajo'), { ox: 85, oy: 34, r: r * 1.7 }) // el badajo llega tarde y se pasa
+      pon(q('ondas'), { ox: 85, oy: 60, sx: 0.8 + 0.5 * frena(tramo(t, 0.55, 1.2)), o: golpe(t, 0.55, 0.7) })
+      const b = brinco(tramo(t, 0.55, 1.0), 10)
+      pon(q('pt'), { x: 122, y: 34 + b.dy, sx: b.sx, sy: b.sy })
+    },
+  })
+
+  // ── Un corto (320 × 200) de dos planos: la hoja se escribe y se vuelve carpeta.
+  const HOJA = remuestra([[124, 40], [196, 40], [196, 160], [124, 160]], 96)
+  const CARPETA = remuestra([[112, 72], [142, 72], [150, 81], [208, 81], [208, 140], [112, 140]], 96)
+  monta(
+    document.querySelector('#corto'),
+    {
+      cartel: 5.4,
+      abre: [160, 100],
+      cierra: [196, 128],
+      planos: [
+        {
+          nombre: 'Se escribe',
+          dur: 2.6,
+          svg: () =>
+            G(
+              'c0',
+              T(P.poli([[130, 46], [202, 46], [202, 166], [130, 166]], true), { cls: 'blq' }) +
+                T(P.poli([[124, 40], [196, 40], [196, 160], [124, 160]], true), { cls: 'ln tapa' }) +
+                [70, 90, 110].map((y, i) => T(P.linea(138, y, i === 2 ? 168 : 182, y), { cls: 'ln fino tz', n: 'r' + i })).join(''),
+            ),
+          paso(q, t) {
+            ;[0, 1, 2].forEach((i) => traza(q('r' + i), suave(tramo(t, 0.5 + i * 0.45, 1.0 + i * 0.45))))
+            camara(q('c0'), 160, 100, 1 + 0.05 * suave(tramo(t, 0, 2.6)))
+          },
+        },
+        {
+          nombre: 'Se guarda',
+          dur: 3.4,
+          svg: () => G('c1', T(D(HOJA), { cls: 'ln tapa', n: 'forma' }) + corona('rayos', 8, 15, 24) + punto(10, 'sello')),
+          paso(q, t) {
+            // toma vuelo (se encoge tantito), se vuelve carpeta y se pasa antes de asentarse
+            const vuelo = salto(tramo(t, 0.1, 0.4))
+            forma(q('forma'), mezclaPts(HOJA, CARPETA, elastico(tramo(t, 0.35, 1.5))))
+            pon(q('forma'), { ox: 160, oy: 110, sx: 1 - 0.05 * vuelo, y: -4 * salto(tramo(t, 2.1, 2.4)) })
+            // el sello cae, se aplasta y todo se sacude
+            const cae = acelera(tramo(t, 1.9, 2.1))
+            const pega = golpe(t, 2.1, 0.2)
+            pon(q('sello'), { x: 196, y: mezcla(-16, 128, cae), sx: 1 + 0.3 * pega, sy: 1 - 0.34 * pega })
+            pon(q('rayos'), { x: 196, y: 128, sx: mezcla(0.6, 1.25, frena(tramo(t, 2.1, 2.6))), o: golpe(t, 2.1, 0.5) })
+            camara(q('c1'), 160 + sacude(t, 2.1, 2.6), 100, 1.05)
+          },
+        },
+      ],
+    },
+    { alAvanzar: (i, avance, planos) => (document.querySelector('#pista').textContent = `Plano ${i + 1} de ${planos.length}: ${planos[i].nombre}`) },
+  )
+</script>
+</body>
+</html>

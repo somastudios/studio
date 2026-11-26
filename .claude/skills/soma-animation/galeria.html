@@ -1,0 +1,1926 @@
+<title>Trazo vivo Soma</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap">
+<style>
+  /* Disposición: una columna de 1040 px. Arriba el título y dos selectores; luego la rejilla de
+     estados (cada tarjeta: una lámina hundida con su escena y el texto debajo), el menú de
+     iconos y, al final, cómo está hecho. */
+  :root {
+    --fondo: #efece4;
+    --alto: #f8f6f0;
+    --bajo: #ebe8df;
+    --lamina: #e8e4da;
+    --tinta: #050506;
+    --tinta-2: rgb(5 5 6 / 0.62);
+    --tinta-3: rgb(5 5 6 / 0.36);
+    --linea: rgb(5 5 6 / 0.09);
+    --riel: rgb(5 5 6 / 0.11);
+    --luz: #fff;
+    --borde: rgb(255 255 255 / 0.88);
+    --sombra: 5 5 6;
+    --amb: 0.2;
+    --pri-c: #2d2e36;
+    --pri: #050506;
+    --pri-s: #000;
+    --pri-tx: #efece4;
+    --pri-borde: #3a3b44;
+    --acento: #216fff;
+    --acento-c: #4f8dff;
+    --bloque: rgb(5 5 6 / 0.13);
+    --pelo: #17181d;
+    --rizo: rgb(239 236 228 / 0.5);
+    --codigo: #f4f1ea;
+    --fuente: 'Archivo', ui-sans-serif, system-ui, sans-serif;
+    --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) {
+      --fondo: #0c0c0f;
+      --alto: #24252c;
+      --bajo: #17181d;
+      --lamina: #0f0f13;
+      --tinta: #efece4;
+      --tinta-2: rgb(239 236 228 / 0.62);
+      --tinta-3: rgb(239 236 228 / 0.34);
+      --linea: rgb(239 236 228 / 0.1);
+      --riel: rgb(0 0 0 / 0.5);
+      --luz: rgb(255 255 255 / 0.1);
+      --borde: rgb(255 255 255 / 0.07);
+      --sombra: 0 0 0;
+      --amb: 0.6;
+      --pri-c: #fbfaf6;
+      --pri: #e6e2d8;
+      --pri-s: #9d998e;
+      --pri-tx: #050506;
+      --pri-borde: #fff;
+      --acento: #3f83ff;
+      --acento-c: #7aa8ff;
+      --bloque: rgb(239 236 228 / 0.2);
+      --pelo: #41434f;
+      --rizo: rgb(239 236 228 / 0.42);
+      --codigo: #08080a;
+      color-scheme: dark;
+    }
+  }
+
+  :root[data-theme='dark'] {
+    --fondo: #0c0c0f;
+    --alto: #24252c;
+    --bajo: #17181d;
+    --lamina: #0f0f13;
+    --tinta: #efece4;
+    --tinta-2: rgb(239 236 228 / 0.62);
+    --tinta-3: rgb(239 236 228 / 0.34);
+    --linea: rgb(239 236 228 / 0.1);
+    --riel: rgb(0 0 0 / 0.5);
+    --luz: rgb(255 255 255 / 0.1);
+    --borde: rgb(255 255 255 / 0.07);
+    --sombra: 0 0 0;
+    --amb: 0.6;
+    --pri-c: #fbfaf6;
+    --pri: #e6e2d8;
+    --pri-s: #9d998e;
+    --pri-tx: #050506;
+    --pri-borde: #fff;
+    --acento: #3f83ff;
+    --acento-c: #7aa8ff;
+    --bloque: rgb(239 236 228 / 0.2);
+    --pelo: #41434f;
+    --rizo: rgb(239 236 228 / 0.42);
+    --codigo: #08080a;
+    color-scheme: dark;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background: var(--fondo);
+    color: var(--tinta);
+    font-family: var(--fuente);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .hoja {
+    max-width: 1072px;
+    margin: 0 auto;
+    padding-block: 30px 80px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    display: grid;
+    gap: 40px;
+  }
+
+  /* ───────── Texto ───────── */
+
+  .etiqueta {
+    margin: 0;
+    color: var(--tinta-2);
+    font: 650 13px/1 var(--fuente);
+    font-stretch: 64%;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .titulo {
+    display: flex;
+    align-items: center;
+    gap: 0.36em;
+    margin: 10px 0 0;
+    font: 850 clamp(34px, 7vw, 52px) / 1 var(--fuente);
+    font-stretch: 88%;
+    letter-spacing: -0.01em;
+  }
+
+  .titulo::before {
+    content: '';
+    flex: none;
+    width: 0.17em;
+    height: 0.86em;
+    border-radius: 999px;
+    background: var(--acento);
+  }
+
+  .lead {
+    margin: 14px 0 0;
+    max-width: 34em;
+    color: var(--tinta-2);
+    font: 400 17px/1.45 var(--fuente);
+    text-wrap: pretty;
+  }
+
+  .seccion {
+    display: grid;
+    gap: 16px;
+  }
+
+  .seccion-cab {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    font: 850 22px/1 var(--fuente);
+    font-stretch: 90%;
+  }
+
+  .seccion-cab::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--linea);
+  }
+
+  /* ───────── Selectores (hundido + pieza levantada) ───────── */
+
+  .mandos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px 26px;
+    margin-top: 22px;
+  }
+
+  .mando {
+    display: grid;
+    gap: 8px;
+  }
+
+  .selector {
+    display: inline-flex;
+    gap: 2px;
+    padding: 4px;
+    border-radius: 999px;
+    background: var(--riel);
+    box-shadow:
+      inset 0 1.5px 3px rgb(var(--sombra) / 0.12),
+      0 1px 0 var(--luz);
+  }
+
+  .selector button {
+    min-height: 40px;
+    padding: 0 18px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: none;
+    color: var(--tinta-2);
+    font: 650 15px/1 var(--fuente);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .selector button[aria-pressed='true'] {
+    border-color: var(--borde);
+    background: linear-gradient(180deg, var(--alto), var(--bajo));
+    color: var(--tinta);
+    box-shadow:
+      inset 0 1px 0 var(--luz),
+      0 1px 1.5px rgb(var(--sombra) / 0.14),
+      0 4px 8px -4px rgb(var(--sombra) / 0.22);
+  }
+
+  .selector button:focus-visible,
+  .btn:focus-visible {
+    outline: 3px solid var(--acento);
+    outline-offset: 3px;
+  }
+
+  /* ───────── Tarjetas de estado ───────── */
+
+  .estados {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+    gap: 18px;
+  }
+
+  .tarjeta {
+    border: 1px solid var(--borde);
+    border-radius: 26px;
+    background: linear-gradient(180deg, var(--alto), color-mix(in srgb, var(--alto) 55%, var(--bajo)));
+    box-shadow:
+      inset 0 1px 0 var(--luz),
+      0 1px 1.5px rgb(var(--sombra) / 0.08),
+      0 10px 22px -10px rgb(var(--sombra) / var(--amb));
+  }
+
+  .estado {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+  }
+
+  /* La lámina: donde vive el dibujo. Hundida y de un solo color, para que las piezas que
+     tapan (la hoja, la puerta) puedan pintarse de ese mismo color. */
+  .lamina {
+    border-radius: 16px;
+    background: var(--lamina);
+    box-shadow:
+      inset 0 2px 5px rgb(var(--sombra) / 0.1),
+      0 1px 0 var(--luz);
+    overflow: hidden;
+  }
+
+  .lamina svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .estado-tx {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 7px;
+    padding: 16px 10px 12px;
+  }
+
+  .estado-t {
+    margin: 2px 0 0;
+    font: 750 18.5px/1.15 var(--fuente);
+    text-wrap: balance;
+  }
+
+  .estado-d {
+    margin: 0;
+    color: var(--tinta-2);
+    font: 400 15px/1.42 var(--fuente);
+    text-wrap: pretty;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    min-height: 44px;
+    margin-top: 8px;
+    padding: 0 18px;
+    border: 1px solid var(--pri-borde);
+    border-radius: 999px;
+    background: linear-gradient(180deg, var(--pri-c), var(--pri));
+    color: var(--pri-tx);
+    font: 650 15px/1 var(--fuente);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.22),
+      0 3px 0 var(--pri-s),
+      0 12px 18px -8px rgb(var(--sombra) / 0.5);
+    transition:
+      transform 0.14s var(--ease),
+      box-shadow 0.14s var(--ease);
+  }
+
+  .btn:active {
+    transform: translateY(3px);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.22),
+      0 0 0 var(--pri-s);
+  }
+
+  /* ───────── El trazo ───────── */
+
+  .ln {
+    fill: none;
+    stroke: var(--tinta);
+    stroke-width: 2.3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .fino {
+    stroke-width: 1.8;
+  }
+
+  .tenue {
+    opacity: 0.42;
+  }
+
+  .tapa {
+    fill: var(--lamina);
+  }
+
+  .blq {
+    fill: var(--bloque);
+    stroke: none;
+  }
+
+  .azul {
+    fill: var(--acento);
+    stroke: none;
+  }
+
+  .ln-azul {
+    stroke: var(--acento);
+  }
+
+  .ln-claro {
+    stroke: #fff;
+  }
+
+  /* Lo que se dibuja: el trazo mide 1 de largo y se destapa moviendo el guion. */
+  .tz {
+    stroke-dasharray: 1.02 1.1;
+    stroke-dashoffset: 1.06;
+  }
+
+  .punteada {
+    stroke-dasharray: 0.001 0.085;
+  }
+
+  /* ───────── Menú de iconos ───────── */
+
+  .dos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+    gap: 18px;
+    align-items: start;
+  }
+
+  .menu {
+    display: grid;
+    gap: 10px;
+  }
+
+  .lista {
+    margin: 0;
+    padding: 4px 16px;
+    list-style: none;
+  }
+
+  .renglon {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 60px;
+    border-bottom: 1px solid var(--linea);
+    font: 600 16.5px/1.2 var(--fuente);
+  }
+
+  .renglon:last-child {
+    border-bottom: 0;
+  }
+
+  .renglon > :last-child {
+    margin-left: auto;
+    color: var(--tinta-3);
+  }
+
+  .aro {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--lamina);
+    box-shadow:
+      inset 0 1.5px 3px rgb(var(--sombra) / 0.1),
+      0 1px 0 var(--luz);
+  }
+
+  .ic {
+    display: block;
+    width: 24px;
+    height: 24px;
+  }
+
+  .ic .ln {
+    stroke: currentColor;
+    stroke-width: 1.7;
+  }
+
+  .ic--chica {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* ───────── Cómo está hecho ───────── */
+
+  .hecho {
+    display: grid;
+    gap: 18px;
+    padding: 22px;
+  }
+
+  .hecho ul {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    max-width: 44em;
+  }
+
+  .hecho li {
+    display: flex;
+    gap: 12px;
+    color: var(--tinta-2);
+    font: 400 16px/1.42 var(--fuente);
+  }
+
+  .hecho li::before {
+    content: '';
+    flex: none;
+    width: 7px;
+    height: 7px;
+    margin-top: 0.5em;
+    border-radius: 50%;
+    background: var(--acento);
+  }
+
+  .hecho b {
+    color: var(--tinta);
+    font-weight: 650;
+  }
+
+  .codigo {
+    margin: 0;
+    padding: 16px 18px;
+    border-radius: 16px;
+    background: var(--codigo);
+    color: var(--tinta);
+    font: 400 13px/1.6 var(--mono);
+    box-shadow:
+      inset 0 2px 5px rgb(var(--sombra) / 0.1),
+      0 1px 0 var(--luz);
+    overflow-x: auto;
+  }
+
+  /* ───────── Cortos ───────── */
+
+  .cortos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr));
+    gap: 18px;
+  }
+
+  .corto {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+  }
+
+  .corto-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    padding: 0 11px;
+    border-radius: 999px;
+    background: var(--linea);
+    color: var(--tinta-2);
+    font: 650 12px/1 var(--fuente);
+    font-stretch: 70%;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  /* La pista: un riel por plano; se llena mientras ese plano está en pantalla. */
+  .pista {
+    display: flex;
+    gap: 6px;
+    padding: 12px 10px 0;
+  }
+
+  .pista-p {
+    display: grid;
+    gap: 7px;
+    min-width: 0;
+  }
+
+  .pista-r {
+    height: 6px;
+    border-radius: 999px;
+    background: var(--riel);
+    box-shadow:
+      inset 0 1px 2px rgb(var(--sombra) / 0.14),
+      0 1px 0 var(--luz);
+    overflow: hidden;
+  }
+
+  .pista-r i {
+    display: block;
+    width: 0;
+    height: 100%;
+    border-radius: 999px;
+    background: var(--acento);
+  }
+
+  .pista-p .etiqueta {
+    overflow: hidden;
+    color: var(--tinta-3);
+    font-size: 11.5px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .pista-p.activa .etiqueta {
+    color: var(--tinta);
+  }
+
+  .cine .ln {
+    stroke-width: 3.1;
+  }
+
+  .cine .fino {
+    stroke-width: 2.2;
+  }
+
+  .lleno {
+    fill: var(--tinta);
+    stroke: none;
+  }
+
+  .boca {
+    fill: var(--tinta);
+  }
+
+  .cabello {
+    fill: var(--pelo);
+  }
+
+  .rizo {
+    stroke: var(--rizo);
+  }
+
+  .luz {
+    fill: var(--lamina);
+    stroke: none;
+  }
+
+  .telon {
+    fill: var(--acento);
+  }
+
+  @media (min-width: 860px) {
+    /* El corto estelar ocupa todo el ancho: el cuadro a la izquierda y el texto a un lado. */
+    .corto--estelar {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+      column-gap: 14px;
+      align-items: center;
+    }
+
+    .corto--estelar .estado-tx {
+      padding: 10px 14px;
+    }
+
+    .corto--estelar .estado-t {
+      font-size: 26px;
+    }
+
+    .corto--estelar .estado-d {
+      font-size: 16.5px;
+    }
+  }
+
+  @media (min-width: 720px) {
+    .hoja {
+      padding-block: 48px 110px;
+      gap: 52px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn {
+      transition: none;
+    }
+  }
+</style>
+
+<main class="hoja">
+  <header>
+    <p class="etiqueta">Soma · animación</p>
+    <h1 class="titulo">Trazo vivo</h1>
+    <p class="lead">Las líneas tiemblan como dibujadas a mano y se calculan de nuevo en cada cuadro, a 60 por segundo.</p>
+    <div class="mandos">
+      <div class="mando">
+        <p class="etiqueta" id="e-fondo">Fondo</p>
+        <div class="selector" role="group" aria-labelledby="e-fondo" data-mando="fondo">
+          <button type="button" id="b-blanco" data-v="light" aria-pressed="false">Blanco</button>
+          <button type="button" id="b-negro" data-v="dark" aria-pressed="false">Negro</button>
+        </div>
+      </div>
+      <div class="mando">
+        <p class="etiqueta" id="e-hervor">Hervor</p>
+        <div class="selector" role="group" aria-labelledby="e-hervor" data-mando="hervor">
+          <button type="button" id="b-suave" data-v="suave" aria-pressed="true">Suave</button>
+          <button type="button" id="b-treses" data-v="treses" aria-pressed="false">En treses</button>
+          <button type="button" id="b-quieto" data-v="quieto" aria-pressed="false">Quieto</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section class="seccion">
+    <h2 class="seccion-cab">Cortos</h2>
+    <div class="cortos" id="cortos"></div>
+  </section>
+
+  <section class="seccion">
+    <h2 class="seccion-cab">Bucles</h2>
+    <div class="estados" id="estados"></div>
+  </section>
+
+  <section class="seccion">
+    <h2 class="seccion-cab">Iconos</h2>
+    <div class="dos" id="menus"></div>
+  </section>
+
+  <section class="seccion">
+    <h2 class="seccion-cab">Cómo está hecho</h2>
+    <div class="tarjeta hecho">
+      <ul>
+        <li><span><b>Cada forma es una lista de puntos</b>, el dibujo se arma de nuevo en cada cuadro.</span></li>
+        <li><span><b>Tres ondas recorren cada línea</b>, dos lentas y una rápida, por eso tiembla sin brincar.</span></li>
+        <li><span><b>Un corto tiene planos</b>, cada uno con su encuadre, y la pista de abajo marca en cuál va.</span></li>
+        <li><span><b>Las formas se vuelven otras</b>, la puerta termina siendo el expediente y el frasco, un recibo.</span></li>
+        <li><span><b>Todo toma vuelo antes de moverse</b> y al llegar se pasa un poco, como en la animación a mano.</span></li>
+        <li><span><b>Lo que cuelga llega tarde</b>, el pelo y las cejas siguen a la cabeza un instante después.</span></li>
+        <li><span><b>Entre más enredada la idea, más hierve la línea</b>, cuando se aclara casi se queda quieta.</span></li>
+        <li><span><b>Toda la escena depende del tiempo</b>, se puede detener o capturar en cualquier instante.</span></li>
+      </ul>
+      <pre class="codigo">// Una forma son puntos. Un trazo vivo: T(forma, opciones).
+T(P.rect(44, 26, 72, 70, 8), { cls: 'ln tapa' })       // contorno que tapa lo de atrás
+T(D(remuestra(PUERTA, 96)), { cls: 'ln tapa', n: 'hoja' })  // una forma que va a cambiar
+
+// Un plano: qué cambia según el tiempo t (segundos desde que empezó ese plano).
+paso(q, t) {
+  const m = rebota(tramo(t, 1.9, 2.8))                 // llega y se pasa un poco
+  forma(q('hoja'), mezclaPts(PUERTA, EXPEDIENTE, m))   // la puerta se vuelve expediente
+  agita(q('lio'), 2.4)                                 // esta línea hierve más fuerte
+  pon(q('punto'), { x: 196, y: 128, sy: 1 - 0.3 * golpe(t, 3.95, 0.2) })
+}</pre>
+    </div>
+  </section>
+</main>
+
+<script>
+  ;(() => {
+    // ═══════════════ Motor ═══════════════
+    const TAU = Math.PI * 2
+    const TRESES = 8 // dibujos por segundo en el modo «En treses»
+    let modo = 'suave'
+
+    function azar(semilla) {
+      let a = semilla >>> 0
+      return () => {
+        a = (a + 0x6d2b79f5) | 0
+        let t = Math.imul(a ^ (a >>> 15), 1 | a)
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+      }
+    }
+
+    const F = (n) => Math.round(n * 100) / 100
+    const grados = (g) => (g * Math.PI) / 180
+    const igual = (a, b) => Math.abs(a[0] - b[0]) < 1e-6 && Math.abs(a[1] - b[1]) < 1e-6
+    const tramos = (a, b, cada = 20) => Math.max(1, Math.round(Math.hypot(b[0] - a[0], b[1] - a[1]) / cada))
+
+    /** Formas: devuelven { pts, closed }. Ángulos en grados, 0° a la derecha y −90° arriba. */
+    const P = {
+      circ(cx, cy, r, n) {
+        return P.elipse(cx, cy, r, r, n || Math.max(8, Math.round(7 + r * 0.5)))
+      },
+      elipse(cx, cy, rx, ry, n = 14) {
+        return { pts: elipsePts(cx, cy, rx, ry, n), closed: true }
+      },
+      arco(cx, cy, r, a0, a1, n = 8) {
+        return { pts: Array.from({ length: n }, (_, i) => [cx + Math.cos(grados(a0 + ((a1 - a0) * i) / (n - 1))) * r, cy + Math.sin(grados(a0 + ((a1 - a0) * i) / (n - 1))) * r]), closed: false }
+      },
+      linea(x1, y1, x2, y2, n) {
+        n = n || tramos([x1, y1], [x2, y2], 16) + 2
+        return { pts: Array.from({ length: n }, (_, i) => [x1 + ((x2 - x1) * i) / (n - 1), y1 + ((y2 - y1) * i) / (n - 1)]), closed: false }
+      },
+      curva(x0, y0, x1, y1, x2, y2, x3, y3, n = 12) {
+        return { pts: Array.from({ length: n }, (_, i) => bezier(i / (n - 1), x0, y0, x1, y1, x2, y2, x3, y3)), closed: false }
+      },
+      /** Pasa por los puntos, redondeando. */
+      suave(pts, closed = false) {
+        return { pts, closed }
+      },
+      /** Esquinas vivas: cada vértice va dos veces y los lados largos se parten para que tiemblen. */
+      poli(v, closed = false) {
+        const pts = []
+        const n = v.length
+        for (let i = 0; i < (closed ? n : n - 1); i++) {
+          const a = v[i]
+          const b = v[(i + 1) % n]
+          pts.push([a[0], a[1]])
+          if (i > 0 || closed) pts.push([a[0], a[1]])
+          const k = tramos(a, b)
+          for (let j = 1; j < k; j++) pts.push([a[0] + ((b[0] - a[0]) * j) / k, a[1] + ((b[1] - a[1]) * j) / k])
+        }
+        if (!closed) pts.push([v[n - 1][0], v[n - 1][1]])
+        return { pts, closed }
+      },
+      rect(x, y, w, h, r = 5) {
+        const pts = []
+        const borde = [
+          [x + r, y, x + w - r, y, x + w - r, y + r, -45],
+          [x + w, y + r, x + w, y + h - r, x + w - r, y + h - r, 45],
+          [x + w - r, y + h, x + r, y + h, x + r, y + h - r, 135],
+          [x, y + h - r, x, y + r, x + r, y + r, 225],
+        ]
+        for (const [x1, y1, x2, y2, cx, cy, a] of borde) {
+          const k = tramos([x1, y1], [x2, y2], 22)
+          for (let j = 0; j <= k; j++) pts.push([x1 + ((x2 - x1) * j) / k, y1 + ((y2 - y1) * j) / k])
+          pts.push([cx + Math.cos(grados(a)) * r, cy + Math.sin(grados(a)) * r])
+        }
+        return { pts, closed: true }
+      },
+    }
+
+    function bezier(t, x0, y0, x1, y1, x2, y2, x3, y3) {
+      const m = 1 - t
+      return [m * m * m * x0 + 3 * m * m * t * x1 + 3 * m * t * t * x2 + t * t * t * x3, m * m * m * y0 + 3 * m * m * t * y1 + 3 * m * t * t * y2 + t * t * t * y3]
+    }
+
+    // Puntos sueltos, para las formas que cambian. Todas empiezan arriba y giran igual, así
+    // cualquiera puede volverse cualquier otra si tienen el mismo número de puntos.
+    function elipsePts(cx, cy, rx, ry, n = 16) {
+      return Array.from({ length: n }, (_, i) => [cx + Math.sin((i / n) * TAU) * rx, cy - Math.cos((i / n) * TAU) * ry])
+    }
+    const circulo = (cx, cy, r, n = 16) => elipsePts(cx, cy, r, r, n)
+    /** Una cápsula de a hasta b (un antebrazo, un dedo). */
+    function capsula(a, b, ancho, n = 5) {
+      const ang = Math.atan2(b[1] - a[1], b[0] - a[0])
+      const r = ancho / 2
+      const pts = []
+      for (let i = 0; i <= n; i++) pts.push([b[0] + Math.cos(ang - Math.PI / 2 + (i / n) * Math.PI) * r, b[1] + Math.sin(ang - Math.PI / 2 + (i / n) * Math.PI) * r])
+      for (let i = 0; i <= n; i++) pts.push([a[0] + Math.cos(ang + Math.PI / 2 + (i / n) * Math.PI) * r, a[1] + Math.sin(ang + Math.PI / 2 + (i / n) * Math.PI) * r])
+      return pts
+    }
+    /** Reparte n puntos a lo largo de un polígono cerrado, desde su primer vértice. */
+    function remuestra(v, n) {
+      const m = v.length
+      const L = v.map((a, i) => Math.hypot(v[(i + 1) % m][0] - a[0], v[(i + 1) % m][1] - a[1]))
+      const total = L.reduce((x, y) => x + y, 0)
+      const out = []
+      let k = 0
+      let antes = 0
+      for (let j = 0; j < n; j++) {
+        const s = (j / n) * total
+        while (k < m - 1 && antes + L[k] < s) antes += L[k++]
+        const u = L[k] ? (s - antes) / L[k] : 0
+        const a = v[k]
+        const b = v[(k + 1) % m]
+        out.push([a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u])
+      }
+      return out
+    }
+    /** Los vértices de un rectángulo de esquinas redondas, desde arriba a la izquierda. */
+    function rectPts(x, y, w, h, r) {
+      const v = []
+      const esquina = (cx, cy, a0) => {
+        for (let i = 1; i < 5; i++) v.push([cx + Math.cos(grados(a0 + i * 18)) * r, cy + Math.sin(grados(a0 + i * 18)) * r])
+      }
+      v.push([x + r, y], [x + w - r, y])
+      esquina(x + w - r, y + r, -90)
+      v.push([x + w, y + r], [x + w, y + h - r])
+      esquina(x + w - r, y + h - r, 0)
+      v.push([x + w - r, y + h], [x + r, y + h])
+      esquina(x + r, y + h - r, 90)
+      v.push([x, y + h - r], [x, y + r])
+      esquina(x + r, y + r, 180)
+      return v
+    }
+    const mezclaPts = (A, B, p) => A.map((a, i) => [a[0] + (B[i][0] - a[0]) * p, a[1] + (B[i][1] - a[1]) * p])
+    const corre = (A, dx, dy) => A.map(([x, y]) => [x + dx, y + dy])
+    const D = (pts, closed = true) => ({ pts, closed })
+
+    /** Por cada punto: por dónde pasa la línea ahí y cuánto puede moverse. */
+    function nudosDe(pts, closed) {
+      const n = pts.length
+      const s = [0]
+      let L = 0
+      for (let i = 1; i < n; i++) s.push((L += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1])))
+      if (closed) L += Math.hypot(pts[0][0] - pts[n - 1][0], pts[0][1] - pts[n - 1][1])
+      const vecino = (i, paso) => {
+        let j = i
+        for (let k = 0; k < n; k++) {
+          j += paso
+          if (closed) j = (j + n) % n
+          else if (j < 0 || j >= n) return pts[i]
+          if (!igual(pts[j], pts[i])) return pts[j]
+        }
+        return pts[i]
+      }
+      return pts.map((p, i) => {
+        const a = vecino(i, -1)
+        const b = vecino(i, 1)
+        const l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1
+        const punta = !closed && (i === 0 || i === n - 1) ? 0.45 : 1
+        return [p[0], p[1], (b[0] - a[0]) / l, (b[1] - a[1]) / l, (s[i] / (L || 1)) * TAU, punta]
+      })
+    }
+
+    function prepara({ pts, closed }, amp, r) {
+      const giro = () => (r() < 0.5 ? -1 : 1)
+      return {
+        nudos: nudosDe(pts, closed),
+        closed,
+        amp,
+        // cuántas ondas caben en la línea (enteras si es cerrada, para que empate)
+        k: closed ? [2 + Math.floor(r() * 2), 5 + Math.floor(r() * 3), 9 + Math.floor(r() * 4)] : [0.55 + r() * 0.8, 1.9 + r() * 1.4, 3.7 + r() * 2],
+        // dónde empieza cada una
+        f: [r() * TAU, r() * TAU, r() * TAU, r() * TAU],
+        // qué tan rápido corre (vueltas por segundo): dos lentas y una rápida
+        v: [giro() * (0.85 + r() * 0.4) * TAU, giro() * (1.5 + r() * 0.8) * TAU, giro() * (2.7 + r() * 0.9) * TAU],
+      }
+    }
+
+    /** El `d` de una o varias formas en el instante h. `fuerza` multiplica el temblor. */
+    function dibuja(lista, h, fuerza = 1) {
+      let d = ''
+      for (const { nudos, closed, amp, k, f, v } of lista) {
+        const n = nudos.length
+        const q = nudos.map(([x, y, tx, ty, t, punta]) => {
+          const a = amp * punta * fuerza
+          const lado = a * (0.58 * Math.sin(k[0] * t + f[0] + v[0] * h) + 0.28 * Math.sin(k[1] * t + f[1] + v[1] * h) + 0.14 * Math.sin(k[2] * t + f[2] + v[2] * h))
+          const largo = a * 0.35 * Math.sin(k[0] * t + f[3] + v[0] * h * 0.7)
+          return [x - ty * lado + tx * largo, y + tx * lado + ty * largo]
+        })
+        const g = (i) => (closed ? q[((i % n) + n) % n] : q[Math.max(0, Math.min(n - 1, i))])
+        d += `M${F(q[0][0])} ${F(q[0][1])}`
+        for (let i = 0; i < (closed ? n : n - 1); i++) {
+          const p0 = g(i - 1)
+          const p1 = g(i)
+          const p2 = g(i + 1)
+          const p3 = g(i + 2)
+          if (igual(p1, p2)) continue
+          d += `C${F(p1[0] + (p2[0] - p0[0]) / 6)} ${F(p1[1] + (p2[1] - p0[1]) / 6)} ${F(p2[0] - (p3[0] - p1[0]) / 6)} ${F(p2[1] - (p3[1] - p1[1]) / 6)} ${F(p2[0])} ${F(p2[1])}`
+        }
+        if (closed) d += 'Z'
+      }
+      return d
+    }
+
+    const VIVOS = new Map()
+    let serie = 1
+
+    /** Un trazo vivo, listo para insertar. `n` le pone nombre para moverlo desde la escena. */
+    function T(formas, { amp = 0.9, cls = 'ln', n = '' } = {}) {
+      const id = serie++
+      const r = azar(id * 7919)
+      const lista = (Array.isArray(formas) ? formas : [formas]).map((f) => prepara(f, amp, r))
+      VIVOS.set(String(id), lista)
+      return `<path class="${cls}" data-hv="${id}"${n ? ` data-n="${n}"` : ''} pathLength="1" d="${dibuja(lista, 0)}"/>`
+    }
+
+    const G = (n, dentro) => `<g data-n="${n}">${dentro}</g>`
+
+    // ═══════════════ Para animar ═══════════════
+    const tope = (x) => (x < 0 ? 0 : x > 1 ? 1 : x)
+    const tramo = (t, a, b) => tope((t - a) / (b - a))
+    const mezcla = (a, b, p) => a + (b - a) * p
+    const suave = (x) => x * x * (3 - 2 * x)
+    const frena = (x) => 1 - Math.pow(1 - x, 3)
+    const acelera = (x) => x * x
+    /** Llega y se pasa un poco antes de asentarse. */
+    const rebota = (x) => (x <= 0 ? 0 : x >= 1 ? 1 : 1 + 2.70158 * Math.pow(x - 1, 3) + 1.70158 * Math.pow(x - 1, 2))
+    /** Llega, se pasa y vibra hasta quedarse quieto. */
+    const elastico = (x) => (x <= 0 ? 0 : x >= 1 ? 1 : Math.pow(2, -10 * x) * Math.sin((x * 10 - 0.75) * (TAU / 3)) + 1)
+    /** 0 → 1 → 0: un brinco, o tomar vuelo. */
+    const salto = (p) => 4 * p * (1 - p)
+    /** 1 justo en `c` y baja a 0 en `largo` segundos: un golpe. */
+    const golpe = (t, c, largo = 0.3) => (t < c ? 0 : 1 - tope((t - c) / largo))
+    /** Sube y baja alrededor de `c`: un parpadeo. */
+    const campana = (t, c, w) => Math.max(0, 1 - Math.abs(t - c) / w)
+    /** Un brinco con cuerpo: se aplasta al despegar y al caer, se estira en el aire. */
+    function brinco(p, alto) {
+      if (p <= 0 || p >= 1) return { dy: 0, sx: 1, sy: 1 }
+      const piso = Math.max(0, 1 - p / 0.16, 1 - (1 - p) / 0.16)
+      const sy = 1 + 0.2 * salto(p) - 0.3 * piso
+      return { dy: -alto * salto(p), sx: 1 / sy, sy }
+    }
+    /** Lo que se sacude la cámara después de un golpe en `c`. */
+    const sacude = (t, c, fuerza = 2.4, largo = 0.32) => fuerza * golpe(t, c, largo) * Math.sin((t - c) * 70)
+
+    function pon(el, { x = 0, y = 0, r = 0, sx = 1, sy = sx, ox = 0, oy = 0, o } = {}) {
+      el.setAttribute('transform', `translate(${F(x + ox)} ${F(y + oy)}) rotate(${F(r)}) scale(${F(sx)} ${F(sy)}) translate(${-ox} ${-oy})`)
+      if (o !== undefined) el.style.opacity = F(o)
+    }
+    /** Encuadra: (x, y) queda al centro de un cuadro de 320 × 200, con acercamiento z. */
+    const camara = (el, x, y, z = 1) => el.setAttribute('transform', `translate(160 100) scale(${F(z)}) translate(${F(-x)} ${F(-y)})`)
+    const traza = (el, p) => (el.style.strokeDashoffset = F(1.06 * (1 - p)))
+    const ve = (el, o) => (el.style.opacity = F(o))
+    /** Cambia los puntos de un trazo (siempre el mismo número): se mueve, se deforma o se vuelve otra cosa. */
+    const forma = (el, pts) => (el._v.lista[0].nudos = nudosDe(pts, el._v.lista[0].closed))
+    /** Qué tan fuerte hierve ese trazo (1 es lo normal). */
+    const agita = (el, f) => (el._v.fuerza = f)
+    const ojo = (el, x, y, rx, ry) => {
+      el.setAttribute('cx', F(x))
+      el.setAttribute('cy', F(y))
+      el.setAttribute('rx', F(rx))
+      el.setAttribute('ry', F(Math.max(0.3, ry)))
+    }
+
+    const punto = (r = 5, n = 'pt') => G(n, T(P.circ(0, 0, r), { cls: 'azul', amp: 0.4 }))
+    const rayos = (n, lineas) => G(n, T(lineas.map(([a, b, c, d]) => P.linea(a, b, c, d, 3)), { cls: 'ln fino', amp: 0.3 }))
+    /** Rayos alrededor de (0, 0), de r0 a r1. */
+    const corona = (n, k, r0, r1) => rayos(n, Array.from({ length: k }, (_, i) => [Math.cos((i / k) * TAU + 0.3) * r0, Math.sin((i / k) * TAU + 0.3) * r0, Math.cos((i / k) * TAU + 0.3) * r1, Math.sin((i / k) * TAU + 0.3) * r1]))
+
+    // ═══════════════ La mano ═══════════════
+    // Un puño visto de frente, con la muñeca en (0, 0) y los nudillos hacia arriba: la palma,
+    // las tres rayas que separan los dedos, la línea donde se doblan, el pulgar cruzado por
+    // delante y el índice, que puede estirarse.
+    const PALMA = [[-10.5, 3.5], [-12.2, -8], [-10.8, -19], [-5.2, -24.2], [1.2, -24.9], [7.5, -23.7], [11.5, -18.4], [12.4, -8], [10.4, 3.5], [0, 5.5]]
+    const indice = (e) => capsula([-7.8, -18], [-7.8, -19 - 27 * e], 7.6, 4)
+    function manoSvg(k) {
+      return G(
+        k,
+        T(D(indice(0)), { cls: 'ln tapa', amp: 0.25, n: k + 'i' }) +
+          T(P.suave(PALMA, true), { cls: 'ln tapa', amp: 0.35 }) +
+          T([P.linea(-4.8, -23.6, -5.2, -14.2, 3), P.linea(1.2, -24.4, 1, -14.5, 3), P.linea(7, -23.2, 7.2, -14.7, 3)], { cls: 'ln fino', amp: 0.15 }) +
+          T(P.suave([[-10.8, -14.6], [-7.9, -13.3], [-5.1, -14.2], [-2, -13.3], [1, -14.5], [4.2, -13.5], [7.2, -14.7], [9.7, -13.7], [11.8, -15.2]]), { cls: 'ln fino', amp: 0.15 }) +
+          T(D(capsula([-11.3, -1.2], [1.6, -8.4], 7.4, 4)), { cls: 'ln tapa', amp: 0.25 }),
+      )
+    }
+
+    // ═══════════════ Corto 1 · Pensando ═══════════════
+    // 1. Piensa: plano medio. Se da golpecitos en la barbilla con el dedo, duda, suspira y apoya
+    //    la barbilla en el puño. Le salen tres globos y en el último hay un enredo; frunce el
+    //    ceño, le escurre una gota. El globo crece hasta llenar el cuadro: entramos a la idea.
+    //    Antes de todo eso se le resbalan los lentes y se los sube con el dedo.
+    // 2. Se enreda: el enredo se retuerce, le dan dos tirones, se suelta y queda un círculo
+    //    limpio que se vuelve el punto azul. La interrogación se endereza: ya es admiración.
+    // 3. Lo tiene: salimos del globo, revienta, parpadea sin creerlo, se agacha y salta. Atrapa
+    //    el punto con el dedo, presume con los ojos cerrados y al final guiña.
+
+    /** El enredo: e = 1 es la madeja, e = 0 un círculo. `fase` lo hace retorcerse. */
+    function madeja(cx, cy, R, e, fase, n = 110) {
+      return Array.from({ length: n }, (_, i) => {
+        const a = (i / n) * TAU
+        const mx = 0.62 * Math.sin(2 * a + 0.3 + fase * 0.6) + 0.42 * Math.sin(7 * a + 1.3 + fase)
+        const my = 0.62 * Math.cos(3 * a + 0.5 - fase * 0.5) + 0.42 * Math.cos(5 * a + 2.1 + fase * 0.8)
+        return [cx + R * ((1 - e) * Math.sin(a) + e * 1.12 * mx), cy + R * (-(1 - e) * Math.cos(a) + e * 1.12 * my)]
+      })
+    }
+    const nube = (cx, cy, r, n = 63) =>
+      Array.from({ length: n }, (_, i) => {
+        const a = (i / n) * TAU
+        const lobulo = 0.9 + 0.15 * Math.abs(Math.sin(a * 3.5 + 0.4))
+        return [cx + Math.sin(a) * r * lobulo * 1.08, cy - Math.cos(a) * r * lobulo]
+      })
+
+    const CODO = [219, 207]
+    /** Dónde queda la muñeca: 0 es el puño en la barbilla y 1 el brazo en alto. */
+    const muneca = (p) => {
+      const a = grados(mezcla(-125.5, -76, p))
+      const l = mezcla(70, 84, p)
+      return [CODO[0] + Math.cos(a) * l, CODO[1] + Math.sin(a) * l]
+    }
+    const CUERPO = [[78, 214], [86, 178], [108, 158], [132, 147], [150, 145], [168, 147], [192, 158], [214, 178], [222, 214]]
+    const US = [-1, -0.6, -0.2, 0.2, 0.6, 1]
+    /** La boca: m la corre de lado, s la curva (sonrisa o mueca) y ab la abre. */
+    function bocaPts(m, s, ab) {
+      const x = (u) => 150 + m * 3 + u * (7 + 1.6 * Math.max(0, s))
+      const arriba = (u) => 120.5 + s * (4.6 * (1 - u * u) - 2.2) * (1 - 0.75 * ab) - m * u
+      return [...US.map((u) => [x(u), arriba(u)]), ...US.slice().reverse().map((u) => [x(u), arriba(u) + ab * 9 * (1 - u * u)])]
+    }
+    // El pelo: una mata china más ancha que la cabeza. Por arriba, un arco de rizos; por abajo,
+    // el fleco, con un mechón que cae entre las cejas.
+    const MATA = [
+      ...Array.from({ length: 31 }, (_, i) => {
+        const a = grados(172 + (196 * i) / 30)
+        const rizo = 1 + 0.065 * Math.cos(i * 1.9)
+        return [150 + Math.cos(a) * 45 * rizo, 86 + Math.sin(a) * 40 * rizo]
+      }),
+      [187, 101], [182, 92], [176, 80], [168, 76], [160, 80], [154, 87], [149, 79], [141, 75], [132, 80], [124, 78], [118, 92], [113, 101],
+    ]
+    const RIZOS = [[126, 63, 7, 150, 400], [146, 55, 8, 180, 425], [168, 58, 7, 200, 440], [185, 73, 6, 220, 450], [114, 77, 6, 120, 360], [158, 70, 5.5, 160, 380], [137, 71, 5, 200, 420]]
+
+    /** La persona, de medio cuerpo: Alex. `k` es el prefijo de sus nombres (sale en dos planos). */
+    function persona(k) {
+      const w = muneca(0)
+      return (
+        T(P.suave(corre(CUERPO, 6, 6), true), { cls: 'blq', n: k + 'tblq' }) +
+        T(P.suave(CUERPO, true), { cls: 'ln tapa', n: k + 'torso' }) +
+        T(P.suave(CUERPO, true), { cls: 'blq', n: k + 'tinte' }) +
+        T([P.suave([[133, 148], [150, 157], [167, 148]]), P.suave([[137, 145.5], [150, 152], [163, 145.5]])], { cls: 'ln fino', amp: 0.3 }) +
+        T([P.linea(139, 128, 138, 146, 3), P.linea(161, 128, 162, 146, 3)], { cls: 'ln', amp: 0.4 }) +
+        G(
+          k + 'cab',
+          T([P.arco(117.5, 104, 5.6, 105, 255, 5), P.arco(182.5, 104, 5.6, -75, 75, 5)], { cls: 'ln', amp: 0.3 }) +
+            T(P.circ(150, 100, 34, 18), { cls: 'ln tapa', amp: 0.8 }) +
+            T(P.suave([[150.5, 104], [147.4, 110.6], [151, 112.4]]), { cls: 'ln fino', amp: 0.2 }) +
+            `<ellipse class="lleno" data-n="${k}oi"/><ellipse class="lleno" data-n="${k}od"/>` +
+            G(k + 'fi', T(P.arco(0, 2, 4.4, 205, 335, 5), { cls: 'ln fino', amp: 0.15 })) +
+            G(k + 'fd', T(P.arco(0, 2, 4.4, 205, 335, 5), { cls: 'ln fino', amp: 0.15 })) +
+            T(D(bocaPts(0, 0, 0)), { cls: 'ln fino boca', amp: 0.2, n: k + 'boca' }) +
+            T([P.linea(123.5, 113, 126.5, 108.5, 3), P.linea(128.5, 115, 131.5, 110.5, 3), P.linea(168.5, 110.5, 171.5, 115, 3), P.linea(173.5, 108.5, 176.5, 113, 3)], { cls: 'ln fino tenue', amp: 0.15, n: k + 'rub' }) +
+            G(k + 'gota', T(P.suave([[0, -5.2], [2.7, -0.4], [2.3, 2.8], [0, 4], [-2.3, 2.8], [-2.7, -0.4]], true), { cls: 'ln fino tapa', amp: 0.15 })) +
+            G(k + 'pelo', T(P.suave(MATA, true), { cls: 'ln cabello', amp: 1 }) + T(RIZOS.map((r) => P.arco(...r, 7)), { cls: 'ln fino rizo', amp: 0.5 })) +
+            G(k + 'ci', T(P.linea(-6.5, 0.8, 6.5, -1.2, 3), { cls: 'ln', amp: 0.3 })) +
+            G(k + 'cd', T(P.linea(-6.5, -1.2, 6.5, 0.8, 3), { cls: 'ln', amp: 0.3 })) +
+            // los lentes: dos armazones, el puente y las patas hasta las orejas
+            G(
+              k + 'lentes',
+              T([P.rect(129.5, 90.5, 19, 15, 4), P.rect(151.5, 90.5, 19, 15, 4)], { cls: 'ln', amp: 0.35 }) +
+                T([P.suave([[148.5, 96], [150, 94.6], [151.5, 96]]), P.linea(129.5, 94.5, 118.5, 96, 3), P.linea(170.5, 94.5, 181.5, 96, 3)], { cls: 'ln fino', amp: 0.2 }),
+            ),
+        ) +
+        T(D(capsula(CODO, w, 18)), { cls: 'ln tapa', amp: 0.5, n: k + 'ante' }) +
+        T(D(capsula(CODO, w, 18)), { cls: 'blq', amp: 0.5, n: k + 'manga' }) +
+        manoSvg(k + 'm')
+      )
+    }
+
+    /** Pone a la persona en una pose. Lo que no se da queda en reposo. */
+    function actua(q, k, { gira = 0, dy = 0, sy = 1, mira = [0, 0], abre = 1, feliz = 0, cejas = [0, 0, 0, 0], boca = [0, 0, 0], brazo = 0, dedo = 0, mano = [0, 0, 0], pelo = 0, lentes = [0, 0], rubor = 0, gota = -1, resp = 0 } = {}) {
+      const [ai, ad] = Array.isArray(abre) ? abre : [abre, abre]
+      pon(q(k + 'cab'), { r: gira, y: dy, ox: 150, oy: 136, sx: 2 - sy, sy })
+      ojo(q(k + 'oi'), 139 + mira[0], 98 + mira[1], 3.1 + 0.3 * Math.max(0, ai - 1), 3.1 * ai)
+      ojo(q(k + 'od'), 161 + mira[0], 98 + mira[1], 3.1 + 0.3 * Math.max(0, ad - 1), 3.1 * ad)
+      ve(q(k + 'oi'), 1 - feliz)
+      ve(q(k + 'od'), 1 - feliz)
+      pon(q(k + 'fi'), { x: 139, y: 98, o: feliz })
+      pon(q(k + 'fd'), { x: 161, y: 98, o: feliz })
+      pon(q(k + 'ci'), { x: 138, y: 84.5 + cejas[0], r: cejas[1] })
+      pon(q(k + 'cd'), { x: 162, y: 84.5 + cejas[2], r: cejas[3] })
+      forma(q(k + 'boca'), bocaPts(boca[0], boca[1], boca[2] || 0))
+      pon(q(k + 'pelo'), { r: pelo, ox: 150, oy: 84 })
+      pon(q(k + 'lentes'), { y: lentes[0], r: lentes[1], ox: 150, oy: 98 })
+      ve(q(k + 'rub'), rubor)
+      pon(q(k + 'gota'), { x: 177.5, y: 104 + 15 * Math.max(0, gota), o: gota < 0 ? 0 : salto(Math.min(1, gota)) ** 0.4 })
+      for (const n of ['torso', 'tblq', 'tinte']) pon(q(k + n), { ox: 150, oy: 214, sx: 1, sy: 1 + resp })
+      const w = muneca(brazo)
+      w[0] += mano[0]
+      w[1] += mano[1]
+      forma(q(k + 'ante'), capsula(CODO, w, 18))
+      forma(q(k + 'manga'), capsula(CODO, w, 18))
+      pon(q(k + 'm'), { x: w[0], y: w[1], r: mezcla(-39, 3, brazo) + mano[2] })
+      forma(q(k + 'mi'), indice(dedo))
+    }
+
+    const GLOBO = [258, 46]
+    const PENSANDO = {
+      abre: [205, 77],
+      cierra: [234, 56],
+      cartel: 13.6,
+      planos: [
+        {
+          nombre: 'Piensa',
+          dur: 5.6,
+          svg: () =>
+            persona('a') +
+            G('ah1', T(P.circ(0, 0, 5, 8), { cls: 'ln fino tapa', amp: 0.3 })) +
+            G('ah2', T(P.circ(0, 0, 8.5, 10), { cls: 'ln fino tapa', amp: 0.35 })) +
+            T(D(nube(GLOBO[0], GLOBO[1], 34)), { cls: 'ln tapa', n: 'aglobo' }) +
+            T(D(madeja(GLOBO[0], GLOBO[1], 13, 1, 0)), { cls: 'ln fino tz', amp: 0.5, n: 'alio' }),
+          paso(q, t) {
+            const lejos = 1 - rebota(tramo(t, 1.8, 2.35)) // 1: la mano aún no llega a la barbilla
+            const duda = 1 - suave(tramo(t, 1.7, 2.05)) // 1: trae el dedo estirado
+            const toque = Math.max(0, Math.sin((t - 0.3) * TAU * 2.3)) * tramo(t, 0.25, 0.45) * (1 - tramo(t, 0.92, 1.08))
+            // se le resbalan los lentes y se los sube con el dedo
+            const resbala = suave(tramo(t, 0.65, 1.15)) * (1 - rebota(tramo(t, 1.4, 1.64)))
+            const sube = suave(tramo(t, 1.12, 1.4)) * (1 - suave(tramo(t, 1.66, 1.9)))
+            const empuja = salto(tramo(t, 1.38, 1.66))
+            const barre = Math.sin(t * 2.7)
+            const mirar = suave(tramo(t, 2.3, 2.7))
+            const suspiro = salto(tramo(t, 2.15, 2.7))
+            const frunce = suave(tramo(t, 3.4, 4.2))
+            actua(q, 'a', {
+              gira: mezcla(3.5, -5, suave(tramo(t, 1.8, 2.35))) + 1.3 * Math.sin(t * 1.3) - 1.4 * toque + 2 * empuja,
+              dy: 1.3 * toque + 2 * suave(tramo(t, 2.2, 2.45)) - 1.2 * empuja,
+              sy: 1 - 0.03 * salto(tramo(t, 2.22, 2.55)),
+              mira: [mezcla(2.7 * barre * (1 - sube), 3, mirar), mezcla(1.5 - 2.4 * sube, -2.6, mirar)],
+              abre: (1 - 0.92 * campana(t, 0.55, 0.08) - 0.85 * empuja - 0.92 * campana(t, 3.02, 0.08)) * (1 - 0.34 * frunce),
+              cejas: [-3.2 * duda * (0.5 + 0.5 * barre) + 1.6 * frunce - 2 * empuja, -5 * duda + 13 * frunce, 1.1 * duda + 1.6 * frunce - 2 * empuja, -13 * frunce],
+              boca: [0.9 * Math.sin(t * 2.2) * (1 - 0.6 * suspiro) * (1 - sube), -0.3 - 0.25 * frunce, 0.5 * suspiro],
+              dedo: duda * rebota(tramo(t, 0.12, 0.4)),
+              mano: [8 * lejos - 1.5 * sube, 8 * lejos - 3.2 * toque - 24.5 * sube - 3 * empuja, 3 * lejos - 4 * toque],
+              pelo: 2.2 * toque - 2 * empuja,
+              lentes: [3.4 * resbala, 2.2 * resbala],
+              gota: t > 3.85 ? tramo(t, 3.85, 4.8) : -1,
+              resp: 0.012 * Math.sin(t * 1.8) - 0.035 * suspiro,
+            })
+            pon(q('ah1'), { x: 205, y: 77, sx: rebota(tramo(t, 2.35, 2.6)) })
+            pon(q('ah2'), { x: 220, y: 60, sx: rebota(tramo(t, 2.65, 2.9)) })
+            // el globo aparece; al final toma vuelo y crece hasta llenar el cuadro
+            const entra = suave(tramo(t, 4.75, 5.6))
+            const c = [mezcla(GLOBO[0], 160, entra), mezcla(GLOBO[1], 100, entra)]
+            const R = mezcla(34 * rebota(tramo(t, 2.95, 3.32)) * (1 - 0.13 * salto(tramo(t, 4.5, 4.82))), 250, Math.pow(entra, 1.5))
+            forma(q('aglobo'), nube(c[0], c[1], Math.max(0.5, R)))
+            ve(q('aglobo'), t < 2.95 ? 0 : 1)
+            const lio = q('alio')
+            forma(lio, madeja(c[0], c[1], mezcla(13, 52, entra), 1, t * 1.6))
+            traza(lio, suave(tramo(t, 3.35, 3.95)))
+            agita(lio, mezcla(1, 2.2, entra))
+            lio.style.strokeWidth = F(mezcla(2.2, 3.1, entra))
+          },
+        },
+        {
+          nombre: 'Se enreda',
+          dur: 4.8,
+          svg: () =>
+            G('bmigas', rayos('bmig', [[98, 62, 104, 68], [226, 144, 219, 138], [92, 140, 99, 135], [160, 30, 160, 38], [160, 170, 160, 162]])) +
+            T(D(madeja(160, 100, 52, 1, 0)), { cls: 'ln', n: 'blio' }) +
+            T(D(circulo(160, 100, 22, 110)), { cls: 'azul', amp: 0.6, n: 'bidea' }) +
+            corona('bray', 9, 34, 50) +
+            G('bduda', T(P.suave([[-7, -9], [-6, -15], [0, -18], [6, -15], [6, -9], [1, -4], [0, 2]]), { cls: 'ln', amp: 0.4, n: 'bsigno' }) + `<circle class="lleno" cx="0" cy="10" r="2.6"/>`),
+          paso(q, t) {
+            // dos tirones antes de soltarse
+            const tiron = Math.max(salto(tramo(t, 1.0, 1.4)), 1.25 * salto(tramo(t, 1.55, 2.05)))
+            const suelta = tramo(t, 2.05, 3.15)
+            const e = 1 - elastico(suelta)
+            const R = mezcla(mezcla(52, 40, suave(suelta)) * (1 - 0.13 * tiron), 22, suave(tramo(t, 3.15, 3.55)))
+            const brinca = brinco(tramo(t, 3.75, 4.2), 9)
+            const pts = corre(madeja(160, 100, R, e, 5.6 * 1.6 + t * (1.6 + 2.4 * tiron)), 0, brinca.dy)
+            forma(q('blio'), pts)
+            forma(q('bidea'), pts)
+            agita(q('blio'), mezcla(2.2 + 1.3 * tiron, 0.45, suave(suelta)))
+            ve(q('bidea'), tramo(t, 3.15, 3.5))
+            ve(q('blio'), 1 - tramo(t, 3.4, 3.6))
+            pon(q('bidea'), { ox: 160, oy: 122, sx: brinca.sx, sy: brinca.sy })
+            pon(q('bray'), { x: 160, y: 100, sx: mezcla(0.5, 1.25, frena(tramo(t, 3.5, 4.05))), o: golpe(t, 3.5, 0.6) })
+            pon(q('bmigas'), { ox: 160, oy: 100, r: -t * 26, sx: 1 + 0.5 * suave(suelta), o: 0.55 * (1 - suave(suelta)) })
+            // la interrogación tiembla con cada tirón y, cuando se aclara, se endereza
+            const claro = rebota(tramo(t, 3.0, 3.45))
+            forma(q('bsigno'), mezclaPts([[-7, -9], [-6, -15], [0, -18], [6, -15], [6, -9], [1, -4], [0, 2]], [[0, -19], [0, -15.5], [0, -12], [0, -8.5], [0, -5], [0, -1.5], [0, 2]], claro))
+            agita(q('bsigno'), 1 + 2 * tiron)
+            pon(q('bduda'), { x: 232, y: 58 - 5 * salto(tramo(t, 3.0, 3.4)), r: mezcla(12, 0, claro) + 5 * tiron * Math.sin(t * 30), sx: rebota(tramo(t, 0.15, 0.45)) * (1 - tramo(t, 4.1, 4.4)) })
+          },
+        },
+        {
+          nombre: 'Lo tiene',
+          dur: 6.0,
+          svg: () =>
+            persona('c') +
+            G('ch1', T(P.circ(0, 0, 5, 8), { cls: 'ln fino tapa', amp: 0.3 })) +
+            G('ch2', T(P.circ(0, 0, 8.5, 10), { cls: 'ln fino tapa', amp: 0.35 })) +
+            T(D(nube(160, 100, 250)), { cls: 'ln tapa', n: 'cglobo' }) +
+            corona('cray', 8, 40, 54) +
+            corona('cbri', 7, 14, 21) +
+            G('cpt', T(P.circ(0, 0, 22, 18), { cls: 'azul', amp: 0.6 })),
+          paso(q, t) {
+            // salimos del globo: se encoge hasta su lugar con el punto adentro
+            const sale = suave(tramo(t, 0, 0.9))
+            const g = [mezcla(160, GLOBO[0], sale), mezcla(100, GLOBO[1], sale)]
+            const R = mezcla(250, 34, Math.pow(sale, 0.7)) * (1 + 0.2 * tramo(t, 1.02, 1.17))
+            forma(q('cglobo'), nube(g[0], g[1], R))
+            ve(q('cglobo'), 1 - tramo(t, 1.11, 1.19))
+            pon(q('cray'), { x: GLOBO[0], y: GLOBO[1], sx: mezcla(0.7, 1.2, frena(tramo(t, 1.13, 1.6))), o: golpe(t, 1.13, 0.45) })
+            pon(q('ch2'), { x: 220, y: 60, sx: 1 + 0.5 * tramo(t, 1.23, 1.37), o: 1 - tramo(t, 1.23, 1.37) })
+            pon(q('ch1'), { x: 205, y: 77, sx: 1 + 0.5 * tramo(t, 1.35, 1.49), o: 1 - tramo(t, 1.35, 1.49) })
+            // el punto cae, rebota en el dedo y se queda flotando encima
+            const cae = acelera(tramo(t, 1.3, 1.9))
+            const sube = rebota(tramo(t, 1.9, 2.45))
+            const flota = tramo(t, 2.45, 2.75)
+            const pega = golpe(t, 1.9, 0.22)
+            const px = mezcla(g[0], 234, cae)
+            const py = mezcla(mezcla(g[1], 69, cae), 55, sube) + 2.2 * Math.sin(t * 2.6) * flota
+            const s = mezcla(1, 9 / 22, sale)
+            pon(q('cpt'), { x: px, y: py + 3 * pega, sx: s * (1 + 0.3 * pega), sy: s * (1 - 0.32 * pega) })
+            pon(q('cbri'), { x: px, y: py, r: t * 24, sx: 1 + 0.1 * Math.sin(t * 6), o: tramo(t, 2.3, 2.55) })
+            // la reacción, por partes: no lo cree, se agacha, salta, presume, guiña
+            const ceno = 1 - suave(tramo(t, 0.5, 1.05))
+            const nocree = campana(t, 1.3, 0.1)
+            const agacha = salto(tramo(t, 1.34, 1.68))
+            const salta = rebota(tramo(t, 1.62, 2.08))
+            const grito = rebota(tramo(t, 1.64, 1.9)) * mezcla(1, 0.3, suave(tramo(t, 2.15, 2.7)))
+            const presume = suave(tramo(t, 2.45, 2.7)) * (1 - suave(tramo(t, 3.35, 3.6)))
+            const alfrente = suave(tramo(t, 3.85, 4.15))
+            const guino = suave(tope(campana(t, 4.72, 0.3) * 2.4))
+            const d = Math.hypot(px - 150, py - 98) || 1
+            const sigue = tramo(t, 1.2, 1.4) * (1 - alfrente)
+            actua(q, 'c', {
+              gira: mezcla(-5, 3, salta) + 2.4 * presume * Math.sin(t * 7.5) + 3.5 * guino,
+              dy: 2 * (1 - salta) + 5.5 * agacha - 2 * salta - 4.5 * salto(tramo(t, 1.62, 1.98)),
+              sy: 1 - 0.08 * agacha + 0.075 * salto(tramo(t, 1.62, 1.92)),
+              mira: [mezcla(3 * (1 - alfrente), ((px - 150) / d) * 3.3, sigue), mezcla(-2.6 * (1 - alfrente), ((py - 98) / d) * 3.3, sigue)],
+              abre: [1, 1 - 0.92 * guino].map((x) => x * mezcla(1, 1.5, rebota(tramo(t, 1.64, 1.9))) * (1 - 0.84 * agacha) * (1 - 0.9 * nocree) * (1 - 0.34 * ceno) * mezcla(1, 0.8, alfrente)),
+              feliz: presume,
+              cejas: [1.6 * ceno + 3 * agacha - 5.5 * rebota(tramo(t, 1.7, 2.14)), 13 * ceno - 4 * salta, 1.6 * ceno + 3 * agacha - 5.5 * rebota(tramo(t, 1.74, 2.18)) + 4.5 * guino, -13 * ceno + 4 * salta + 9 * guino],
+              boca: [0.6 * guino, mezcla(-0.5, 1.3, rebota(tramo(t, 1.62, 2.04))), grito],
+              brazo: rebota(tramo(t, 1.52, 2.04)),
+              dedo: frena(tramo(t, 1.66, 1.9)),
+              mano: [0, 4.5 * pega, -4 * salto(tramo(t, 1.52, 1.9)) + 2 * presume * Math.sin(t * 7.5)],
+              pelo: -10 * salto(tramo(t, 1.62, 1.92)) + 6 * salto(tramo(t, 1.92, 2.3)) + 3 * presume * Math.sin(t * 7.5 - 1),
+              lentes: [2.5 * agacha - 3 * salto(tramo(t, 1.66, 1.94)) + 3.6 * salto(tramo(t, 1.94, 2.3)), 5 * salto(tramo(t, 1.98, 2.4))],
+              rubor: suave(tramo(t, 2.4, 2.7)),
+              resp: 0.012 * Math.sin(t * 1.8) + 0.04 * salto(tramo(t, 1.62, 2.0)),
+            })
+          },
+        },
+      ],
+    }
+
+    // ═══════════════ Corto 2 · La puerta ═══════════════
+    // 1. Toca: plano general. El punto llega brincando, toma vuelo y toca dos veces. Nadie
+    //    sale: da un brinco alto para asomarse y se queda esperando.
+    // 2. Le abren: detalle de la perilla. Gira, la puerta se entreabre, unos dedos se agarran
+    //    del canto y alguien se asoma.
+    // 3. Su expediente: general. Brinca de gusto, entra, la puerta se azota y se vuelve su
+    //    expediente, que se llena, recibe su sello y se queda meciéndose.
+
+    const hojaPuerta = (c) => remuestra([[240 - 60 * c, 56], [240, 56], [240, 168], [240 - 60 * c, 168]], 96)
+    const EXPEDIENTE = remuestra([[112, 72], [142, 72], [150, 81], [208, 81], [208, 140], [112, 140]], 96)
+    const calle = (k) =>
+      T(P.rect(48, 62, 58, 46, 6), { cls: 'ln fino tenue tz', amp: 0.5, n: k + 'vent' }) +
+      T([P.linea(77, 62, 77, 108), P.linea(48, 85, 106, 85)], { cls: 'ln fino tenue', amp: 0.4, n: k + 'cruz' }) +
+      T(P.linea(14, 168, 306, 168), { cls: 'ln tz', n: k + 'piso' }) +
+      T(P.poli([[183, 59], [251, 59], [251, 168], [183, 168]], true), { cls: 'blq', n: k + 'blq' })
+    const MARCO = [[174, 168], [174, 50], [246, 50], [246, 168]]
+    const detalle = () => T(P.rect(190, 68, 40, 36, 4), { cls: 'ln fino tenue', amp: 0.4 }) + T(P.circ(190, 119, 3, 8), { cls: 'ln fino', amp: 0.2 })
+    const DEDOS = [[64, 15], [75, 18], [86, 16.5], [97, 12.5]] // [altura, largo] de cada dedo
+
+    const PUERTA = {
+      abre: [20, 150],
+      cierra: [196, 128],
+      cartel: 13.4,
+      planos: [
+        {
+          nombre: 'Toca',
+          dur: 4.9,
+          svg: () =>
+            G(
+              'pc0',
+              calle('p0') +
+                G('p0hoja', T(P.poli([[180, 56], [240, 56], [240, 168], [180, 168]], true), { cls: 'ln tapa', amp: 0.7 }) + detalle()) +
+                T(P.poli(MARCO), { cls: 'ln' }) +
+                rayos('p0toc', [[168, 105, 161, 98], [165, 114, 155, 114], [168, 123, 161, 130]]) +
+                `<circle class="lleno" data-n="p0e1" cx="136" cy="134" r="2.3"/><circle class="lleno" data-n="p0e2" cx="146" cy="134" r="2.3"/><circle class="lleno" data-n="p0e3" cx="156" cy="134" r="2.3"/>` +
+                punto(9, 'p0pt'),
+            ),
+          paso(q, t) {
+            traza(q('p0vent'), 1)
+            traza(q('p0piso'), 1)
+            let x = -14
+            let y = 159
+            let sx = 1
+            let sy = 1
+            for (const [a, z, x0, x1] of [[0.35, 0.85, -14, 42], [0.85, 1.35, 42, 96], [1.35, 1.85, 96, 146]]) {
+              if (t < a) continue
+              const p = tramo(t, a, z)
+              const b = brinco(p, 26)
+              x = mezcla(x0, x1, p)
+              y = 159 + b.dy
+              ;({ sx, sy } = b)
+            }
+            // dos toques: se echa atrás para tomar vuelo, sube en arco y se estira hacia la puerta
+            for (const a of [2.05, 2.56]) {
+              const vuelo = salto(tramo(t, a, a + 0.16))
+              const p = tramo(t, a + 0.13, a + 0.47)
+              x += -5 * vuelo + 15 * salto(p)
+              y -= 42 * salto(p)
+              if (vuelo > 0 && p <= 0) {
+                sx = 1 - 0.14 * vuelo
+                sy = 1 / sx
+              }
+              if (p > 0 && p < 1) {
+                sx = 1 + 0.28 * salto(p)
+                sy = 1 / sx
+              }
+            }
+            // nadie sale: se agacha y da un brinco alto para asomarse; arriba se queda un instante
+            const agacha = salto(tramo(t, 3.02, 3.22))
+            const pa = tramo(t, 3.2, 4.02)
+            if (agacha > 0 && pa <= 0) {
+              sy = 1 - 0.3 * agacha
+              sx = 1 / sy
+            }
+            if (pa > 0 && pa < 1) {
+              y -= 76 * Math.pow(salto(pa), 0.5)
+              sy = 1 + 0.26 * salto(tramo(pa, 0, 0.3)) + 0.2 * salto(tramo(pa, 0.72, 1))
+              sx = 1 / sy
+            }
+            const aterriza = golpe(t, 4.02, 0.2)
+            if (aterriza > 0) {
+              sy = 1 - 0.32 * aterriza
+              sx = 1 / sy
+            }
+            pon(q('p0pt'), { x, y: y + 9 * (1 - sy), sx, sy })
+            const toque = Math.max(golpe(t, 2.35, 0.26), golpe(t, 2.86, 0.26))
+            ve(q('p0toc'), toque)
+            pon(q('p0hoja'), { x: 1.6 * toque * Math.sin(t * 80) })
+            ;['p0e1', 'p0e2', 'p0e3'].forEach((n, i) => ve(q(n), rebota(tramo(t, 4.12 + i * 0.22, 4.3 + i * 0.22))))
+            const avanza = suave(tramo(t, 0, 4.9))
+            camara(q('pc0'), 160 + 7 * avanza + sacude(t, 2.35, 1.6) + sacude(t, 2.86, 1.6), 100 + sacude(t, 4.02, 1.4), 1 + 0.07 * avanza)
+          },
+        },
+        {
+          nombre: 'Le abren',
+          dur: 3.5,
+          svg: () =>
+            G(
+              'pc1',
+              `<rect class="lleno" x="92" y="-20" width="170" height="240"/><ellipse class="luz" data-n="p1oi"/><ellipse class="luz" data-n="p1od"/>` +
+                G(
+                  'p1hoja',
+                  `<rect class="luz" x="92" y="-20" width="280" height="240"/>` +
+                    T(P.linea(92, -14, 92, 214), { cls: 'ln' }) +
+                    T(P.rect(196, 22, 160, 156, 8), { cls: 'ln fino tenue', amp: 0.6 }) +
+                    T(P.rect(117, 101, 40, 80, 14), { cls: 'blq' }) +
+                    T(P.rect(112, 96, 40, 80, 14), { cls: 'ln tapa' }) +
+                    T([P.circ(132, 158, 3.4, 8), P.linea(132, 161.5, 132, 169, 3)], { cls: 'ln fino', amp: 0.25 }) +
+                    G('p1per', T(P.circ(0, 0, 15, 14), { cls: 'ln tapa', amp: 0.6 }) + T(P.linea(0, -3, 0, -11, 3), { cls: 'ln fino', amp: 0.2 })),
+                ) +
+                DEDOS.map((_, i) => T(D(capsula([0, 0], [1, 0], 9, 4)), { cls: 'ln tapa', amp: 0.25, n: 'p1d' + i })).join('') +
+                T(P.linea(92, -14, 92, 214), { cls: 'ln' }) +
+                T(P.linea(74, -14, 74, 214), { cls: 'ln' }) +
+                rayos('p1clic', [[156, 114, 164, 109], [158, 126, 168, 126], [156, 138, 164, 143]]),
+            ),
+          paso(q, t) {
+            // la perilla toma vuelo hacia atrás, gira y se pasa
+            pon(q('p1per'), { x: 132, y: 126, r: -16 * salto(tramo(t, 0.15, 0.5)) + 80 * rebota(tramo(t, 0.5, 0.98)) })
+            ve(q('p1clic'), golpe(t, 0.94, 0.3))
+            const abre = suave(tramo(t, 1.05, 1.95)) + 0.06 * salto(tramo(t, 2.5, 3.0))
+            pon(q('p1hoja'), { ox: 344, oy: 100, sx: 1 - 0.3 * abre, sy: 1 })
+            // los dedos se agarran del canto, uno por uno
+            const canto = 344 - 252 * (1 - 0.3 * abre)
+            DEDOS.forEach(([y, largo], i) => {
+              const sale = rebota(tramo(t, 1.5 + i * 0.09, 1.78 + i * 0.09))
+              const el = q('p1d' + i)
+              forma(el, capsula([canto - 3, y + 0.5], [canto - 3 + (largo + 3) * sale + 0.8 * Math.sin(t * 5 + i), y - 1.5], 9, 4))
+              ve(el, sale > 0.02 ? 1 : 0)
+            })
+            // alguien se asoma, parpadea y mira hacia abajo, donde está el punto
+            const asoma = rebota(tramo(t, 2.0, 2.3)) * (1 - 0.94 * campana(t, 2.75, 0.08))
+            const baja = suave(tramo(t, 2.35, 2.65))
+            const amable = suave(tramo(t, 3.0, 3.25))
+            ojo(q('p1oi'), 116 - 1.5 * baja, 36 + 3 * baja, 4.2, 4.8 * asoma * (1 - 0.35 * amable))
+            ojo(q('p1od'), 138 - 1.5 * baja, 36 + 3 * baja, 4.2, 4.8 * asoma * (1 - 0.35 * amable))
+            camara(q('pc1'), 160 - 9 * abre, 100, 1 + 0.06 * tramo(t, 0, 3.5))
+          },
+        },
+        {
+          nombre: 'Su expediente',
+          dur: 6.1,
+          svg: () =>
+            G(
+              'pc2',
+              calle('p2') +
+                T(P.poli([[180, 56], [240, 56], [240, 168], [180, 168]], true), { cls: 'lleno', amp: 0.5, n: 'p2negro' }) +
+                `<ellipse class="luz" data-n="p2oi"/><ellipse class="luz" data-n="p2od"/>` +
+                punto(9, 'p2pt') +
+                T(D(hojaPuerta(0.25)), { cls: 'ln tapa', amp: 0.7, n: 'p2hoja' }) +
+                G('p2det', detalle()) +
+                T(P.poli(MARCO), { cls: 'ln tz', n: 'p2marco' }) +
+                G(
+                  'p2exp',
+                  T(P.linea(120, 77.5, 136, 77.5, 3), { cls: 'ln fino tenue tz', amp: 0.3, n: 'p2l0' }) +
+                    T(P.linea(124, 96, 196, 96), { cls: 'ln fino tz', amp: 0.4, n: 'p2l1' }) +
+                    T(P.linea(124, 110, 180, 110), { cls: 'ln fino tz', amp: 0.4, n: 'p2l2' }) +
+                    T(P.linea(124, 124, 164, 124), { cls: 'ln fino tz', amp: 0.4, n: 'p2l3' }),
+                ) +
+                corona('p2ray', 8, 15, 24) +
+                punto(10, 'p2sello'),
+            ),
+          paso(q, t) {
+            // dos brinquitos de gusto y entra de un salto
+            const g1 = brinco(tramo(t, 0.05, 0.3), 9)
+            const g2 = brinco(tramo(t, 0.3, 0.55), 12)
+            const p = tramo(t, 0.6, 1.3)
+            const b = p > 0 ? brinco(p, 30) : g2.dy ? g2 : g1
+            const px = mezcla(146, 212, suave(p))
+            const py = mezcla(159, 150, p) + b.dy
+            pon(q('p2pt'), { x: px, y: py + 9 * (1 - b.sy) * (1 - p), sx: b.sx * mezcla(1, 0.6, p), sy: b.sy * mezcla(1, 0.6, p), o: 1 - tramo(t, 1.16, 1.32) })
+            // desde adentro lo siguen con la mirada
+            const ojos = (1 - tramo(t, 1.2, 1.35)) * (1 - 0.9 * campana(t, 0.42, 0.07))
+            ojo(q('p2oi'), 196 + (px - 180) * 0.03, 104 + (py - 150) * 0.03, 1.9, 2.3 * ojos)
+            ojo(q('p2od'), 206 + (px - 180) * 0.03, 104 + (py - 150) * 0.03, 1.9, 2.3 * ojos)
+            // la puerta se azota, y luego deja de ser puerta
+            const cierre = mezcla(0.25, 1, rebota(tramo(t, 1.35, 1.8)))
+            const vuelo = salto(tramo(t, 2.1, 2.36))
+            const m = elastico(tramo(t, 2.3, 3.4))
+            const cae = acelera(tramo(t, 4.2, 4.4))
+            const bote = salto(tramo(t, 4.4, 4.72))
+            const mece = -3 * golpe(t, 4.4, 1.2) * Math.sin((t - 4.4) * 12)
+            forma(q('p2hoja'), mezclaPts(hojaPuerta(cierre + 0.05 * vuelo), EXPEDIENTE, m))
+            pon(q('p2hoja'), { ox: 160, oy: 110, y: -4 * bote, r: mece })
+            pon(q('p2exp'), { ox: 160, oy: 110, y: -4 * bote, r: mece })
+            ve(q('p2negro'), t < 1.82 ? 1 : 0)
+            ve(q('p2det'), tramo(t, 1.74, 1.86) * (1 - tramo(t, 2.05, 2.2)))
+            const borra = 1 - suave(tramo(t, 2.05, 2.75))
+            traza(q('p2marco'), borra)
+            traza(q('p2piso'), borra)
+            traza(q('p2vent'), 1 - suave(tramo(t, 1.95, 2.45)))
+            ve(q('p2cruz'), 1 - tramo(t, 1.95, 2.25))
+            ve(q('p2blq'), 1 - tramo(t, 2.05, 2.35))
+            traza(q('p2l0'), suave(tramo(t, 3.25, 3.5)))
+            traza(q('p2l1'), suave(tramo(t, 3.35, 3.75)))
+            traza(q('p2l2'), suave(tramo(t, 3.5, 3.9)))
+            traza(q('p2l3'), suave(tramo(t, 3.65, 4.0)))
+            // el sello: aparece arriba, toma vuelo y cae
+            const asoma = frena(tramo(t, 3.6, 3.95))
+            const sy = 1 - 0.34 * golpe(t, 4.4, 0.2)
+            pon(q('p2sello'), { x: 196, y: mezcla(mezcla(-16, 30, asoma) - 8 * salto(tramo(t, 3.95, 4.22)), 128, cae) - 4 * bote, sx: (2 - sy) * mezcla(1.25, 1, cae), sy: sy * mezcla(1.25, 1, cae) })
+            pon(q('p2ray'), { x: 196, y: 128, sx: mezcla(0.6, 1.25, frena(tramo(t, 4.4, 4.9))), o: golpe(t, 4.4, 0.5) })
+            const acerca = suave(tramo(t, 2.25, 3.4))
+            camara(q('pc2'), 160 + sacude(t, 1.7, 2) + sacude(t, 4.4, 2.6), 100 + 6 * acerca, 1 + 0.16 * acerca)
+          },
+        },
+      ],
+    }
+
+    // ═══════════════ Corto 3 · El cobro ═══════════════
+    // 1. Caen: el frasco abre la boca antes de cada moneda y traga; giran al caer y se apilan.
+    //    Al final brinca de gusto.
+    // 2. Se vuelve recibo: el frasco se estira hasta ser un recibo y las monedas, sus renglones.
+    // 3. Sellado: una mano baja con el sello, toma vuelo, lo estampa y se va. El recibo salta.
+
+    const FRASCO = remuestra(rectPts(126, 62, 68, 98, 14), 96)
+    const RECIBO_V = [[124, 30], [196, 30], [196, 166], [187, 158], [178, 166], [169, 158], [160, 166], [151, 158], [142, 166], [133, 158], [124, 166]]
+    const RECIBO = remuestra(RECIBO_V, 96)
+    const MONEDAS = [150, 140, 130].map((y) => elipsePts(160, y, 22, 6.5, 22))
+    const RENGLONES = [[162, 98, 26], [156, 78, 20], [162, 58, 26]].map(([x, y, rx]) => elipsePts(x, y, rx, 0.05, 22))
+
+    const COBRO = {
+      abre: [160, -6],
+      cierra: [186, 134],
+      cartel: 9.6,
+      planos: [
+        {
+          nombre: 'Caen',
+          dur: 3.9,
+          svg: () =>
+            G(
+              'cc0',
+              T(P.linea(40, 160, 280, 160), { cls: 'ln' }) +
+                G(
+                  'c0jar',
+                  T(P.rect(132, 68, 68, 98, 14), { cls: 'blq' }) +
+                    T(P.rect(126, 62, 68, 98, 14), { cls: 'ln tapa' }) +
+                    [0, 1, 2].map((k) => G('c0m' + k, T(P.elipse(0, 0, 22, 6.5, 16), { cls: 'azul', amp: 0.4 }) + T(P.elipse(0, 0, 22, 6.5, 16), { cls: 'ln fino', amp: 0.4 }))).join('') +
+                    T(D(elipsePts(160, 62, 30, 6.5, 18)), { cls: 'ln tapa', amp: 0.6, n: 'c0aro' }),
+                ) +
+                rayos('c0chis', [[134, 44, 126, 34], [160, 40, 160, 28], [186, 44, 194, 34]]),
+            ),
+          paso(q, t) {
+            const caidas = [0.95, 1.65, 2.35] // el instante en que cae cada una
+            let giro = 0
+            let aplasta = 0
+            let chispa = 0
+            let boca = 0
+            caidas.forEach((c, k) => {
+              const p = acelera(tramo(t, c - 0.5, c))
+              const y = mezcla(-16, 150 - 10 * k, p) - 6 * salto(tramo(t, c, c + 0.24))
+              // gira en el aire; ya en la pila la aplastan las que caen después
+              const encima = caidas.slice(k + 1).reduce((s, d) => s + golpe(t, d, 0.2), 0)
+              pon(q('c0m' + k), { x: 160, y, sx: 1, sy: t < c ? Math.cos((t - c) * 15) : 1 - 0.3 * encima - 0.25 * golpe(t, c, 0.16), o: t < c - 0.5 ? 0 : 1 })
+              giro += 2.4 * golpe(t, c, 0.55) * Math.sin((t - c) * 24)
+              aplasta += golpe(t, c, 0.2)
+              chispa = Math.max(chispa, golpe(t, c, 0.3))
+              // abre la boca para recibirla y la cierra de golpe al tragar
+              boca += salto(tramo(t, c - 0.5, c - 0.14)) - 0.6 * golpe(t, c - 0.12, 0.2)
+            })
+            forma(q('c0aro'), elipsePts(160, 62 - 2 * boca, 30 * (1 + 0.16 * boca), 6.5 * (1 + 0.5 * Math.max(0, boca)), 18))
+            // de gusto: se agacha, brinca y cae
+            const agacha = salto(tramo(t, 2.85, 3.05))
+            const aire = salto(tramo(t, 3.05, 3.45))
+            const cae = golpe(t, 3.45, 0.22)
+            const sy = 1 - 0.03 * aplasta - 0.09 * agacha + 0.07 * aire - 0.08 * cae
+            pon(q('c0jar'), { ox: 160, oy: 160, y: -13 * aire, r: giro, sx: 2 - sy, sy })
+            ve(q('c0chis'), chispa)
+            camara(q('cc0'), 160 + caidas.reduce((s, c) => s + sacude(t, c, 1.2, 0.25), 0), 100, 1)
+          },
+        },
+        {
+          nombre: 'Se vuelve recibo',
+          dur: 2.6,
+          svg: () =>
+            G(
+              'cc1',
+              T(P.linea(40, 160, 280, 160), { cls: 'ln tz', n: 'c1mesa' }) +
+                T(D(corre(FRASCO, 6, 6)), { cls: 'blq', n: 'c1blq' }) +
+                T(D(FRASCO), { cls: 'ln tapa', n: 'c1cuerpo' }) +
+                [0, 1, 2].map((k) => T(D(MONEDAS[k]), { cls: 'ln fino', amp: 0.4, n: 'c1f' + k })).join('') +
+                T(P.elipse(160, 62, 30, 6.5, 16), { cls: 'ln tz', amp: 0.6, n: 'c1aro' }) +
+                T(P.linea(138, 126, 182, 126), { cls: 'ln tz', amp: 0.4, n: 'c1total' }),
+            ),
+          paso(q, t) {
+            const vuelo = salto(tramo(t, 0.15, 0.55))
+            const m = elastico(tramo(t, 0.5, 1.7))
+            const pts = mezclaPts(FRASCO, RECIBO, m)
+            forma(q('c1cuerpo'), pts)
+            forma(q('c1blq'), corre(pts, 6, 6))
+            const sy = 1 - 0.08 * vuelo
+            pon(q('c1cuerpo'), { ox: 160, oy: 160, sx: 2 - sy, sy })
+            pon(q('c1blq'), { ox: 160, oy: 160, sx: 2 - sy, sy })
+            ;[0, 1, 2].forEach((k) => {
+              const mk = suave(tramo(t, 0.6 + 0.14 * k, 1.35 + 0.14 * k))
+              const el = q('c1f' + k)
+              forma(el, mezclaPts(MONEDAS[k], RENGLONES[k], mk))
+              el.style.fill = 'var(--acento)'
+              el.style.fillOpacity = F(1 - mk)
+            })
+            traza(q('c1aro'), 1 - suave(tramo(t, 0.25, 0.65)))
+            traza(q('c1mesa'), 1 - suave(tramo(t, 0.45, 1.05)))
+            traza(q('c1total'), suave(tramo(t, 1.75, 2.15)))
+            const acerca = suave(tramo(t, 0.3, 1.9))
+            camara(q('cc1'), 160, 100 - 2 * acerca, 1 + 0.1 * acerca)
+          },
+        },
+        {
+          nombre: 'Sellado',
+          dur: 4.6,
+          svg: () =>
+            G(
+              'cc2',
+              G(
+                'c2rec',
+                T(P.poli(corre(RECIBO_V, 6, 6), true), { cls: 'blq' }) +
+                  T(P.poli(RECIBO_V, true), { cls: 'ln tapa' }) +
+                  T([P.linea(136, 58, 188, 58), P.linea(136, 78, 176, 78), P.linea(136, 98, 188, 98)], { cls: 'ln fino', amp: 0.4 }) +
+                  T(P.linea(138, 126, 182, 126), { cls: 'ln', amp: 0.4 }) +
+                  G('c2marca', T(P.circ(0, 0, 14, 16), { cls: 'azul', amp: 0.6 }) + T(P.poli([[-6.2, 0.6], [-1.9, 5.2], [6.8, -5]]), { cls: 'ln ln-claro tz', amp: 0.3, n: 'c2ok' })),
+              ) +
+                corona('c2ray', 9, 24, 36) +
+                // el sello y la mano que lo empuña: el origen es la base del sello
+                G(
+                  'c2sello',
+                  T(D(capsula([4, -52], [24, -260], 18)), { cls: 'ln tapa', amp: 0.5 }) +
+                    T(D(capsula([0, -8], [0, -24], 9, 3)), { cls: 'ln tapa', amp: 0.3 }) +
+                    T(P.rect(-18, -10, 36, 10, 3.5), { cls: 'ln tapa', amp: 0.4 }) +
+                    T(P.linea(-14, -5.2, 14, -5.2, 3), { cls: 'ln fino tenue', amp: 0.2 }) +
+                    `<g transform="translate(1 -50) rotate(184)">${manoSvg('c2m')}</g>`,
+                ),
+            ),
+          paso(q, t) {
+            const llega = frena(tramo(t, 0.2, 0.95))
+            const vuelo = salto(tramo(t, 1.02, 1.36))
+            const cae = acelera(tramo(t, 1.34, 1.5))
+            const pega = golpe(t, 1.5, 0.26)
+            const quita = rebota(tramo(t, 1.86, 2.3))
+            const sefue = acelera(tramo(t, 2.45, 3.1))
+            const x = mezcla(mezcla(mezcla(232, 200, llega), 186, cae), 236, sefue) + 8 * quita * (1 - sefue)
+            const y = mezcla(mezcla(mezcla(-50, 84, llega) - 13 * vuelo, 136, cae) - 62 * quita, -70, sefue)
+            const sy = 1 + (t < 1.5 ? 0.1 * cae : 0) - 0.1 * pega
+            pon(q('c2sello'), { x, y, r: mezcla(10, 0, llega) - 5 * vuelo + 7 * quita, sx: 2 - sy, sy })
+            // la marca solo existe después del golpe
+            pon(q('c2marca'), { x: 186, y: 134, r: -10, o: t < 1.5 ? 0 : 1 })
+            traza(q('c2ok'), suave(tramo(t, 2.2, 2.6)))
+            pon(q('c2ray'), { x: 186, y: 134, sx: mezcla(0.6, 1.2, frena(tramo(t, 1.5, 2.0))), o: golpe(t, 1.5, 0.5) })
+            // el recibo recibe el golpe: se hunde, salta y se mece hasta quedarse quieto
+            const mece = golpe(t, 1.86, 1.3)
+            pon(q('c2rec'), { ox: 160, oy: 98, y: 3 * pega - 5 * salto(tramo(t, 1.86, 2.2)), r: -3.4 * mece * Math.sin((t - 1.86) * 11) })
+            camara(q('cc2'), 160 + sacude(t, 1.5, 3), 98, 1.1)
+          },
+        },
+      ],
+    }
+
+    const CORTOS = [
+      { id: 'pensando', c: PENSANDO, k: 'Carga', t: 'Soma está pensando…', d: 'Las preguntas difíciles tardan más.', tec: ['3 planos', 'Actúa por partes', 'Se sube los lentes', 'Entrar al globo', 'El enredo se suelta'], estelar: true },
+      { id: 'puerta', c: PUERTA, k: 'Vacío', t: 'Todavía no tienes prospectos', d: 'Deberías preparar tu primera visita, su expediente aparecerá aquí al terminar.', b: 'Preparar visita', tec: ['3 planos', 'Corte a detalle', 'Puerta → expediente'] },
+      { id: 'cobro', c: COBRO, k: 'Éxito', t: 'El pago quedó registrado', d: 'Está a tu nombre, con la fecha de hoy.', tec: ['3 planos', 'Frasco → recibo', 'Monedas → renglones'] },
+    ]
+    for (const { c } of CORTOS) c.dur = c.planos.reduce((s, p) => s + p.dur, 0)
+
+    // ═══════════════ Bucles (160 × 120) ═══════════════
+    // Para lugares chicos: una sola idea que se repite. `dur` es el largo del bucle, `cartel` el
+    // instante que la representa quieta y `paso(q, t)` lo que cambia con el tiempo.
+
+    const garabato = ([x0, x1, y], p) => [mezcla(x0, x1, p), y + 1.7 * Math.sin((p * (x1 - x0) * TAU) / 7.6)]
+    const renglon = (r, n) => T(P.suave(Array.from({ length: 25 }, (_, i) => garabato(r, i / 24))), { cls: 'ln fino tz', amp: 0.35, n })
+    const R1 = [61, 97, 43]
+    const R2 = [61, 92, 58]
+    const R3 = [61, 80, 73]
+    const DESCANSO = [116, 54]
+
+    const ESCENAS = {
+      // Guardando: un lápiz escribe tres renglones en el expediente y pone el punto final.
+      escribe: {
+        dur: 5.4,
+        cartel: 3.9,
+        svg: () =>
+          T(P.poli([[57, 27], [111, 27], [111, 105], [57, 105]], true), { cls: 'blq' }) +
+          T(P.poli([[52, 22], [94, 22], [106, 34], [106, 100], [52, 100]], true), { cls: 'ln tapa' }) +
+          T(P.poli([[94, 22], [94, 34], [106, 34]]), { cls: 'ln fino' }) +
+          G('texto', renglon(R1, 'r1') + renglon(R2, 'r2') + renglon(R3, 'r3') + punto(3.4)) +
+          G(
+            'lapiz',
+            T(P.poli([[0, 0], [2.6, -9.4], [19, -33], [26.6, -27.6], [10.2, -4.2]], true), { cls: 'ln tapa', amp: 0.5 }) +
+              T([P.linea(2.6, -9.4, 10.2, -4.2), P.linea(15.4, -27.8, 23, -22.4)], { cls: 'ln fino', amp: 0.3 }),
+          ),
+        paso(q, t) {
+          const p1 = suave(tramo(t, 0.4, 1.4))
+          const p2 = suave(tramo(t, 1.6, 2.6))
+          const p3 = suave(tramo(t, 2.8, 3.4))
+          traza(q('r1'), p1)
+          traza(q('r2'), p2)
+          traza(q('r3'), p3)
+          const FIN = [86.5, 73.4]
+          const pasa = (a, b, p) => [mezcla(a[0], b[0], suave(p)), mezcla(a[1], b[1], suave(p)) - 6 * salto(p)]
+          let pos
+          if (t < 0.4) pos = pasa(DESCANSO, garabato(R1, 0), tramo(t, 0, 0.4))
+          else if (t < 1.4) pos = garabato(R1, p1)
+          else if (t < 1.6) pos = pasa(garabato(R1, 1), garabato(R2, 0), tramo(t, 1.4, 1.6))
+          else if (t < 2.6) pos = garabato(R2, p2)
+          else if (t < 2.8) pos = pasa(garabato(R2, 1), garabato(R3, 0), tramo(t, 2.6, 2.8))
+          else if (t < 3.4) pos = garabato(R3, p3)
+          else if (t < 3.62) pos = pasa(garabato(R3, 1), FIN, tramo(t, 3.4, 3.62))
+          else if (t < 3.9) pos = FIN
+          else pos = pasa(FIN, DESCANSO, tramo(t, 3.9, 4.5))
+          const escribe = (t > 0.4 && t < 1.4) || (t > 1.6 && t < 2.6) || (t > 2.8 && t < 3.4)
+          pon(q('lapiz'), { x: pos[0], y: pos[1], r: escribe ? 3.5 * Math.sin(t * 15) : 0 })
+          pon(q('pt'), { x: FIN[0], y: FIN[1], sx: rebota(tramo(t, 3.62, 3.9)) })
+          ve(q('texto'), 1 - tramo(t, 4.8, 5.3))
+        },
+      },
+
+      // Sin citas: el punto recorre los días y aparta uno.
+      calendario: {
+        dur: 5.8,
+        cartel: 4.4,
+        svg: () =>
+          T(P.rect(49, 31, 72, 70, 8), { cls: 'blq' }) +
+          T(P.rect(44, 26, 72, 70, 8), { cls: 'ln tapa' }) +
+          T(P.linea(44.5, 45, 115.5, 45), { cls: 'ln fino' }) +
+          T([P.linea(62, 20, 62, 33, 3), P.linea(98, 20, 98, 33, 3)], { cls: 'ln', amp: 0.4 }) +
+          T(
+            [56, 72, 88, 104].flatMap((x) => [58, 71, 84].map((y) => P.linea(x - 3.4, y, x + 3.4, y, 3))),
+            { cls: 'ln fino tenue', amp: 0.3 },
+          ) +
+          G('cerco', T(P.circ(104, 84, 9.5, 14), { cls: 'ln fino ln-azul tz', amp: 0.5 })) +
+          punto(4.6),
+        paso(q, t) {
+          const Dias = [[56, 58], [88, 58], [72, 71], [104, 84]]
+          let [x, y] = Dias[0]
+          let b = { dy: 0, sx: 1, sy: 1 }
+          ;[[1.0, 1.5], [2.0, 2.5], [3.0, 3.5]].forEach(([a, z], i) => {
+            const p = tramo(t, a, z)
+            if (p > 0) {
+              x = mezcla(Dias[i][0], Dias[i + 1][0], suave(p))
+              y = mezcla(Dias[i][1], Dias[i + 1][1], suave(p))
+              b = brinco(p, 11)
+            }
+          })
+          const fuera = tramo(t, 5.2, 5.7)
+          const nace = rebota(tramo(t, 0.15, 0.5))
+          pon(q('pt'), { x, y: y + b.dy, sx: nace * b.sx, sy: nace * b.sy, o: 1 - fuera })
+          traza(q('cerco').firstChild, suave(tramo(t, 3.75, 4.35)))
+          ve(q('cerco'), 1 - fuera)
+        },
+      },
+
+      // Sin resultados: una lupa recorre los renglones y debajo no hay nada.
+      lupa: {
+        dur: 6.4,
+        cartel: 1.2,
+        svg: () =>
+          T([P.linea(34, 40, 114, 40), P.linea(34, 60, 98, 60), P.linea(34, 80, 108, 80)], { cls: 'ln fino tenue', amp: 0.5 }) +
+          G(
+            'lente',
+            T(P.circ(5, 5, 18, 16), { cls: 'blq' }) +
+              T(P.linea(13.5, 13.5, 27, 27, 4), { cls: 'ln', amp: 0.4 }) +
+              T(P.circ(0, 0, 18, 16), { cls: 'ln tapa', amp: 0.7 }) +
+              punto(4.8),
+          ),
+        paso(q, t) {
+          const a = (t / 6.4) * TAU
+          const vx = Math.cos(a) * 30
+          const vy = 2 * Math.cos(2 * a + 0.6) * 15
+          const l = Math.hypot(vx, vy) || 1
+          pon(q('lente'), { x: 76 + 30 * Math.sin(a), y: 58 + 15 * Math.sin(2 * a + 0.6) })
+          pon(q('pt'), { x: (vx / l) * 7.5, y: (vy / l) * 7.5 })
+        },
+      },
+
+      // Sin sistemas: una ventana con su señal de vida.
+      ventana: {
+        dur: 3.8,
+        cartel: 2.3,
+        svg: () =>
+          T(P.rect(41, 29, 88, 68, 8), { cls: 'blq' }) +
+          T(P.rect(36, 24, 88, 68, 8), { cls: 'ln tapa' }) +
+          T(P.linea(36.5, 41, 123.5, 41), { cls: 'ln fino' }) +
+          T([P.circ(46.5, 32.6, 2.1, 7), P.circ(54.5, 32.6, 2.1, 7)], { cls: 'ln fino tenue', amp: 0.2 }) +
+          G('onda', T(P.circ(0, 0, 5, 10), { cls: 'ln fino ln-azul', amp: 0.3 })) +
+          punto(3.6) +
+          T(P.poli([[46, 68], [62, 68], [67, 61], [72, 68], [79, 68], [84, 50], [90, 82], [95, 68], [114, 68]]), { cls: 'ln tz', amp: 0.5, n: 'pulso' }),
+        paso(q, t) {
+          const fuera = tramo(t, 3.2, 3.7)
+          traza(q('pulso'), tramo(t, 0.3, 2.1))
+          ve(q('pulso'), 1 - fuera)
+          const late = (t % 1.9) / 1.9
+          pon(q('pt'), { x: 113, y: 32.6, sx: 1 + 0.25 * golpe(late, 0, 0.2) })
+          pon(q('onda'), { x: 113, y: 32.6, sx: 0.7 + 1.7 * frena(late), o: 0.9 * (1 - late) })
+        },
+      },
+    }
+
+    const ESTADOS = [
+      { e: 'escribe', k: 'Carga', t: 'Guardando el expediente…', d: 'Esto tardará unos segundos.' },
+      { e: 'calendario', k: 'Vacío', t: 'No tienes citas esta semana', d: 'Las citas que apartes en una visita aparecerán aquí.' },
+      { e: 'lupa', k: 'Búsqueda', t: 'No hay nada con ese nombre', d: 'Deberías probar con otra palabra.' },
+      { e: 'ventana', k: 'Vacío', t: 'Todavía no has entregado sistemas', d: 'Deberías registrar aquí cada sistema que entregues, así podrás cuidarlo a distancia.' },
+    ]
+
+    // ═══════════════ Iconos (retícula de 24) ═══════════════
+    const ICONOS = {
+      perfil: [P.circ(12, 8.2, 3.6, 10), P.arco(12, 21.6, 7.6, 205, 335, 7)],
+      pagos: [P.rect(3, 5.5, 18, 13, 2.6), P.linea(3.3, 10, 20.7, 10, 4), P.linea(6.5, 14.6, 10.5, 14.6, 3)],
+      uso: [P.arco(12, 15, 8.6, 172, 368, 12), P.linea(12, 15, 15.8, 9.4, 3), P.circ(12, 15, 1.1, 6)],
+      avisos: [P.suave([[4.8, 17.2], [6.6, 15], [7, 11], [8.6, 7.4], [12, 5.6], [15.4, 7.4], [17, 11], [17.4, 15], [19.2, 17.2]]), P.linea(4.8, 17.2, 19.2, 17.2, 4), P.arco(12, 18.3, 2.2, 15, 165, 5), P.linea(12, 3.6, 12, 5.4, 3)],
+      agenda: [P.rect(4, 5.5, 16, 14.5, 2.6), P.linea(4.3, 10, 19.7, 10, 4), P.linea(8.5, 3.5, 8.5, 7, 3), P.linea(15.5, 3.5, 15.5, 7, 3)],
+      privacidad: [P.rect(5.5, 10.8, 13, 9.6, 2.6), P.arco(12, 10.8, 4.1, 180, 360, 7), P.circ(12, 15.5, 1.2, 6)],
+      compartir: [P.linea(12, 15.2, 12, 4.6, 4), P.poli([[8, 8.4], [12, 4.4], [16, 8.4]]), P.poli([[5, 14], [5, 19.6], [19, 19.6], [19, 14]])],
+      ajustes: [P.linea(4, 8, 6.6, 8, 3), P.circ(9, 8, 2.3, 8), P.linea(11.4, 8, 20, 8, 4), P.linea(4, 16, 12.6, 16, 4), P.circ(15, 16, 2.3, 8), P.linea(17.4, 16, 20, 16, 3)],
+      conectores: [P.rect(4, 4, 7, 7, 1.8), P.rect(4, 13, 7, 7, 1.8), P.rect(13, 13, 7, 7, 1.8), P.circ(16.5, 7.5, 3.4, 9)],
+      voz: [P.linea(5, 10.4, 5, 13.6, 3), P.linea(8.5, 7.5, 8.5, 16.5, 3), P.linea(12, 4.5, 12, 19.5, 4), P.linea(15.5, 8.5, 15.5, 15.5, 3), P.linea(19, 10.4, 19, 13.6, 3)],
+      ir: [P.poli([[9, 5.5], [15.5, 12], [9, 18.5]])],
+    }
+    const icono = (clave, cls = '') => `<svg class="ic ${cls}" viewBox="0 0 24 24" aria-hidden="true">${T(ICONOS[clave], { amp: 0.22 })}</svg>`
+
+    const MENUS = [
+      ['Cuenta', [['perfil', 'Perfil'], ['pagos', 'Pagos'], ['uso', 'Uso'], ['avisos', 'Avisos'], ['privacidad', 'Privacidad']]],
+      ['Herramientas', [['agenda', 'Agenda'], ['compartir', 'Compartir'], ['ajustes', 'Ajustes'], ['conectores', 'Conectores'], ['voz', 'Voz y dictado']]],
+    ]
+
+    // ═══════════════ Montaje ═══════════════
+    const h = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    const texto = (s, id) => `
+        <div class="estado-tx">
+          <p class="etiqueta">${s.k}</p>
+          <h3 class="estado-t">${h(s.t)}</h3>
+          <p class="estado-d">${h(s.d)}</p>
+          ${s.tec ? `<div class="corto-chips">${s.tec.map((x) => `<span class="chip">${h(x)}</span>`).join('')}</div>` : ''}
+          ${s.b ? `<button type="button" class="btn" id="b-${id}">${h(s.b)}</button>` : ''}
+        </div>`
+    document.getElementById('cortos').innerHTML = CORTOS.map(
+      (s) => `
+      <article class="tarjeta corto ${s.estelar ? 'corto--estelar' : ''}">
+        <div>
+          <div class="lamina"><svg class="cine" viewBox="0 0 320 200" data-corto="${s.id}" role="img" aria-label="${h(s.t)}">${s.c.planos.map((p, i) => `<g data-plano="${i}">${p.svg()}</g>`).join('')}<circle class="telon" data-n="telon" r="0"/></svg></div>
+          <div class="pista">${s.c.planos.map((p) => `<div class="pista-p" style="flex:${p.dur}"><span class="pista-r"><i></i></span><span class="etiqueta">${h(p.nombre)}</span></div>`).join('')}</div>
+        </div>
+        ${texto(s, s.id)}
+      </article>`,
+    ).join('')
+    document.getElementById('estados').innerHTML = ESTADOS.map(
+      (s) => `
+      <article class="tarjeta estado">
+        <div class="lamina"><svg viewBox="0 0 160 120" data-esc="${s.e}" role="img" aria-label="${h(s.t)}">${ESCENAS[s.e].svg()}</svg></div>
+        ${texto(s, s.e)}
+      </article>`,
+    ).join('')
+    document.getElementById('menus').innerHTML = MENUS.map(
+      ([nombre, filas]) => `
+      <div class="menu">
+        <p class="etiqueta">${nombre}</p>
+        <div class="tarjeta"><ul class="lista">${filas.map(([ic, tx]) => `<li class="renglon"><span class="aro">${icono(ic)}</span><span>${tx}</span>${icono('ir', 'ic--chica')}</li>`).join('')}</ul></div>
+      </div>`,
+    ).join('')
+
+    // Cada <svg> es un lienzo: sus trazos vivos y lo que lo mueve (un corto o un bucle).
+    const LIENZOS = [...document.querySelectorAll('svg')].map((svg) => {
+      const cache = new Map()
+      const q = (n) => cache.get(n) || (cache.set(n, svg.querySelector(`[data-n="${n}"]`)), cache.get(n))
+      const corto = CORTOS.find((c) => c.id === svg.dataset.corto)?.c
+      const vivos = [...svg.querySelectorAll('[data-hv]')].map((el) => {
+        const g = el.closest('[data-plano]')
+        return (el._v = { el, lista: VIVOS.get(el.dataset.hv), fuerza: 1, plano: g ? +g.dataset.plano : -1 })
+      })
+      const tarjeta = svg.closest('.corto')
+      return {
+        svg,
+        q,
+        vivos,
+        corto,
+        escena: ESCENAS[svg.dataset.esc],
+        visto: true,
+        plano: -1,
+        grupos: [...svg.querySelectorAll('[data-plano]')],
+        marcas: tarjeta ? [...tarjeta.querySelectorAll('.pista-p')] : [],
+        rellenos: tarjeta ? [...tarjeta.querySelectorAll('.pista-r i')] : [],
+      }
+    })
+    const DE = new Map(LIENZOS.map((l) => [l.svg, l]))
+    if ('IntersectionObserver' in window) {
+      const ojos = new IntersectionObserver((vistos) => vistos.forEach((v) => (DE.get(v.target).visto = v.isIntersecting)), { rootMargin: '120px' })
+      LIENZOS.forEach((l) => ojos.observe(l.svg))
+    }
+
+    /** Un corto en el instante s: encuentra el plano, lo muestra, lo mueve y corre el telón. */
+    function proyecta(l, s) {
+      const c = l.corto
+      const u = s % c.dur
+      let t = u
+      let i = 0
+      while (i < c.planos.length - 1 && t >= c.planos[i].dur) t -= c.planos[i++].dur
+      if (l.plano !== i) {
+        l.grupos.forEach((g, k) => (g.style.display = k === i ? '' : 'none'))
+        l.marcas.forEach((m, k) => m.classList.toggle('activa', k === i))
+        l.plano = i
+      }
+      c.planos[i].paso(l.q, t)
+      l.rellenos.forEach((r, k) => (r.style.width = k < i ? '100%' : k === i ? F((t / c.planos[i].dur) * 100) + '%' : '0'))
+      // El telón es el punto: al final crece desde donde quedó y al empezar se encoge hasta
+      // donde va a pasar lo primero.
+      const abre = 1 - frena(tramo(u, 0, 0.55))
+      const cierra = acelera(tramo(u, c.dur - 0.5, c.dur))
+      const [x, y] = cierra > 0 ? c.cierra : c.abre
+      const telon = l.q('telon')
+      telon.setAttribute('cx', x)
+      telon.setAttribute('cy', y)
+      telon.setAttribute('r', F(400 * Math.max(abre, cierra)))
+    }
+
+    const reducido = matchMedia('(prefers-reduced-motion: reduce)').matches
+    let fijo = null
+
+    /** Pinta todo en el instante s (segundos). */
+    function pinta(s, todo) {
+      const hervor = modo === 'quieto' ? 0 : modo === 'treses' ? Math.floor(s * TRESES) * 7.31 : s
+      const quieto = reducido && fijo === null
+      for (const l of LIENZOS) {
+        if (!l.visto && !todo) continue
+        if (l.corto) proyecta(l, quieto ? l.corto.cartel : s)
+        else if (l.escena) l.escena.paso(l.q, quieto ? l.escena.cartel : s % l.escena.dur)
+        for (const v of l.vivos) if (v.plano < 0 || v.plano === l.plano) v.el.setAttribute('d', dibuja(v.lista, hervor, v.fuerza))
+      }
+    }
+    function cuadro(ms) {
+      if (fijo !== null) return
+      pinta(ms / 1000)
+      requestAnimationFrame(cuadro)
+    }
+    if (reducido) pinta(0, true)
+    else requestAnimationFrame(cuadro)
+
+    // Para revisar: trazo.fija(2.5) detiene todo en ese segundo; trazo.sigue() lo suelta.
+    window.trazo = {
+      fija(s) {
+        fijo = s
+        pinta(s, true)
+      },
+      sigue() {
+        fijo = null
+        requestAnimationFrame(cuadro)
+      },
+    }
+
+    // ═══════════════ Selectores ═══════════════
+    const raiz = document.documentElement
+    const oscuro = () => (raiz.dataset.theme ? raiz.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches)
+    const marca = (grupo, valor) => grupo.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === valor)))
+    const fondo = document.querySelector('[data-mando="fondo"]')
+    const hervor = document.querySelector('[data-mando="hervor"]')
+    marca(fondo, oscuro() ? 'dark' : 'light')
+    fondo.addEventListener('click', (e) => {
+      const b = e.target.closest('button')
+      if (!b) return
+      raiz.dataset.theme = b.dataset.v
+      marca(fondo, b.dataset.v)
+    })
+    hervor.addEventListener('click', (e) => {
+      const b = e.target.closest('button')
+      if (!b) return
+      modo = b.dataset.v
+      marca(hervor, modo)
+      if (reducido || fijo !== null) pinta(fijo ?? 0, true)
+    })
+  })()
+</script>

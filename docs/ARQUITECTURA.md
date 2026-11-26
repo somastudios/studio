@@ -205,6 +205,7 @@ Las cuatro fichas de «Hoy» llevan una película de pixel art con cortes de cá
 - La guía completa para hacer una nueva (y para los trazos SVG) está en `.claude/skills/animacion-soma/SKILL.md`.
 - La guía del estilo de la interfaz (piezas con volumen, formas, fichas de color, en blanco y en negro) está en `.claude/skills/ui-soma/SKILL.md`, con su hoja base y una galería.
 - `docs/trazo-vivo.html` es un documento aparte, sin dependencias: el trazo que hierve a 60 cuadros por segundo (o en treses), tres cortos de varios planos (una persona pensando, la puerta que se vuelve expediente y el cobro que se vuelve recibo), cuatro bucles y un menú de iconos. No está conectado al CRM.
+- La guía para hacer animaciones así (el motor suelto, sus estilos, un ejemplo mínimo, la galería y cómo revisarlas en tiras de fotos) está en `.claude/skills/soma-animation/SKILL.md`. Su `galeria.html` es copia de `docs/trazo-vivo.html`.
 
 ## El lenguaje visual del CRM
 

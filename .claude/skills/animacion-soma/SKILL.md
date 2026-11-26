@@ -98,6 +98,10 @@ Es el iris de la presentación, y vive en `src/app/transicion.js` para usarse do
 - Entre pantallas de distinto tono (`irisA(desde, tono, alCubrir)`): del CRM a la presala y de regreso. El color que llega entra primero, desde donde se tocó.
 - `node scripts/cortina.cjs 5180 <carpeta>` la fotografía cada 70 ms.
 
+## Trazo vivo
+
+El trazo que hierve a 60 cuadros por segundo, los cortos con planos, las formas que se vuelven otras y los personajes de línea son otra skill: `soma-animation` (`.claude/skills/soma-animation/`). Trae su propio motor y no depende de este repositorio.
+
 ## 3. Antes de entregar
 
 ```bash

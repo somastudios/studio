@@ -1,0 +1,130 @@
+/* Trazo vivo · estilos del dibujo
+   Seis colores, todos como variables. El dibujo vive en una «lámina» de un solo color para
+   que las piezas que tapan (la hoja, la puerta, la cabeza) puedan pintarse de ese mismo color. */
+
+:root {
+  --tinta: #050506; /* la línea */
+  --lamina: #e8e4da; /* el fondo donde vive el dibujo */
+  --bloque: rgb(5 5 6 / 0.13); /* el bloque gris desfasado, y la ropa */
+  --acento: #216fff; /* el punto */
+  --pelo: #17181d;
+  --rizo: rgb(239 236 228 / 0.5);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --tinta: #efece4;
+    --lamina: #0f0f13;
+    --bloque: rgb(239 236 228 / 0.2);
+    --acento: #3f83ff;
+    --pelo: #41434f;
+    --rizo: rgb(239 236 228 / 0.42);
+  }
+}
+
+:root[data-theme='dark'] {
+  --tinta: #efece4;
+  --lamina: #0f0f13;
+  --bloque: rgb(239 236 228 / 0.2);
+  --acento: #3f83ff;
+  --pelo: #41434f;
+  --rizo: rgb(239 236 228 / 0.42);
+}
+
+.lamina {
+  border-radius: 16px;
+  background: var(--lamina);
+  overflow: hidden;
+}
+
+.lamina svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* La línea. En un lienzo chico (160 × 120) va de 2.3; en uno de cine (320 × 200), de 3.1. */
+.ln {
+  fill: none;
+  stroke: var(--tinta);
+  stroke-width: 2.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.fino {
+  stroke-width: 1.8;
+}
+
+.cine .ln {
+  stroke-width: 3.1;
+}
+
+.cine .fino {
+  stroke-width: 2.2;
+}
+
+.tenue {
+  opacity: 0.42;
+}
+
+/* Tapa lo que tiene detrás: contorno de tinta y relleno del color de la lámina. */
+.tapa {
+  fill: var(--lamina);
+}
+
+/* El bloque gris: la misma forma, sin contorno, corrida 5 o 6 unidades abajo a la derecha. */
+.blq {
+  fill: var(--bloque);
+  stroke: none;
+}
+
+.azul {
+  fill: var(--acento);
+  stroke: none;
+}
+
+.ln-azul {
+  stroke: var(--acento);
+}
+
+.ln-claro {
+  stroke: #fff;
+}
+
+.lleno {
+  fill: var(--tinta);
+  stroke: none;
+}
+
+.luz {
+  fill: var(--lamina);
+  stroke: none;
+}
+
+.boca {
+  fill: var(--tinta);
+}
+
+.cabello {
+  fill: var(--pelo);
+}
+
+.rizo {
+  stroke: var(--rizo);
+}
+
+.telon {
+  fill: var(--acento);
+}
+
+/* Lo que se dibuja: el trazo mide 1 de largo (pathLength) y se destapa con traza(el, p).
+   Nace oculto: si nadie lo traza en cada cuadro, no se ve. */
+.tz {
+  stroke-dasharray: 1.02 1.1;
+  stroke-dashoffset: 1.06;
+}
+
+.punteada {
+  stroke-dasharray: 0.001 0.085;
+}
