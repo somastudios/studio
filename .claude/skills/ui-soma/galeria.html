@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UI Soma · galería</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap">
+<link rel="stylesheet" href="base.css">
+<style>
+  /* Solo el acomodo de esta página. Las piezas están en base.css. */
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  .g { padding: 28px 16px 72px; }
+  .g-in { max-width: 1040px; margin: 0 auto; display: grid; gap: 34px; }
+  .g-lead { margin: 12px 0 0; max-width: 34em; color: var(--s-tinta-2); font: 400 17px/1.45 var(--s-fuente); }
+  .g-bloque { display: grid; gap: 14px; }
+  .g-fila { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 12px; }
+  .g-dos { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); align-items: start; }
+  .g-fichas { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); padding-bottom: 8px; }
+  .g-forma { display: grid; gap: 16px; }
+  .g-par { display: flex; align-items: center; justify-content: space-between; gap: 14px; font: 600 16px/1.2 var(--s-fuente); }
+  .g-piel { border-radius: 30px; padding: 26px 18px 32px; }
+  .g-piel .g-in { gap: 22px; }
+  @media (min-width: 720px) { .g { padding: 44px 32px 96px; } .g-piel { padding: 34px 30px 40px; } }
+</style>
+</head>
+<body class="s-mesa">
+<main class="g">
+  <div class="g-in">
+    <header>
+      <p class="s-etiqueta">UI Soma · galería</p>
+      <h1 class="s-titulo" style="margin-top:10px">Piezas</h1>
+      <p class="g-lead">Todo lo que se toca se levanta del papel, lo que se llena va hundido y lo demás se queda plano.</p>
+    </header>
+
+    <section class="g-bloque">
+      <p class="s-etiqueta">Botones</p>
+      <div class="g-fila">
+        <button class="s-btn s-btn--pri">Preparar visita</button>
+        <button class="s-btn">Editar</button>
+        <button class="s-btn s-btn--acento">Registrar pago</button>
+        <button class="s-btn s-btn--fantasma">Cancelar</button>
+        <button class="s-btn s-btn--peligro">Quitar</button>
+        <button class="s-btn" disabled>Guardado</button>
+      </div>
+      <button class="s-btn s-btn--ancho">
+        <span><svg class="s-ico" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3.5"/><path d="M8 3v4M16 3v4M3.5 10h17M12 12.5v5M9.5 15h5"/></svg>Nueva cita</span>
+        <svg class="s-ico" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg>
+      </button>
+    </section>
+
+    <section class="g-bloque">
+      <p class="s-etiqueta">Círculos</p>
+      <div class="g-fila">
+        <a class="s-pildora" href="#"><svg class="s-aro" viewBox="0 0 48 48"><circle cx="24" cy="24" r="21.6"/><path d="M24 15v18M15 24h18" stroke-width="2.1"/></svg>Nueva visita</a>
+        <button class="s-redondo" aria-label="Buscar"><svg class="s-ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></button>
+        <button class="s-redondo" aria-label="Siguiente"><svg class="s-ico" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        <span class="s-sello">3</span>
+        <span class="s-sello s-sello--acento">A</span>
+        <span class="s-sello s-sello--grande">D</span>
+        <span class="s-chip"><i class="s-punto"></i>Al corriente</span>
+        <span class="s-chip">Lun</span>
+      </div>
+    </section>
+
+    <section class="g-dos">
+      <article class="s-tarjeta">
+        <h2 class="s-h">Todavía no tienes prospectos</h2>
+        <p class="s-p">Deberías preparar tu primera visita, su expediente aparecerá aquí al terminar.</p>
+        <button class="s-btn s-btn--pri">Preparar visita</button>
+      </article>
+      <article class="s-tarjeta" style="padding:0">
+        <ul class="s-lista">
+          <li class="s-renglon"><span class="s-sello s-sello--grande">T</span><span>Tacos El Güero<small>Visita el jueves a las 10:00</small></span><svg class="s-ico" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></li>
+          <li class="s-renglon"><span class="s-sello s-sello--grande s-sello--acento">B</span><span>Barbería Norte<small>Propuesta enviada</small></span><svg class="s-ico" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></li>
+        </ul>
+      </article>
+    </section>
+
+    <section class="g-dos">
+      <div class="s-tarjeta g-forma">
+        <p class="s-etiqueta">Lo hundido</p>
+        <input class="s-campo" placeholder="Busca: tacos, barbería, taller…">
+        <div class="s-selector" style="justify-self:start">
+          <button aria-pressed="true">Día</button><button aria-pressed="false">Semana</button><button aria-pressed="false">Mes</button>
+        </div>
+        <label class="g-par">Grabar la visita<span class="s-interruptor"><input type="checkbox" checked><i></i></span></label>
+        <label class="g-par">Avisar un día antes<span class="s-interruptor"><input type="checkbox"><i></i></span></label>
+        <div class="s-riel" style="--avance:68%"><i></i></div>
+      </div>
+      <div class="g-fichas">
+        <a class="s-ficha" href="#"><span class="s-ficha-tx"><b class="s-ficha-n">4</b><span class="s-ficha-e">Prospectos en proceso</span></span></a>
+        <a class="s-ficha s-ficha--amarillo" href="#"><span class="s-ficha-tx"><b class="s-ficha-n">2</b><span class="s-ficha-e">Clientes</span></span></a>
+        <a class="s-ficha s-ficha--verde" href="#"><span class="s-ficha-tx"><b class="s-ficha-n">7</b><span class="s-ficha-e">Pagos este mes</span></span></a>
+        <a class="s-ficha s-ficha--rojo" href="#"><span class="s-ficha-tx"><b class="s-ficha-n">1</b><span class="s-ficha-e">Por cobrar</span></span></a>
+        <a class="s-ficha s-ficha--tinta" href="#"><span class="s-ficha-tx"><b class="s-ficha-n">9</b><span class="s-ficha-e">Sistemas activos</span></span></a>
+        <a class="s-ficha s-ficha--de" style="--f:#b68cff" href="#"><span class="s-ficha-tx"><b class="s-ficha-n">5</b><span class="s-ficha-e">Un color cualquiera</span></span></a>
+      </div>
+    </section>
+
+    <!-- La misma muestra con cada piel. -->
+    <template id="muestra">
+      <div class="g-in">
+        <header>
+          <p class="s-etiqueta" data-nota></p>
+          <h2 class="s-titulo" style="margin-top:10px" data-nombre></h2>
+        </header>
+        <div class="g-fila">
+          <button class="s-btn s-btn--pri">Confirmar</button>
+          <button class="s-btn">Editar</button>
+          <button class="s-btn s-btn--acento">Cobrar</button>
+          <button class="s-redondo" aria-label="Siguiente"><svg class="s-ico" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+          <a class="s-pildora" href="#"><svg class="s-aro" viewBox="0 0 48 48"><circle cx="24" cy="24" r="21.6"/><path d="M24 15v18M15 24h18" stroke-width="2.1"/></svg>Nueva visita</a>
+        </div>
+        <div class="g-dos">
+          <div class="s-tarjeta g-forma">
+            <input class="s-campo" placeholder="Nombre del negocio">
+            <div class="s-selector" style="justify-self:start"><button aria-pressed="true">Hoy</button><button aria-pressed="false">Semana</button></div>
+            <label class="g-par">Avisar por WhatsApp<span class="s-interruptor"><input type="checkbox" checked><i></i></span></label>
+            <div class="s-riel" style="--avance:42%"><i></i></div>
+          </div>
+          <div class="g-fichas">
+            <a class="s-ficha" href="#"><span class="s-ficha-tx"><b class="s-ficha-n">4</b><span class="s-ficha-e">Citas hoy</span></span></a>
+            <a class="s-ficha s-ficha--amarillo" href="#"><span class="s-ficha-tx"><b class="s-ficha-n">2</b><span class="s-ficha-e">Clientes</span></span></a>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <section class="s-mesa s-tinta g-piel" data-piel="Tinta" data-nota="Piel · de noche"></section>
+    <section class="s-mesa s-arcade g-piel" data-piel="Arcade" data-nota="Piel · contorno y canto grueso"></section>
+    <section class="s-mesa s-porcelana g-piel" data-piel="Porcelana" data-nota="Piel · limpia y fría"></section>
+  </div>
+</main>
+<script>
+  const t = document.getElementById('muestra')
+  for (const s of document.querySelectorAll('[data-piel]')) {
+    s.append(t.content.cloneNode(true))
+    s.querySelector('[data-nombre]').textContent = s.dataset.piel
+    s.querySelector('[data-nota]').textContent = s.dataset.nota
+  }
+  for (const g of document.querySelectorAll('.s-selector')) g.addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return
+    for (const o of g.children) o.setAttribute('aria-pressed', o === b)
+  })
+  for (const a of document.querySelectorAll('a[href="#"]')) a.addEventListener('click', (e) => e.preventDefault())
+</script>
+</body>
+</html>
