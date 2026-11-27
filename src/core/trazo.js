@@ -334,7 +334,8 @@
   /** Un corto en el instante s: encuentra el plano, lo muestra, lo mueve y corre el telón. */
   function proyecta(l, s) {
     const c = l.corto
-    const u = s % c.dur
+    // `t0` (opcional) es el segundo del reloj en que empieza el corto: así se puede reiniciar.
+    const u = (((s - (c.t0 || 0)) % c.dur) + c.dur) % c.dur
     let t = u
     let i = 0
     while (i < c.planos.length - 1 && t >= c.planos[i].dur) t -= c.planos[i++].dur

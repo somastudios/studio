@@ -99,9 +99,26 @@
   pointer-events: none;
 }
 
-.s0p-k,
-.s0p-meta {
+.s0p-k {
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
   color: var(--fg-2);
+  font-family: var(--font-mono);
+  font-stretch: 64%;
+  font-weight: 650;
+  font-size: max(15px, calc(var(--u) * 1.75));
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* La barra azul antes del rótulo, como la de los títulos del CRM. */
+.s0p-barra {
+  flex: none;
+  width: 0.26em;
+  height: 1.05em;
+  border-radius: 999px;
+  background: var(--color-blue);
 }
 
 .s0p-nombre {
@@ -118,8 +135,50 @@
   white-space: nowrap;
 }
 
+/* El giro y la fecha, en píldoras de línea. */
 .s0p-meta {
-  margin-top: calc(var(--u) * 2.6);
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--u) * 1);
+  margin: calc(var(--u) * 2.8) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.s0p-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: max(34px, calc(var(--u) * 3.4));
+  padding: 0 1.15em;
+  border: var(--stroke) solid var(--fg-4);
+  border-radius: 999px;
+  color: var(--fg-2);
+  font-family: var(--font-mono);
+  font-stretch: 64%;
+  font-weight: 650;
+  font-size: max(13px, calc(var(--u) * 1.3));
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+/* La ventana redonda del corto del giro, dentro del aro. */
+.s0p-cine {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 77%;
+  height: 77%;
+  translate: -50% -50%;
+  clip-path: circle(50%);
+  overflow: hidden;
+}
+
+.s0p-cine .ln {
+  stroke-width: 2.6;
+}
+
+.s0p-cine .fino {
+  stroke-width: 1.9;
 }
 
 /* Las ondas y las chispas del impacto, encima del aro. */

@@ -1747,3 +1747,7 @@ textarea.v-in {
     row-gap: calc(var(--u) * 1.6);
   }
 }
+
+.tv .telon {
+  fill: var(--acento);
+}

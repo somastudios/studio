@@ -5,7 +5,8 @@ import { ringBtn } from '../icons/icons.js'
 import { icoNicho } from '../icons/render.js'
 import { C } from '../content/es.js'
 import { V1 } from '../content/visita.js'
-import { esc, fecha } from '../app/util.js'
+import { esc, fecha, mayus } from '../app/util.js'
+import { cortoGiro, hayCorto } from './cortos-giro.js'
 import { escena, tx, linea } from './base.js'
 
 // La portada de una visita. Dos tiempos, solo con las flechas. El protagonista es el punto
@@ -142,6 +143,7 @@ export const portada = (E, T = V1.portada) =>
       let paso = dir < 0 ? 1 : 0
       const llega = dir > 0 // la primera vez: el punto cae del cielo
       const giro = E.prospecto.nicho_otro || E.nicho.nombre
+      const conCorto = hayCorto(E.nicho.familia)
       el.innerHTML = `
         <div class="scene-inner s0">
           <p class="t-label s0-kicker">${tx(T.kicker, { negocio: E.negocio })}</p>
@@ -149,7 +151,8 @@ export const portada = (E, T = V1.portada) =>
             <svg class="s0-aro" viewBox="-100 -100 200 200">${boil(P.circle(0, 0, 89.75, 44), { amp: 0.42, cls: 'draw s0-ring' })}</svg>
             <svg class="s0-ondas" viewBox="-100 -100 200 200"><circle class="s0-onda" r="36"/><circle class="s0-onda" r="36"/><g class="s0-chispas">${CHISPAS}</g></svg>
             <i class="s0-dot" data-dot></i>
-            <div class="s0p-giro">${icoNicho(E.nicho.icono)}</div>
+            <div class="s0p-giro" ${conCorto ? 'hidden' : ''}>${icoNicho(E.nicho.icono)}</div>
+            ${conCorto ? '<svg class="tv cine s0p-cine" viewBox="0 0 200 200"></svg>' : ''}
           </div>
           <div class="s0-text">
             <h1 class="s0-word"><span class="t-display s0-soma">${letras(C.brand)}</span><span class="s0-studio">${words(C.studio)}</span></h1>
@@ -158,9 +161,9 @@ export const portada = (E, T = V1.portada) =>
             ${ringBtn(T.cta, { act: 'next', cls: 's0-cta' })}
           </div>
           <div class="s0p">
-            <p class="t-label s0p-k">${esc(T.para || 'Esta visita es para')}</p>
+            <p class="s0p-k"><i class="s0p-barra"></i><span>${esc(T.para || 'Esta visita es para')}</span></p>
             <h2 class="t-display s0p-nombre">${letras(E.negocio, true)}</h2>
-            <p class="t-label s0p-meta">${esc(giro)} · ${esc(fecha(new Date(), 'larga'))}</p>
+            <ul class="s0p-meta"><li class="s0p-chip">${esc(giro)}</li><li class="s0p-chip">${esc(mayus(fecha(new Date(), 'larga')))}</li></ul>
           </div>
         </div>`
 
@@ -178,6 +181,9 @@ export const portada = (E, T = V1.portada) =>
       const chispas = $(el, '.s0-chispas')
       const centroAro = $(el, '.s0-dot')
       const final = $(nombre, '.period')
+      const cine = $(el, '.s0p-cine')
+      const corto = cine ? cortoGiro(cine, E.nicho.familia) : null
+      const verGiro = cine || icono
 
       // El icono se dibuja trazo por trazo: cada trazo mide 1 y se destapa con --draw.
       trazos.forEach((g) => {
@@ -206,7 +212,7 @@ export const portada = (E, T = V1.portada) =>
         gsap.set(sueltos, { autoAlpha: k ? 0 : 1, y: 0 })
         gsap.set(letrasN, { yPercent: k ? 0 : 118 })
         gsap.set([rotulo, meta], { autoAlpha: k ? 1 : 0, y: 0 })
-        gsap.set(icono, { autoAlpha: k ? 1 : 0 })
+        gsap.set(verGiro, { autoAlpha: k ? 1 : 0, scale: 1 })
         gsap.set(trazos, { '--draw': k ? 0 : 1.06 })
         gsap.set(aro, { autoAlpha: 1, scale: 1 })
         gsap.set([...ondas, chispas], { autoAlpha: 0 })
@@ -221,9 +227,16 @@ export const portada = (E, T = V1.portada) =>
         if (a && !el.contains(a)) return
         dot.set(s)
       }
-      const conduce = (tl, rec, at = 0) => {
+      // La pantalla puede cambiar de tamaño a media animación (al ponerse en pantalla completa):
+      // en cada cuadro se mide dónde está de verdad el destino y se corrige el recorrido.
+      const conduce = (tl, rec, ancla, at = 0) => {
         const pr = { t: 0 }
-        tl.fromTo(pr, { t: 0 }, { t: rec.fin, duration: rec.fin, ease: 'none', onUpdate: () => mueve(rec.en(pr.t)), onComplete: () => mueve({ ...rec.pos(rec.fin), r: 0, sx: 1, sy: 1 }) }, at)
+        const base = sitio(ancla)
+        const ajustado = (s) => {
+          const [x, y] = sitio(ancla)
+          return { ...s, x: s.x + x - base[0], y: s.y + y - base[1] }
+        }
+        tl.fromTo(pr, { t: 0 }, { t: rec.fin, duration: rec.fin, ease: 'none', onUpdate: () => mueve(ajustado(rec.en(pr.t))), onComplete: () => dot.snap(ancla) }, at)
       }
       const tiembla = (tl, at, f = 6) =>
         tl
@@ -249,7 +262,7 @@ export const portada = (E, T = V1.portada) =>
             { k: 'golpe', t: 1.02, f: 0.45 },
           ],
         )
-        conduce(tl, rec)
+        conduce(tl, rec, centroAro)
         // el aro nace del golpe, las ondas se abren y saltan chispas
         tl.fromTo(aro, { autoAlpha: 0, scale: 0.34 }, { autoAlpha: 1, scale: 1, duration: 1.4, ease: 'elastic.out(1, 0.42)', immediateRender: true }, GOLPE)
         ondas.forEach((o, i) => tl.fromTo(o, { autoAlpha: 0.7, attr: { r: 36 } }, { autoAlpha: 0, attr: { r: i ? 150 : 118 }, duration: i ? 1.3 : 0.95, ease: 'expo.out', immediateRender: false }, GOLPE + i * 0.08))
@@ -287,7 +300,7 @@ export const portada = (E, T = V1.portada) =>
             { k: 'frena', t: 1.62, f: 0.7 },
           ],
         )
-        conduce(tl, rec)
+        conduce(tl, rec, final)
         // el aro recula cuando el punto se impulsa
         tl.to(aro, { scale: 0.95, duration: 0.18, ease: 'power2.out' }, 0).to(aro, { scale: 1, duration: 0.9, ease: 'elastic.out(1, 0.4)' }, 0.2)
         // cada letra de SOMA (y del lema) se cae cuando el punto pasa por encima
@@ -302,9 +315,14 @@ export const portada = (E, T = V1.portada) =>
         tl.fromTo(rotulo, { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: 0.6, ease: 'power3.out' }, 0.9)
         tl.fromTo(meta, { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: 0.6, ease: 'power3.out' }, 1.6)
         // en el aro vacío se dibuja el giro, trazo por trazo, y luego cobra vida
-        tl.set(icono, { autoAlpha: 1 }, 0.3)
-        tl.fromTo(trazos, { '--draw': 1.06 }, { '--draw': 0, duration: 0.6, ease: 'power2.inOut', stagger: 0.11 }, 0.32)
-        tl.call(() => icono.classList.add('vivo'), null, 1.25)
+        if (corto) {
+          tl.call(() => corto.desde(), null, 0.3)
+          tl.fromTo(cine, { autoAlpha: 0, scale: 0.6 }, { autoAlpha: 1, scale: 1, duration: 0.9, ease: 'back.out(1.6)' }, 0.3)
+        } else {
+          tl.set(icono, { autoAlpha: 1 }, 0.3)
+          tl.fromTo(trazos, { '--draw': 1.06 }, { '--draw': 0, duration: 0.6, ease: 'power2.inOut', stagger: 0.11 }, 0.32)
+          tl.call(() => icono.classList.add('vivo'), null, 1.25)
+        }
       }
 
       // ── Del nombre de regreso a Soma ──
@@ -333,10 +351,11 @@ export const portada = (E, T = V1.portada) =>
             { k: 'golpe', t: 1.66, f: 0.75 },
           ],
         )
-        conduce(tl, rec)
+        conduce(tl, rec, centroAro)
         // el icono se desdibuja y el nombre se borra a su paso
         tl.call(() => icono.classList.remove('vivo'), null, 0)
         tl.to(trazos, { '--draw': 1.06, duration: 0.4, ease: 'power2.in', stagger: { each: 0.06, from: 'end' } }, 0)
+        if (cine) tl.to(cine, { autoAlpha: 0, scale: 0.6, duration: 0.45, ease: 'back.in(1.6)' }, 0)
         tl.set(icono, { autoAlpha: 0 }, 0.75)
         tl.to(meta, { autoAlpha: 0, y: 10, duration: 0.3, ease: 'power2.in' }, 0)
         letrasN.forEach((w) => tl.to(w, { keyframes: [{ yPercent: -14, duration: 0.07, ease: 'power1.out' }, { yPercent: 125, duration: 0.3, ease: 'power2.in' }] }, rec.cuando(sitio(w.parentNode)[0], 0.14, 0.74) - 0.04))
@@ -359,7 +378,10 @@ export const portada = (E, T = V1.portada) =>
         // se llega de vuelta desde la escena siguiente: el punto ya viene al punto final
         tl.fromTo(letrasN, { yPercent: 118 }, { yPercent: 0, duration: 1, ease: 'expo.out', stagger: 0.035 }, 0.3)
         tl.fromTo([rotulo, meta], { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: 0.6, ease: 'power3.out', stagger: 0.2 }, 0.5)
-        tl.fromTo(trazos, { '--draw': 1.06 }, { '--draw': 0, duration: 0.6, ease: 'power2.inOut', stagger: 0.1 }, 0.5)
+        if (corto) {
+          tl.call(() => corto.desde(), null, 0.3)
+          tl.fromTo(cine, { autoAlpha: 0, scale: 0.6 }, { autoAlpha: 1, scale: 1, duration: 0.9, ease: 'back.out(1.6)' }, 0.3)
+        } else tl.fromTo(trazos, { '--draw': 1.06 }, { '--draw': 0, duration: 0.6, ease: 'power2.inOut', stagger: 0.1 }, 0.5)
       }
 
       let cambio = null
