@@ -252,7 +252,7 @@ export const portada = (E, T = V1.portada) =>
         conduce(tl, rec)
         // el aro nace del golpe, las ondas se abren y saltan chispas
         tl.fromTo(aro, { autoAlpha: 0, scale: 0.34 }, { autoAlpha: 1, scale: 1, duration: 1.4, ease: 'elastic.out(1, 0.42)', immediateRender: true }, GOLPE)
-        ondas.forEach((o, i) => tl.fromTo(o, { autoAlpha: 0.7, attr: { r: 36 } }, { autoAlpha: 0, attr: { r: i ? 150 : 118 }, duration: i ? 1.3 : 0.95, ease: 'expo.out', immediateRender: true }, GOLPE + i * 0.08))
+        ondas.forEach((o, i) => tl.fromTo(o, { autoAlpha: 0.7, attr: { r: 36 } }, { autoAlpha: 0, attr: { r: i ? 150 : 118 }, duration: i ? 1.3 : 0.95, ease: 'expo.out', immediateRender: false }, GOLPE + i * 0.08))
         tl.fromTo(chispas, { autoAlpha: 1, scale: 0.85, rotation: 0, transformOrigin: '0px 0px' }, { autoAlpha: 0, scale: 1.75, rotation: 14, duration: 0.55, ease: 'expo.out', immediateRender: false }, GOLPE)
         tl.set(chispas, { autoAlpha: 0 }, 0)
         tiembla(tl, GOLPE, 7)
