@@ -48,6 +48,7 @@ node scripts/humo.cjs <puerto>         # abre todas las demos y arranca una visi
 node scripts/recorrido.cjs <puerto> <carpeta>   # recorre una primera visita completa con capturas
 node scripts/visita2.cjs <puerto> <carpeta>     # recorre la segunda visita
 node scripts/crm.cjs <puerto> <carpeta>         # captura cada pantalla del CRM con datos de ejemplo
+node scripts/acuerdo.cjs <puerto> <carpeta>     # «Antes de empezar»: cada compromiso y el dibujo cuadro por cuadro
 ```
 
 Las tres últimas necesitan el servidor de desarrollo corriendo en ese puerto.
@@ -58,7 +59,7 @@ Sin cuenta se puede recorrer todo: en la pantalla de entrada, «Usar solo en est
 
 1. **Presala.** En el CRM, «Nueva visita». Escribe un negocio, elige el giro y quién va. Al elegir giro aparece la frase para abrir y qué observar.
 2. **Primera visita.** «Empezar presentación». Se avanza con las flechas ← →.
-   - *Antes de empezar*: los tres compromisos (↓ o → para pasar de uno a otro).
+   - *Antes de empezar*: los tres compromisos, uno a la vez (↓ o → para pasar de uno a otro). El dibujo de la derecha se transforma con cada uno.
    - *Lo que suele pasar*: aquí están los problemas del giro. Toca los que «sí pasan»; «Ver otras» muestra los menos frecuentes y abajo se puede escribir uno propio.
    - *Diagnóstico*: de lo general a lo concreto. Por cada problema marcado: una o dos preguntas de sí o no (cambian el orden de las rutas y tachan la que no encaja), cuatro rutas arriba (↑ ↓ o tocándolas), «Ver demostración» y «Le interesa / No le convence». Si las cuatro se rechazan aparece «A la medida». → pasa al siguiente problema.
    - *Antes de cerrar*, *Alcance*, *Lo que entendimos* (el expediente), *Siguiente paso* (calendario) y *Gracias*. En *Siguiente paso* se pregunta quién decide: si es alguien más, la fecha se aparta con esa persona y queda anotado en el expediente.
@@ -86,7 +87,7 @@ Durante una presentación: `M` abre el índice, `F` pantalla completa, `D` abre 
 - [x] CRM, primera pasada: navegación con iconos boil vivos y el punto azul como cursor, emblemas con datos reales que se dibujan al entrar a cada sección, pestañas con subrayado que se desliza, cifras que cuentan y vista de celular con barra inferior.
 - [x] CRM, animaciones: la cortina del punto entre secciones, una viñeta SVG de tres planos por sección y las cuatro películas de pixel art en «Hoy». El diseño de «Hoy» ya está en todo el CRM.
 - [ ] CRM, lo que falta: estados vacíos ilustrados, animación al guardar o registrar un pago, viñeta propia para el expediente, y llevar el mismo diseño a los diálogos, la presala y la pantalla de entrada.
-- [x] Trazo vivo en la primera visita: los tres compromisos de «Antes de empezar» tienen su dibujo animado (`src/visita1/trazos.js`).
+- [x] «Antes de empezar» en grande: se ve un compromiso a la vez, el texto entra por palabras y un dibujo de trazo vivo, de media pantalla, se transforma de uno a otro: etiqueta, reloj, globo (`src/visita1/trazos.js`). Es el modelo para las demás escenas.
 - [ ] Trazo vivo en el resto: «Lo que suele pasar», «Lo que entendimos», «Siguiente paso», «Gracias» y la segunda visita.
 - [ ] Animaciones de las visitas: revisar ritmo y transiciones escena por escena.
 - [ ] Vista en celular y en vertical de las escenas de las visitas: está resuelta de forma básica y no se ha probado. (El CRM y la presala ya se revisaron en celular y tableta: `node scripts/desborde.cjs <puerto> <carpeta>`.)

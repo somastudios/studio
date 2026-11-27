@@ -191,56 +191,62 @@ textarea.v-in {
 
 .va {
   display: grid;
-  grid-template-columns: calc(var(--u) * 35) 1fr;
-  column-gap: calc(var(--u) * 7);
+  grid-template-columns: minmax(0, 1fr) calc(var(--u) * 41);
+  column-gap: calc(var(--u) * 4);
   align-items: center;
 }
 
-.va-h {
-  font-size: calc(var(--u) * 7.8);
-}
-
-.va-somos {
-  margin-top: calc(var(--u) * 2.4);
-  max-width: calc(var(--u) * 32);
-  font-size: max(17px, calc(var(--u) * 1.9));
-  font-weight: 500;
-  line-height: 1.24;
-  letter-spacing: -0.012em;
-}
-
-.va-quienes {
-  margin-top: calc(var(--u) * 3);
+.va-izq {
   display: grid;
-  gap: calc(var(--u) * 1.2);
+  align-content: center;
+  min-width: 0;
 }
 
-.va-quienes li {
-  display: grid;
-  gap: 0.2em;
-}
-
-.va-nombre {
-  font-size: calc(var(--u) * 2.3);
-}
-
-.va-linea {
+.va-k {
+  display: flex;
+  gap: 1.4em;
   color: var(--fg-2);
 }
 
-.va-puntos {
-  display: grid;
-  gap: calc(var(--u) * 3);
+.va-cuenta {
+  color: var(--fg-3);
+  font-variant-numeric: tabular-nums;
 }
 
-.va-punto {
-  position: relative;
+/* Los tres compromisos ocupan el mismo lugar: se ve uno a la vez. */
+.va-pila {
   display: grid;
-  grid-template-columns: calc(var(--u) * 3) 1fr;
-  column-gap: calc(var(--u) * 1.2);
-  width: 100%;
-  padding-left: calc(var(--u) * 4);
-  text-align: left;
+  margin-top: calc(var(--u) * 1.8);
+}
+
+.va-item {
+  grid-area: 1 / 1;
+  align-self: start;
+}
+
+.va-t {
+  font-size: calc(var(--u) * 7.6);
+  text-wrap: balance;
+}
+
+.va-d {
+  margin-top: calc(var(--u) * 1.6);
+  max-width: calc(var(--u) * 36);
+  font-size: max(17px, calc(var(--u) * 1.9));
+}
+
+.va-pasos {
+  display: flex;
+  gap: calc(var(--u) * 2.6);
+  margin-top: calc(var(--u) * 3);
+}
+
+.va-paso {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: calc(var(--u) * 3.4);
+  padding-left: calc(var(--u) * 3.1);
   color: var(--fg-3);
   transition: color 0.45s;
 }
@@ -248,37 +254,65 @@ textarea.v-in {
 .va-a {
   position: absolute;
   left: 0;
-  top: calc(var(--u) * 1.2);
-  width: calc(var(--u) * 2.3);
+  top: 50%;
+  width: calc(var(--u) * 1.9);
   aspect-ratio: 1;
+  translate: 0 -50%;
+  border: var(--stroke) solid currentColor;
+  border-radius: 50%;
 }
 
-.va-n {
-  padding-top: calc(var(--u) * 1.4);
-}
-
-.va-t {
-  display: block;
-  font-size: calc(var(--u) * 5.4);
-}
-
-.va-d {
-  display: block;
-  margin-top: calc(var(--u) * 0.8);
-  max-width: calc(var(--u) * 38);
-}
-
-.va-punto[aria-pressed='true'] {
+.va-paso[aria-pressed='true'] {
   color: var(--fg);
 }
 
-.va-punto.es-visto {
+.va-paso[aria-pressed='true'] .va-a {
+  border-color: transparent;
+}
+
+.va-paso.es-visto {
   color: var(--fg-2);
 }
 
-.va-punto:focus-visible {
+.va-paso:focus-visible {
   outline: none;
   color: var(--fg);
+}
+
+.va-pie {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  column-gap: calc(var(--u) * 3);
+  align-items: start;
+  margin-top: calc(var(--u) * 3.6);
+  padding-top: calc(var(--u) * 1.8);
+  border-top: var(--stroke) solid var(--fg-4);
+}
+
+.va-somos {
+  color: var(--fg-2);
+  font-size: max(14px, calc(var(--u) * 1.45));
+  line-height: 1.3;
+}
+
+.va-quienes {
+  display: grid;
+  gap: calc(var(--u) * 0.9);
+}
+
+.va-quienes li {
+  display: grid;
+  gap: 0.15em;
+}
+
+.va-nombre {
+  font-size: calc(var(--u) * 1.8);
+}
+
+.va-linea {
+  color: var(--fg-2);
+  font-size: max(13px, calc(var(--u) * 1.3));
+  line-height: 1.25;
 }
 
 /* ───────────────────────── Lo que suele pasar ───────────────────────── */
@@ -1683,32 +1717,33 @@ textarea.v-in {
   stroke-dashoffset: 1.06;
 }
 
-/* En «Antes de empezar»: un dibujo por compromiso, uno a la vez. */
+.tv.cine .ln {
+  stroke-width: 3.1;
+}
+
+.tv.cine .fino {
+  stroke-width: 2.2;
+}
+
+/* En «Antes de empezar» el dibujo ocupa su mitad de la escena. */
 .va-tv {
-  position: relative;
-  width: calc(var(--u) * 13.5);
-  aspect-ratio: 4 / 3;
-  margin-top: calc(var(--u) * 1.4);
-}
-
-/* Con dos presentadores, van lado a lado para dejarle su lugar al dibujo. */
-.va-quienes--2 {
-  grid-template-columns: 1fr 1fr;
-  column-gap: calc(var(--u) * 2);
-}
-
-.va-tv svg {
-  position: absolute;
-  inset: 0;
-  display: none;
-}
-
-.va-tv svg.es-activo {
-  display: block;
+  width: 100%;
 }
 
 @media (max-aspect-ratio: 1/1) {
+  .va {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: calc(var(--u) * 3);
+  }
+
   .va-tv {
-    width: calc(var(--u) * 26);
+    order: -1;
+    width: calc(var(--u) * 34);
+    margin: 0 auto;
+  }
+
+  .va-pie {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: calc(var(--u) * 1.6);
   }
 }

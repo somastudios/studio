@@ -7,7 +7,7 @@ import { V1 } from '../content/visita.js'
 import { AREA } from '../content/base.js'
 import { esc } from '../app/util.js'
 import { escena, tx, linea } from './base.js'
-import { lienzo, montaTrazos } from './trazos.js'
+import { acuerdoVivo } from './trazos.js'
 
 // Las tres primeras escenas de la visita: la portada con el nombre del negocio, el acuerdo
 // (por qué no hay que ponerse en guardia) y "lo que suele pasar" (el cliente señala lo suyo).
@@ -42,67 +42,89 @@ export const portada = (E, T = V1.portada) =>
     },
   })
 
-/** El acuerdo: quiénes somos y tres compromisos que le quitan al cliente la razón para defenderse. */
+/**
+ * El acuerdo: tres compromisos que le quitan al cliente la razón para defenderse. Se ve uno a
+ * la vez, en grande: el texto entra por palabras y el dibujo de la derecha se transforma.
+ */
 export const acuerdo = (E) =>
   escena({
     id: 'acuerdo',
     theme: 'paper',
     title: V1.acuerdo.nav,
-    pinta(el, { dot, deck, dir }) {
+    pinta(el, { dot, deck, dir, reduced }) {
       const T = V1.acuerdo
       const quienes = E.presentadores()
-      let paso = dir < 0 ? T.puntos.length - 1 : 0
+      const n = T.puntos.length
+      let paso = dir < 0 ? n - 1 : 0
       el.innerHTML = `
         <div class="scene-inner va">
-          <header class="va-cab">
-            <h2 class="t-display va-h">${T.titulo.map((t) => `<span class="ln">${words(t)}</span>`).join('')}</h2>
-            <p class="va-somos">${esc(T.somos)}</p>
-            <ul class="va-quienes ${quienes.length === 2 ? 'va-quienes--2' : ''}">
-              ${quienes.map((q) => `<li><span class="t-name va-nombre">${esc(q.nombre)}</span><span class="t-body va-linea">${esc(q.linea || '')}</span></li>`).join('')}
-            </ul>
-            <div class="va-tv">${['precio', 'ritmo', 'no'].map((n) => lienzo(n)).join('')}</div>
-          </header>
-          <ol class="va-puntos">
-            ${T.puntos
-              .map(
-                (p, i) => `<li><button type="button" class="va-punto" data-i="${i}" aria-pressed="false">
-                  <i class="va-a"></i>
-                  <span class="t-label va-n">${pad(i + 1)}</span>
-                  <span class="va-tx"><span class="t-display va-t">${esc(p.t)}</span><span class="t-body va-d">${tx(p.d, { negocio: E.negocio })}</span></span>
-                </button></li>`,
-              )
-              .join('')}
-          </ol>
+          <div class="va-izq">
+            <p class="t-label va-k"><span>${esc(T.nav)}</span><span class="va-cuenta"></span></p>
+            <div class="va-pila">
+              ${T.puntos.map((x, k) => `<article class="va-item" data-i="${k}"><h2 class="t-display va-t">${words(x.t)}</h2><p class="t-body va-d">${tx(x.d, { negocio: E.negocio })}</p></article>`).join('')}
+            </div>
+            <ol class="va-pasos">
+              ${T.puntos.map((x, k) => `<li><button type="button" class="va-paso" data-i="${k}" aria-pressed="false" aria-label="${esc(x.t)}"><i class="va-a"></i><span class="t-label">${pad(k + 1)}</span></button></li>`).join('')}
+            </ol>
+            <footer class="va-pie">
+              <p class="va-somos">${esc(T.somos)}</p>
+              <ul class="va-quienes">${quienes.map((x) => `<li><span class="t-name va-nombre">${esc(x.nombre)}</span><span class="t-body va-linea">${esc(x.linea || '')}</span></li>`).join('')}</ul>
+            </footer>
+          </div>
+          <div class="va-tv"><svg class="tv cine" viewBox="0 0 320 240" aria-hidden="true"></svg></div>
         </div>`
-      const puntos = $$(el, '.va-punto')
-      const anclas = puntos.map((b) => $(b, '.va-a'))
-      // Cada compromiso tiene su dibujo: solo se ve (y solo se calcula) el del que está activo.
-      const dibujos = $$(el, '.va-tv svg')
-      montaTrazos(el)
-      const marca = () => {
-        puntos.forEach((b, k) => b.setAttribute('aria-pressed', String(k === paso)) || b.classList.toggle('es-visto', k < paso))
-        dibujos.forEach((d, k) => d.classList.toggle('es-activo', k === paso))
+      const items = $$(el, '.va-item')
+      const pasos = $$(el, '.va-paso')
+      const anclas = pasos.map((b) => $(b, '.va-a'))
+      const vivo = acuerdoVivo($(el, '.va-tv svg'), paso)
+      $(el, '.va-tv svg')._vivo = vivo // a la mano para revisarlo cuadro por cuadro
+      let texto = null
+
+      // El texto del compromiso: el que se va sube detrás de su máscara y el que llega sube
+      // desde abajo, palabra por palabra.
+      function muestra(k, previo) {
+        pasos.forEach((b, x) => b.setAttribute('aria-pressed', String(x === k)) || b.classList.toggle('es-visto', x < k))
+        $(el, '.va-cuenta').textContent = `${pad(k + 1)} / ${pad(n)}`
+        texto?.kill()
+        items.forEach((it, x) => x !== k && x !== previo && gsap.set(it, { visibility: 'hidden' }))
+        const cambia = previo != null && previo !== k
+        texto = gsap.timeline()
+        if (cambia) {
+          const fuera = items[previo]
+          texto
+            .to($$(fuera, '.wi'), { yPercent: -118, duration: reduced ? 0 : 0.4, ease: 'power3.in', stagger: 0.025 }, 0)
+            .to($(fuera, '.va-d'), { autoAlpha: 0, y: -8, duration: reduced ? 0 : 0.28 }, 0)
+            .set(fuera, { visibility: 'hidden' })
+        }
+        const entra = items[k]
+        texto
+          .set(entra, { visibility: 'visible' }, cambia && !reduced ? 0.3 : 0)
+          .fromTo($$(entra, '.wi'), { yPercent: 118 }, { yPercent: 0, duration: reduced ? 0 : 0.95, ease: 'expo.out', stagger: 0.06 }, '<')
+          .fromTo($(entra, '.va-d'), { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: reduced ? 0 : 0.7, ease: 'power3.out' }, '<0.25')
       }
-      const ir = (i) => {
-        if (deck.busy || i === paso || i < 0 || i >= puntos.length) return false
-        paso = i
-        marca()
-        dot.to(anclas[i], { duration: 0.7, ease: 'expo.inOut' })
+      const ir = (k) => {
+        if (deck.busy || k === paso || k < 0 || k >= n) return false
+        const previo = paso
+        paso = k
+        muestra(k, previo)
+        vivo.ir(k)
+        dot.to(anclas[k], { duration: 0.7, ease: 'expo.inOut' })
         return true
       }
-      marca()
-      puntos.forEach((b, i) => b.addEventListener('click', () => ir(i)))
+      gsap.set(items, { visibility: 'hidden' })
+      pasos.forEach((b, k) => b.addEventListener('click', () => ir(k)))
+
       const tl = linea()
-      rise(tl, $$(el, '.va-h .wi'), 0, { stagger: 0.08 })
-      fade(tl, [$(el, '.va-somos'), ...$$(el, '.va-quienes li')], 0.4)
-      fade(tl, $(el, '.va-tv'), 0.9)
-      tl.fromTo(puntos, { autoAlpha: 0, x: 24 }, { autoAlpha: 1, x: 0, duration: 0.9, ease: 'expo.out', stagger: 0.12 }, 0.5)
+      fade(tl, [$(el, '.va-k'), $(el, '.va-pasos'), $(el, '.va-pie')], 0.1, { stagger: 0.12 })
+      tl.fromTo($(el, '.va-tv'), { autoAlpha: 0, scale: 0.94 }, { autoAlpha: 1, scale: 1, duration: 1.1, ease: 'expo.out' }, 0.15)
+      tl.call(() => muestra(paso, null), null, 0.2)
       return {
         tl,
         anchor: () => anclas[paso],
         next: () => ir(paso + 1),
         prev: () => ir(paso - 1),
         key: (e) => (e.key === 'ArrowDown' ? (ir(paso + 1), true) : e.key === 'ArrowUp' ? (ir(paso - 1), true) : false),
+        leave: () => texto?.kill(),
       }
     },
   })
