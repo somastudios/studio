@@ -40,6 +40,8 @@ const fs = require('fs')
   await toca('[data-empezar]')
   await foto('portada', 3200)
   await sigue()
+  await foto('portada-negocio', 2200)
+  await sigue()
   await foto('acuerdo', 2600)
   await sigue(); await p.waitForTimeout(800); await sigue(); await p.waitForTimeout(800)
   await sigue()
@@ -69,7 +71,7 @@ const fs = require('fs')
   for (let k = 0; k < 4; k++) { await sigue(); await p.waitForTimeout(1100) }
   // Los espacios en construcción (si están encendidos en src/config.js).
   await sigue()
-  if (await p.locator('.ve').count()) {
+  if (await p.locator('.ve-obra').count()) {
     await foto('espacio-trabajo', 2600)
     await sigue()
     await foto('espacio-casos', 2600)

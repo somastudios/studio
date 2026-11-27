@@ -90,6 +90,61 @@
   margin-top: calc(var(--u) * 3);
 }
 
+/* El segundo tiempo de la portada de una visita: el nombre del negocio en lugar de SOMA. */
+.s0p {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: calc(100% - var(--u) * 45);
+  pointer-events: none;
+}
+
+.s0p-k,
+.s0p-meta {
+  color: var(--fg-2);
+}
+
+.s0p-nombre {
+  margin-top: calc(var(--u) * 1.8);
+  font-size: calc(var(--u) * 15.5);
+  font-weight: 900;
+  line-height: 0.84;
+  letter-spacing: -0.012em;
+  text-wrap: balance;
+}
+
+.s0p-pal {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.s0p-meta {
+  margin-top: calc(var(--u) * 2.6);
+}
+
+/* El icono del giro, dentro del aro vacío. */
+.s0p-giro {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 46%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  color: var(--fg);
+}
+
+.s0p-giro .ico {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+@media (max-aspect-ratio: 1/1) {
+  .s0p {
+    width: 100%;
+  }
+}
+
 /* ───────────────────────── 01 · Premisa ───────────────────────── */
 
 .s1 {

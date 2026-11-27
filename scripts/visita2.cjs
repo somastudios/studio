@@ -12,8 +12,10 @@ const fs = require('fs')
   p.on('pageerror', (e) => errores.push('error: ' + e.message))
   p.on('console', (m) => m.type() === 'error' && !/supabase|Failed to load|ERR_|net::/i.test(m.text()) && errores.push('consola: ' + m.text()))
   await p.addInitScript(() => {
-    localStorage.setItem('soma.local', '1')
-    localStorage.setItem('soma.nombre', 'Dalí')
+    try {
+      localStorage.setItem('soma.local', '1')
+      localStorage.setItem('soma.nombre', 'Dalí')
+    } catch {} // about:blank no tiene localStorage
   })
   await p.goto(`http://localhost:${puerto}/#/crm`)
   await p.waitForTimeout(700)
@@ -33,8 +35,12 @@ const fs = require('fs')
     await p.waitForTimeout(espera)
     await p.screenshot({ path: `${salida}/${String(n++).padStart(2, '0')}-${nombre}.png` })
   }
+  // Se abre de cero para que la app lea lo que se sembró: con recargas en caliente, el import
+  // de arriba puede ser otra copia del módulo y la app no lo vería.
+  await p.goto('about:blank')
   await p.goto(`http://localhost:${puerto}/#/visita2/${id}`)
   await foto('portada', 3200)
+  await p.keyboard.press('ArrowRight'); await foto('portada-negocio', 2200)
   await p.keyboard.press('ArrowRight'); await foto('recap', 3200)
   await p.keyboard.press('ArrowRight'); await foto('demo')
   await p.keyboard.press('ArrowRight'); await foto('precio')
@@ -43,7 +49,7 @@ const fs = require('fs')
   await p.keyboard.press('ArrowRight'); await foto('pago')
   await p.keyboard.press('ArrowRight'); await p.waitForTimeout(1800)
   // El espacio en construcción (si está encendido en src/config.js).
-  if (await p.locator('.ve').count()) { await foto('espacio-entrega', 900); await p.keyboard.press('ArrowRight') }
+  if (await p.locator('.ve-obra').count()) { await foto('espacio-entrega', 900); await p.keyboard.press('ArrowRight') }
   await foto('decision')
   await p.locator('[data-op="mensual"]').click().catch((e) => errores.push('decision: ' + e.message.split('\n')[0]))
   await foto('decision-elegida', 1000)

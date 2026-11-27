@@ -5,26 +5,45 @@ import { ringBtn, icon } from '../icons/icons.js'
 import { C } from '../content/es.js'
 import { V1 } from '../content/visita.js'
 import { AREA } from '../content/base.js'
-import { esc } from '../app/util.js'
+import { esc, fecha } from '../app/util.js'
+import { icoNicho } from '../icons/render.js'
 import { escena, tx, linea } from './base.js'
 import { acuerdoVivo } from './trazos.js'
 
 // Las tres primeras escenas de la visita: la portada con el nombre del negocio, el acuerdo
 // (por qué no hay que ponerse en guardia) y "lo que suele pasar" (el cliente señala lo suyo).
 
-/** Portada: el logo se traza y aparece para quién es. */
+/** Las letras de un nombre, cada una detrás de su máscara; el punto queda al final como punto final. */
+const letras = (t) => {
+  const pals = String(t).trim().split(/\s+/)
+  return pals
+    .map((w, i) => `<span class="s0p-pal">${[...w].map((c) => `<span class="w"><span class="wi">${esc(c)}</span></span>`).join('')}${i === pals.length - 1 ? '<i class="period" data-dot></i>' : ''}</span>`)
+    .join(' ')
+}
+
+/**
+ * Portada, en dos tiempos y sin tocar el ratón:
+ *  0 · Soma. El aro se dibuja, el punto cae en el centro y sube «SOMA Studio».
+ *  1 · Para quién (→). «SOMA» se va letra por letra y sube el nombre del negocio, enorme. El
+ *      punto sale del aro en arco y se vuelve el punto final del nombre; en el aro vacío se
+ *      dibuja el icono de su giro, vivo.
+ * La siguiente → pasa a la escena que sigue. ← deshace todo al revés.
+ */
 export const portada = (E, T = V1.portada) =>
   escena({
     id: 'portada',
     theme: 'ink',
     title: C.s0.nav,
-    pinta(el) {
+    pinta(el, { dot, deck, dir, reduced }) {
+      let paso = dir < 0 ? 1 : 0
+      const giro = E.prospecto.nicho_otro || E.nicho.nombre
       el.innerHTML = `
         <div class="scene-inner s0">
           <p class="t-label s0-kicker">${tx(T.kicker, { negocio: E.negocio })}</p>
           <div class="s0-logo" aria-hidden="true">
             <svg viewBox="-100 -100 200 200">${boil(P.circle(0, 0, 89.75, 44), { amp: 0.42, cls: 'draw s0-ring' })}</svg>
             <i class="s0-dot" data-dot></i>
+            <div class="s0p-giro">${icoNicho(E.nicho.icono)}</div>
           </div>
           <div class="s0-text">
             <h1 class="s0-word"><span class="t-display s0-soma">${words(C.brand)}</span><span class="s0-studio">${words(C.studio)}</span></h1>
@@ -32,13 +51,139 @@ export const portada = (E, T = V1.portada) =>
             <p class="t-body s0-sub">${esc(T.sub)}</p>
             ${ringBtn(T.cta, { act: 'next', cls: 's0-cta' })}
           </div>
+          <div class="s0p">
+            <p class="t-label s0p-k">${esc(T.para || 'Esta visita es para')}</p>
+            <h2 class="t-display s0p-nombre">${letras(E.negocio)}</h2>
+            <p class="t-label s0p-meta">${esc(giro)} · ${esc(fecha(new Date(), 'larga'))}</p>
+          </div>
         </div>`
+
+      const soma = $$(el, '.s0-word .wi')
+      const lema = $$(el, '.s0-lema .wi')
+      const marca = [$(el, '.s0-kicker'), $(el, '.s0-sub'), $(el, '.s0-cta')]
+      const nombre = $(el, '.s0p-nombre')
+      const letrasN = $$(nombre, '.wi')
+      const datos = [$(el, '.s0p-k'), $(el, '.s0p-meta')]
+      const icono = $(el, '.s0p-giro')
+      const aro = $(el, '.s0-logo svg')
+      const centro = $(el, '.s0-dot')
+      const final = $(nombre, '.period')
+
+      // El nombre más grande que quepa junto al aro: en dos renglones, o en tres si es largo.
+      const renglones = E.negocio.length > 16 ? 3 : 2
+      function ajusta() {
+        nombre.style.fontSize = ''
+        let px = parseFloat(getComputedStyle(nombre).fontSize)
+        const caja = $(el, '.s0p')
+        for (let k = 0; k < 40; k++) {
+          const alto = parseFloat(getComputedStyle(nombre).lineHeight) || px * 0.82
+          if (nombre.scrollWidth <= caja.clientWidth + 1 && nombre.offsetHeight <= alto * (renglones + 0.15)) break
+          px *= 0.94
+          nombre.style.fontSize = `${px.toFixed(1)}px`
+        }
+      }
+      ajusta()
+
+      // Cada tiempo deja todo en su sitio sin animar.
+      const fijo = (k) => {
+        gsap.set(soma, { yPercent: k ? -160 : 0 })
+        gsap.set(lema, { yPercent: k ? -160 : 0 })
+        gsap.set(marca, { autoAlpha: k ? 0 : 1, y: 0 })
+        gsap.set(letrasN, { yPercent: k ? 0 : 118 })
+        gsap.set(datos, { autoAlpha: k ? 1 : 0, y: 0 })
+        gsap.set(icono, { autoAlpha: k ? 1 : 0, scale: 1, rotation: 0 })
+        icono.classList.toggle('vivo', !!k)
+      }
+      fijo(paso)
+
+      // El punto viaja en arco y cambia de tamaño en el camino.
+      let ruta = null
+      let espera = null
+      const suelta = () => {
+        espera?.kill()
+        ruta?.remove()
+        ruta = null
+      }
+      function vuela(destino, retraso, duracion) {
+        suelta()
+        espera = gsap.delayedCall(retraso, () => {
+          const a = { x: dot.state.x, y: dot.state.y }
+          const b = dot.measure(destino)
+          const lejos = Math.hypot(b.x - a.x, b.y - a.y)
+          const c = { x: (a.x + b.x) / 2, y: Math.min(a.y, b.y) - lejos * 0.32 }
+          const W = innerWidth
+          const H = innerHeight
+          ruta = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+          ruta.setAttribute('viewBox', `0 0 ${W} ${H}`)
+          ruta.style.cssText = `position:fixed;left:0;top:0;width:${W}px;height:${H}px;opacity:0;pointer-events:none`
+          ruta.innerHTML = `<path d="M${a.x} ${a.y}Q${c.x} ${c.y} ${b.x} ${b.y}"/>`
+          document.body.append(ruta)
+          dot.along(ruta.firstChild, destino, { duration: duracion, ease: 'power3.inOut', onComplete: suelta })
+        })
+      }
+
+      let mueve = null
+      function cambia(k) {
+        mueve?.progress(1)
+        paso = k
+        if (reduced) {
+          fijo(k)
+          dot.snap(k ? final : centro)
+          return
+        }
+        const tl = (mueve = gsap.timeline())
+        if (k) {
+          tl.to(soma, { yPercent: -160, duration: 0.55, ease: 'power3.in', stagger: 0.045 }, 0)
+            .to(lema, { yPercent: -160, duration: 0.4, ease: 'power3.in', stagger: 0.02 }, 0.05)
+            .to(marca, { autoAlpha: 0, y: -10, duration: 0.35, ease: 'power2.in' }, 0)
+            .fromTo(letrasN, { yPercent: 118 }, { yPercent: 0, duration: 0.95, ease: 'expo.out', stagger: 0.04 }, 0.32)
+            .fromTo(datos, { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: 0.7, ease: 'power3.out', stagger: 0.25 }, 0.45)
+            // el aro reacciona cuando el punto lo deja, y en su centro aparece el giro
+            .fromTo(aro, { scale: 1 }, { scale: 0.94, duration: 0.18, ease: 'power2.out', yoyo: true, repeat: 1 }, 0.3)
+            .fromTo(icono, { autoAlpha: 0, scale: 0.35, rotation: -24 }, { autoAlpha: 1, scale: 1, rotation: 0, duration: 1, ease: 'back.out(1.7)' }, 0.62)
+            .call(() => icono.classList.add('vivo'), null, 0.9)
+          vuela(final, 0.22, 1.1)
+        } else {
+          tl.to(letrasN, { yPercent: 118, duration: 0.45, ease: 'power3.in', stagger: { each: 0.025, from: 'end' } }, 0)
+            .to(datos, { autoAlpha: 0, y: 10, duration: 0.3, ease: 'power2.in' }, 0)
+            .to(icono, { autoAlpha: 0, scale: 0.4, rotation: 20, duration: 0.45, ease: 'back.in(1.6)' }, 0)
+            .call(() => icono.classList.remove('vivo'), null, 0.45)
+            .fromTo(soma, { yPercent: 118 }, { yPercent: 0, duration: 1, ease: 'expo.out', stagger: 0.06 }, 0.35)
+            .fromTo(lema, { yPercent: 118 }, { yPercent: 0, duration: 0.9, ease: 'expo.out', stagger: 0.03 }, 0.55)
+            .fromTo(marca, { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: 0.7, ease: 'power3.out', stagger: 0.08 }, 0.75)
+          vuela(centro, 0.12, 1.0)
+        }
+      }
+
+      // La entrada: el aro se dibuja y aparece lo del tiempo en que se llega.
       const tl = linea()
       tl.fromTo($(el, '.s0-ring'), { '--draw': 1.06 }, { '--draw': 0, duration: 1.7, ease: 'expo.inOut' }, 0.15)
-      rise(tl, $$(el, '.s0-word .wi'), 0.55, { stagger: 0.12, duration: 1.25 })
-      rise(tl, $$(el, '.s0-lema .wi'), 0.9, { stagger: 0.035 })
-      fade(tl, [$(el, '.s0-kicker'), $(el, '.s0-sub'), $(el, '.s0-cta')], 1.2)
-      return { tl, anchor: () => $(el, '.s0-dot') }
+      if (paso === 0) {
+        rise(tl, soma, 0.55, { stagger: 0.12, duration: 1.25 })
+        rise(tl, lema, 0.9, { stagger: 0.035 })
+        fade(tl, marca, 1.2)
+      } else {
+        rise(tl, letrasN, 0.5, { stagger: 0.04, duration: 1.1 })
+        fade(tl, datos, 0.8, { stagger: 0.2 })
+        tl.fromTo(icono, { autoAlpha: 0, scale: 0.35, rotation: -24 }, { autoAlpha: 1, scale: 1, rotation: 0, duration: 1, ease: 'back.out(1.7)' }, 0.9)
+      }
+
+      const ir = (k) => {
+        if (deck.busy || k === paso) return false
+        cambia(k)
+        return true
+      }
+      return {
+        tl,
+        anchor: () => (paso ? final : centro),
+        next: () => paso === 0 && ir(1),
+        prev: () => paso === 1 && ir(0),
+        resize: ajusta,
+        leave() {
+          mueve?.progress(1)
+          suelta()
+        },
+      }
     },
   })
 

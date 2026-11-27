@@ -7,7 +7,7 @@
 // Al cliente, de usted.
 
 export const V1 = {
-  portada: { kicker: 'Para {negocio}', lema: 'We solve what holds you back.', sub: 'Resolvemos lo que detiene a su negocio.', cta: 'Empezar' },
+  portada: { kicker: 'Para {negocio}', lema: 'We solve what holds you back.', sub: 'Resolvemos lo que detiene a su negocio.', cta: 'Empezar', para: 'Esta visita es para' },
   acuerdo: {
     nav: 'Antes de empezar',
     titulo: ['Antes de', 'empezar'],
@@ -112,7 +112,7 @@ export const V1 = {
 }
 
 export const V2 = {
-  portada: { kicker: 'De vuelta en {negocio}', lema: 'Esto es lo que construimos.', sub: 'Hoy lo probará usted.', cta: 'Empezar' },
+  portada: { kicker: 'De vuelta en {negocio}', lema: 'Esto es lo que construimos.', sub: 'Hoy lo probará usted.', cta: 'Empezar', para: 'Lo construimos para' },
   recap: {
     nav: 'Lo que nos contó',
     titulo: ['Lo que', 'nos contó'],

@@ -49,6 +49,7 @@ node scripts/recorrido.cjs <puerto> <carpeta>   # recorre una primera visita com
 node scripts/visita2.cjs <puerto> <carpeta>     # recorre la segunda visita
 node scripts/crm.cjs <puerto> <carpeta>         # captura cada pantalla del CRM con datos de ejemplo
 node scripts/acuerdo.cjs <puerto> <carpeta>     # «Antes de empezar»: cada compromiso y el dibujo cuadro por cuadro
+node scripts/portada.cjs <puerto> <carpeta> [negocio]   # la portada en sus dos tiempos y el cambio entre ellos
 ```
 
 Las tres últimas necesitan el servidor de desarrollo corriendo en ese puerto.
@@ -58,7 +59,8 @@ Las tres últimas necesitan el servidor de desarrollo corriendo en ese puerto.
 Sin cuenta se puede recorrer todo: en la pantalla de entrada, «Usar solo en este dispositivo» (o «Probar sin cuenta» si el navegador no deja guardar datos; en ese caso lo que registres se borra al cerrar).
 
 1. **Presala.** En el CRM, «Nueva visita». Escribe un negocio, elige el giro y quién va. Al elegir giro aparece la frase para abrir y qué observar.
-2. **Primera visita.** «Empezar presentación». Se avanza con las flechas ← →.
+2. **Primera visita.** «Empezar presentación». Se avanza solo con las flechas ← →, no hace falta el ratón.
+   - *Portada*: llega con la marca de Soma; con → se transforma en el nombre del negocio, enorme, con el icono de su giro dentro del aro.
    - *Antes de empezar*: los tres compromisos, uno a la vez (↓ o → para pasar de uno a otro). El dibujo de la derecha se transforma con cada uno.
    - *Lo que suele pasar*: aquí están los problemas del giro. Toca los que «sí pasan»; «Ver otras» muestra los menos frecuentes y abajo se puede escribir uno propio.
    - *Diagnóstico*: de lo general a lo concreto. Por cada problema marcado: una o dos preguntas de sí o no (cambian el orden de las rutas y tachan la que no encaja), cuatro rutas arriba (↑ ↓ o tocándolas), «Ver demostración» y «Le interesa / No le convence». Si las cuatro se rechazan aparece «A la medida». → pasa al siguiente problema.
