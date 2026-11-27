@@ -27,6 +27,8 @@ export function vistaVisita1({ id }) {
     E.ponVisita({ estado, fin: ahora(), ...(g ? { audio_ruta: g.ruta, audio_seg: g.seg } : {}) })
     if (!E.prospecto.etapa || E.prospecto.etapa === 'nuevo') E.ponProspecto({ etapa: 'visitado' })
     store.anotar(E.prospecto.id, 'visita', estado === 'terminada' ? 'Primera visita completada.' : 'La visita terminó antes de llegar al final.', { visita_id: E.visita.id }, E.quien())
+    const dec = E.datos.decisor
+    if (dec?.decide === 'no') store.anotar(E.prospecto.id, 'nota', `Quien decide es ${dec.nombre || 'otra persona'}, la segunda visita debería ser con esa persona.`, { visita_id: E.visita.id }, E.quien())
     store.sincronizar()
   }
 

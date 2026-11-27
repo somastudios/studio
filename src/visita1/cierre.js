@@ -201,6 +201,15 @@ export const agenda = (E) =>
       let selDia = previa?.inicio && !previa.por_mensaje ? dia(previa.inicio) : null
       let selHora = previa?.inicio && !previa.por_mensaje ? new Date(previa.inicio).getHours() : null
       let porMensaje = !!previa?.por_mensaje
+      // Quién decide: si no es quien nos atiende, la segunda visita se aparta con esa persona.
+      const decisor = { decide: '', nombre: '', ...(E.datos.decisor || {}) }
+      const quienDecide = () => decisor.nombre.trim() || 'quien decide'
+      const listo = (inicio) => plantilla(decisor.decide === 'no' ? T.listoCon : T.listo, { fecha: fecha(inicio, 'larga'), hora: fecha(inicio, 'hora'), quien: quienDecide() })
+      function pintaDecisor() {
+        $$(el, '[data-decide]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.decide === decisor.decide)))
+        $(el, '.vg-decisor').hidden = decisor.decide !== 'no'
+        $(el, '.vg-k-dia').textContent = decisor.decide === 'no' ? plantilla(T.diaDecisor, { quien: quienDecide() }) : T.dia
+      }
       const ocupadas = (d) => new Set(store.lista('citas', (c) => c.inicio && c.estado !== 'cancelada' && c.id !== previa?.id && dia(c.inicio) === d).map((c) => new Date(c.inicio).getHours()))
 
       function horas() {
@@ -218,7 +227,7 @@ export const agenda = (E) =>
         <div class="scene-inner vg">
           <header class="vg-cab">${titular(T.titulo, 'vg-h')}<p class="t-body vg-intro">${tx(T.intro, { negocio: E.negocio })}</p><p class="vg-estado" aria-live="polite"></p></header>
           <form class="vg-cuerpo" novalidate>
-            <div class="vg-bloque"><p class="t-label vg-k">${esc(T.dia)}</p>
+            <div class="vg-bloque"><p class="t-label vg-k vg-k-dia">${esc(T.dia)}</p>
               <div class="vg-dias">${dias
                 .map((d) => `<button type="button" class="vg-dia" data-dia="${dia(d)}" aria-pressed="${selDia === dia(d)}"><i class="vg-a"></i><span class="t-label">${esc(fecha(d, 'media').split(' ')[0])}</span><span class="t-display vg-dn">${d.getDate()}</span></button>`)
                 .join('')}</div>
@@ -232,12 +241,38 @@ export const agenda = (E) =>
                 <input class="v-in" name="puesto" autocomplete="off" placeholder="${esc(T.puesto)}" aria-label="${esc(T.puesto)}" value="${esc(E.prospecto.puesto || '')}" />
                 <input class="v-in" name="telefono" inputmode="tel" autocomplete="off" placeholder="${esc(T.tel)}" aria-label="${esc(T.tel)}" value="${esc(E.prospecto.telefono ? telBonito(E.prospecto.telefono) : '')}" />
               </div>
+              <div class="vg-decide">
+                <p class="t-label vg-k">${tx(T.decide, { negocio: E.negocio })}</p>
+                <button type="button" class="v-chip" data-decide="si" aria-pressed="false">${esc(T.decideSi)}</button>
+                <button type="button" class="v-chip" data-decide="no" aria-pressed="false">${esc(T.decideNo)}</button>
+              </div>
+              <div class="vg-decisor" hidden>
+                <input class="v-in" name="decisor" autocomplete="off" placeholder="${esc(T.decisorPh)}" aria-label="${esc(T.decisorPh)}" value="${esc(decisor.nombre)}" />
+                <p class="t-body vg-nota">${esc(T.decisorNota)}</p>
+              </div>
             </div>
             ${ringBtn(T.agendar, { cls: 'vg-ok', attrs: 'data-agendar' })}
           </form>
         </div>`
       horas()
-      if (previa) estado(previa.por_mensaje ? T.listoMsg : plantilla(T.listo, { fecha: fecha(previa.inicio, 'larga'), hora: fecha(previa.inicio, 'hora') }), true)
+      pintaDecisor()
+      if (previa) estado(previa.por_mensaje ? T.listoMsg : listo(previa.inicio), true)
+
+      const guardaDecisor = () => {
+        E.datos.decisor = { decide: decisor.decide, nombre: decisor.nombre.trim() }
+        E.guardaDatos()
+      }
+      on('[data-decide]', (b) => {
+        decisor.decide = decisor.decide === b.dataset.decide ? '' : b.dataset.decide
+        pintaDecisor()
+        guardaDecisor()
+        if (decisor.decide === 'no') $(el, '[name="decisor"]').focus()
+      })
+      $(el, '[name="decisor"]').addEventListener('input', (e) => {
+        decisor.nombre = e.target.value
+        pintaDecisor()
+        guardaDecisor()
+      })
 
       on('[data-dia]', (b) => {
         selDia = b.dataset.dia
@@ -268,7 +303,7 @@ export const agenda = (E) =>
         if (!porMensaje && (!selDia || selHora == null)) return estado(T.falta, false)
         const inicio = porMensaje ? null : new Date(`${selDia}T${String(selHora).padStart(2, '0')}:00:00`).toISOString()
         store.guardar('citas', { ...(previa ? { id: previa.id } : {}), prospecto_id: E.prospecto.id, tipo: 'visita2', inicio, minutos: 45, lugar: E.negocio, estado: 'pendiente', por_mensaje: porMensaje, quien: E.visita.presentadores || [] })
-        estado(porMensaje ? T.listoMsg : plantilla(T.listo, { fecha: fecha(inicio, 'larga'), hora: fecha(inicio, 'hora') }), true)
+        estado(porMensaje ? T.listoMsg : listo(inicio), true)
         dot.pulse(1.3)
       }
       on('[data-agendar]', guardar)

@@ -84,6 +84,7 @@ const fs = require('fs')
   await foto('agenda', 2800)
   await toca('[data-dia]', 3); await toca('[data-hora]:not([disabled])', 5)
   await p.fill('[name="contacto"]', 'Rosa Elizondo'); await p.fill('[name="telefono"]', '341 123 4567')
+  await toca('[data-decide="no"]'); await p.fill('[name="decisor"]', 'Don Ernesto')
   await toca('[data-agendar]')
   await foto('agenda-lista', 1000)
   await p.locator('.vg-h').click().catch(() => {})
@@ -93,6 +94,9 @@ const fs = require('fs')
   await foto('debrief', 1200)
   await toca('[data-animo="abierto"]'); await toca('[data-guardar]')
   await foto('expediente-crm', 1200)
+  await toca('[data-tab="construir"]')
+  await foto('expediente-construir', 900)
+  if (process.env.PROMPT) console.log(await p.locator('[data-prompt]').inputValue())
 
   const datos = await p.evaluate(() => ({
     prospectos: JSON.parse(localStorage.getItem('soma.db.prospectos') || '[]').length,

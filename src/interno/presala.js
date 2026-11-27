@@ -58,7 +58,7 @@ export function vistaPresala({ consulta }) {
     z.innerHTML = `
       <p class="a-k">Antes de entrar</p>
       <p class="ps-apertura">«${esc(n.apertura)}»</p>
-      <ul class="ps-observa">${n.observa.map((o) => `<li>${esc(o)}</li>`).join('')}</ul>
+      <ul class="ps-observa">${n.observa.map((o) => `<li>${esc(o)}</li>`).join('')}<li>Si no está quien decide, deberías diagnosticar con quien te atienda y apartar la siguiente visita con el dueño.</li></ul>
       ${n.id === 'general' ? `<label class="a-campo" style="margin-top:16px;max-width:420px"><span>¿A qué se dedica?</span><input class="a-in" data-otro value="${esc(st.otro)}" placeholder="Por ejemplo: vivero, imprenta, purificadora" /></label>` : ''}`
   }
 

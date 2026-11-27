@@ -197,7 +197,7 @@ textarea.v-in {
 }
 
 .va-h {
-  font-size: calc(var(--u) * 8.6);
+  font-size: calc(var(--u) * 7.8);
 }
 
 .va-somos {
@@ -1593,5 +1593,122 @@ textarea.v-in {
 
   .ve-h {
     font-size: calc(var(--u) * 11);
+  }
+}
+
+/* ───────────────────────── Quién decide ───────────────────────── */
+
+.vg-decide {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--u) * 0.9) calc(var(--u) * 1.2);
+  margin-top: calc(var(--u) * 1.6);
+}
+
+.vg-decide .vg-k {
+  margin: 0 calc(var(--u) * 0.6) 0 0;
+}
+
+.vg-decisor {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+  gap: calc(var(--u) * 2);
+  align-items: center;
+  margin-top: calc(var(--u) * 1.2);
+}
+
+.vg-nota {
+  color: var(--fg-2);
+  font-size: calc(var(--fs-body) * 0.86);
+  line-height: 1.3;
+}
+
+/* ───────────────────────── Trazo vivo ───────────────────────── */
+
+/* Los dibujos de trazo vivo dentro de una escena: toman la tinta y el fondo de la escena, así
+   sirven igual en papel que en tinta. El motor es src/core/trazo.js. */
+.tv {
+  --tinta: var(--fg);
+  --lamina: var(--bg);
+  --bloque: color-mix(in srgb, var(--fg) 14%, transparent);
+  --acento: var(--color-blue);
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.tv .ln {
+  fill: none;
+  stroke: var(--tinta);
+  stroke-width: 2.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tv .fino {
+  stroke-width: 1.8;
+}
+
+.tv .tenue {
+  opacity: 0.42;
+}
+
+.tv .tapa {
+  fill: var(--lamina);
+}
+
+.tv .blq {
+  fill: var(--bloque);
+  stroke: none;
+}
+
+.tv .azul {
+  fill: var(--acento);
+  stroke: none;
+}
+
+.tv .ln-azul {
+  stroke: var(--acento);
+}
+
+.tv .lleno {
+  fill: var(--tinta);
+  stroke: none;
+}
+
+.tv .tz {
+  stroke-dasharray: 1.02 1.1;
+  stroke-dashoffset: 1.06;
+}
+
+/* En «Antes de empezar»: un dibujo por compromiso, uno a la vez. */
+.va-tv {
+  position: relative;
+  width: calc(var(--u) * 13.5);
+  aspect-ratio: 4 / 3;
+  margin-top: calc(var(--u) * 1.4);
+}
+
+/* Con dos presentadores, van lado a lado para dejarle su lugar al dibujo. */
+.va-quienes--2 {
+  grid-template-columns: 1fr 1fr;
+  column-gap: calc(var(--u) * 2);
+}
+
+.va-tv svg {
+  position: absolute;
+  inset: 0;
+  display: none;
+}
+
+.va-tv svg.es-activo {
+  display: block;
+}
+
+@media (max-aspect-ratio: 1/1) {
+  .va-tv {
+    width: calc(var(--u) * 26);
   }
 }

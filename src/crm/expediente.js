@@ -4,7 +4,7 @@ import { sesion } from '../app/sesion.js'
 import { ir } from '../app/router.js'
 import { alTocar } from '../app/vista.js'
 import { confirmar, aviso } from '../app/capas.js'
-import { esc, dia, fecha, dinero, relativo, duracion, enlaceWhatsApp, telBonito } from '../app/util.js'
+import { esc, dia, fecha, dinero, relativo, duracion, enlaceWhatsApp, telBonito, copiar } from '../app/util.js'
 import { ETAPAS } from '../data/esquema.js'
 import { SOL } from '../content/soluciones.js'
 import { AREA } from '../content/base.js'
@@ -16,6 +16,7 @@ import { estadoMembresia, nombreModalidad, precioPlazo, activarMembresia } from 
 import { editarProspecto, editarCita, avisar, dlgPago, editarMembresia, editarPropuesta, editarSistema } from './dialogos.js'
 import { giro, filaCita, filaSistema, accionesSistema, vacio, cab } from './vistas.js'
 import { ANIMOS, RESULTADOS } from '../interno/cierre.js'
+import { promptDe, decisorDe } from './prompt.js'
 
 // El expediente de un prospecto: lo que dijo, lo que se le propuso, lo que tiene y lo que debe.
 
@@ -24,6 +25,7 @@ const PESTANAS = [
   ['visitas', 'Visitas'],
   ['propuesta', 'Propuesta'],
   ['cuenta', 'Sistema y cobro'],
+  ['construir', 'Construir'],
   ['bitacora', 'Bitácora'],
 ]
 
@@ -43,6 +45,7 @@ export function vistaExpediente({ id, consulta }) {
     const pagos = store.lista('pagos', { prospecto_id: id }).sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''))
     const bitacora = store.lista('bitacora', { prospecto_id: id }).sort((a, b) => (b.creado || '').localeCompare(a.creado || ''))
     const forma = V1.alcance.formas.find((f) => f.id === p.modalidad_interes)?.t
+    const decisor = decisorDe(p, visitas)
 
     const resumen = () => {
       const vistos = hallazgos.filter((h) => h.estado !== 'mencionado')
@@ -79,6 +82,7 @@ export function vistaExpediente({ id, consulta }) {
             <div class="a-tarjeta"><p class="a-k">Contacto</p>
               <dl class="a-datos" style="margin-top:8px">
                 <dt>Persona</dt><dd>${esc(p.contacto || '—')}${p.puesto ? `, ${esc(p.puesto)}` : ''}</dd>
+                ${decisor ? `<dt>Decide</dt><dd>${decisor.decide ? 'Esta persona' : `${esc(decisor.nombre || 'Otra persona')}, no estuvo en la primera visita`}</dd>` : ''}
                 <dt>WhatsApp</dt><dd>${p.telefono ? `<a class="a-enlace" target="_blank" rel="noopener" href="${esc(enlaceWhatsApp(p.telefono))}">${esc(telBonito(p.telefono))}</a>` : '—'}</dd>
                 ${p.correo ? `<dt>Correo</dt><dd class="selectable">${esc(p.correo)}</dd>` : ''}
                 ${p.direccion ? `<dt>Dirección</dt><dd>${esc(p.direccion)}</dd>` : ''}
@@ -183,6 +187,25 @@ export function vistaExpediente({ id, consulta }) {
         <div class="a-fila" style="margin-top:14px"><button type="button" class="a-btn a-btn--ch" data-pago-suelto>Registrar un pago suelto</button></div>
       </section>`
 
+    // El encargo para Claude: sale de lo que dijo el cliente y de su propuesta.
+    const elPrompt = () => {
+      const { texto, faltan } = promptDe({ p, hallazgos, propuesta, visitas })
+      return `
+        <div class="crm-dos">
+          <section>
+            <div class="a-seccion-cab"><h2 class="a-h2">Prompt para construir</h2><button type="button" class="a-btn a-btn--pri" data-copiar-prompt>Copiar prompt</button></div>
+            <p class="a-p" style="margin-top:10px">Este es el encargo para Claude, se arma solo con lo que dijo el cliente y con su propuesta.</p>
+            <textarea class="a-in crm-prompt selectable" data-prompt readonly spellcheck="false" aria-label="Prompt para construir el sistema">${esc(texto)}</textarea>
+          </section>
+          <aside class="a-pila">
+            <div class="a-tarjeta"><p class="a-k">Antes de construir</p>
+              ${faltan.length ? `<ul class="crm-puntos" style="margin-top:8px">${faltan.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : '<p class="a-p" style="margin-top:6px">No falta nada, el prompt ya está completo.</p>'}
+            </div>
+            <div class="a-tarjeta"><p class="a-k">Cómo usarlo</p><p class="a-p" style="margin-top:6px">Abre una sesión nueva de Claude Code en una carpeta vacía y pega el prompt, Claude te devolverá primero un plan.</p></div>
+          </aside>
+        </div>`
+    }
+
     const laBitacora = () => `
       <form class="crm-nota" data-nota><input class="a-in" name="nota" placeholder="Anotar algo en el expediente" autocomplete="off" /><button type="submit" class="a-btn a-btn--pri">Anotar</button></form>
       ${bitacora.length ? `<ol class="crm-bitacora">${bitacora.map((b) => `<li><span class="a-k">${esc(fecha(b.creado, 'corta'))} · ${esc(fecha(b.creado, 'hora'))}${b.quien ? ` · ${esc(b.quien)}` : ''}</span><p>${esc(b.texto)}</p></li>`).join('')}</ol>` : `<p class="a-p" style="margin-top:16px">Esta es su bitácora, aquí quedará cada visita, aviso y pago.</p>`}`
@@ -197,7 +220,7 @@ export function vistaExpediente({ id, consulta }) {
           <a class="a-btn a-btn--pri" href="#/presala?p=${id}">Nueva visita</a>`,
       })}
       <div class="a-tabs" role="tablist">${PESTANAS.map(([k, t]) => `<button type="button" class="a-tab" role="tab" data-tab="${k}" aria-selected="${pestana === k}">${t}</button>`).join('')}</div>
-      <div class="crm-cuerpo" data-cuerpo>${pestana === 'visitas' ? lasVisitas() : pestana === 'propuesta' ? laPropuesta() : pestana === 'cuenta' ? laCuenta() : pestana === 'bitacora' ? laBitacora() : resumen()}</div>
+      <div class="crm-cuerpo" data-cuerpo>${pestana === 'visitas' ? lasVisitas() : pestana === 'propuesta' ? laPropuesta() : pestana === 'cuenta' ? laCuenta() : pestana === 'bitacora' ? laBitacora() : pestana === 'construir' ? elPrompt() : resumen()}</div>
       <div class="crm-peligro"><button type="button" class="a-enlace a-mudo" data-borrar>Eliminar este prospecto</button></div>`
   })
 
@@ -226,6 +249,12 @@ export function vistaExpediente({ id, consulta }) {
       pestana = b.dataset.tab
       history.replaceState(null, '', `#/crm/prospecto/${id}?t=${pestana}`)
       m.repinta({ tab: true })
+    }),
+    alTocar(m.main, '[data-copiar-prompt]', async () => {
+      const area = m.main.querySelector('[data-prompt]')
+      const ok = await copiar(area.value)
+      if (!ok) area.select()
+      aviso(ok ? 'Prompt copiado.' : 'No se pudo copiar solo, el texto ya está seleccionado.')
     }),
     alTocar(m.main, '[data-editar]', () => editarProspecto(P())),
     alTocar(m.main, '[data-cita-nueva]', () => editarCita(null, id)),

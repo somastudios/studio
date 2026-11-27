@@ -12,7 +12,7 @@ Ahora es también la herramienta completa de visita y el CRM de Soma: se prepara
 | Presala | `#/presala` | Antes de entrar: negocio, giro, quién va y si se graba. |
 | Primera visita | `#/visita/:id` | Acuerdo, lo que suele pasar, diagnóstico con cuatro rutas y demo, alcance, expediente y fecha. |
 | Segunda visita | `#/visita2/:id` | Recapitulación, su sistema, precios y decisión. |
-| CRM | `#/crm` | Prospectos, agenda, cobranza (Membresía Soma), sistemas entregados y ajustes. |
+| CRM | `#/crm` | Prospectos, agenda, cobranza (Membresía Soma), sistemas entregados y ajustes. En cada expediente, la pestaña «Construir» arma el prompt para Claude. |
 | Demos | `#/demos` | Todas las demostraciones, vestidas con el giro que elijas. |
 
 ## Para correrlo
@@ -61,9 +61,9 @@ Sin cuenta se puede recorrer todo: en la pantalla de entrada, «Usar solo en est
    - *Antes de empezar*: los tres compromisos (↓ o → para pasar de uno a otro).
    - *Lo que suele pasar*: aquí están los problemas del giro. Toca los que «sí pasan»; «Ver otras» muestra los menos frecuentes y abajo se puede escribir uno propio.
    - *Diagnóstico*: de lo general a lo concreto. Por cada problema marcado: una o dos preguntas de sí o no (cambian el orden de las rutas y tachan la que no encaja), cuatro rutas arriba (↑ ↓ o tocándolas), «Ver demostración» y «Le interesa / No le convence». Si las cuatro se rechazan aparece «A la medida». → pasa al siguiente problema.
-   - *Antes de cerrar*, *Alcance*, *Lo que entendimos* (el expediente), *Siguiente paso* (calendario) y *Gracias*.
+   - *Antes de cerrar*, *Alcance*, *Lo que entendimos* (el expediente), *Siguiente paso* (calendario) y *Gracias*. En *Siguiente paso* se pregunta quién decide: si es alguien más, la fecha se aparta con esa persona y queda anotado en el expediente.
    - «Terminar» lleva al cierre interno: ánimo, en qué quedó y notas.
-3. **CRM.** El expediente queda en Prospectos. En la pestaña *Propuesta* se capturan la demo y los precios.
+3. **CRM.** El expediente queda en Prospectos. En la pestaña *Propuesta* se capturan la demo y los precios. En *Construir* está el prompt para Claude, armado con lo que dijo el cliente; arriba avisa qué falta antes de construir.
 4. **Segunda visita.** Desde *Propuesta*, «Presentar». Al final el cliente decide y, de vuelta en el expediente, «Activar» crea su membresía.
 5. **Cobranza.** «Registrar pago» y «Avisar» sobre esa membresía. Para ver cómo se ve una vencida, edítala y ponle una fecha de vencimiento pasada.
 6. **Sistemas.** «Nuevo sistema», luego «Conectar» (la línea para pegar) y «Accesos» (necesita sesión iniciada).
@@ -80,12 +80,14 @@ Durante una presentación: `M` abre el índice, `F` pantalla completa, `D` abre 
 - [x] Copywriting de las dos visitas (`src/content/visita.js`), el CRM, la presala y la entrada: ya están en la voz nueva (ver «Voz» en `docs/ARQUITECTURA.md`).
 - [x] Copywriting del CRM, la presala, las dos visitas y la presentación general: revisado con la skill `soma-copywriting`.
 - [ ] Copywriting que falta revisar con la skill: el catálogo de soluciones (`src/content/soluciones.js`), los 22 giros (`src/content/nichos/`) y los textos dentro de las demos. Ahí está el conocimiento de cada giro: se lee con calma antes de reescribir.
-- [ ] Espacios en construcción de la presentación (`src/visita1/espacios.js`): «Trabajo real», «Quien ya lo usa» y «Después del sí». Hay que llenarlos con fotos, video y casos reales, y apagar `ESPACIOS_EN_OBRA` en `src/config.js` antes de presentar a un cliente.
+- [ ] Espacios en construcción de la presentación (`src/visita1/espacios.js`): «Trabajo real», «Quien ya lo usa» y «Después del sí». Están apagados (`ESPACIOS_EN_OBRA = false` en `src/config.js`) para que no salgan frente a un cliente. Cuando haya fotos, video y casos reales se llenan y se vuelven a prender.
 
 **Pulido**
 - [x] CRM, primera pasada: navegación con iconos boil vivos y el punto azul como cursor, emblemas con datos reales que se dibujan al entrar a cada sección, pestañas con subrayado que se desliza, cifras que cuentan y vista de celular con barra inferior.
 - [x] CRM, animaciones: la cortina del punto entre secciones, una viñeta SVG de tres planos por sección y las cuatro películas de pixel art en «Hoy». El diseño de «Hoy» ya está en todo el CRM.
 - [ ] CRM, lo que falta: estados vacíos ilustrados, animación al guardar o registrar un pago, viñeta propia para el expediente, y llevar el mismo diseño a los diálogos, la presala y la pantalla de entrada.
+- [x] Trazo vivo en la primera visita: los tres compromisos de «Antes de empezar» tienen su dibujo animado (`src/visita1/trazos.js`).
+- [ ] Trazo vivo en el resto: «Lo que suele pasar», «Lo que entendimos», «Siguiente paso», «Gracias» y la segunda visita.
 - [ ] Animaciones de las visitas: revisar ritmo y transiciones escena por escena.
 - [ ] Vista en celular y en vertical de las escenas de las visitas: está resuelta de forma básica y no se ha probado. (El CRM y la presala ya se revisaron en celular y tableta: `node scripts/desborde.cjs <puerto> <carpeta>`.)
 

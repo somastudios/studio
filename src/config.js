@@ -15,4 +15,4 @@ export const REGION = 'es-MX'
  * muestran, marcadas como «Espacio en construcción», para ver dónde irá cada cosa. Antes de
  * llevar la presentación con un cliente, déjalo en `false`.
  */
-export const ESPACIOS_EN_OBRA = true
+export const ESPACIOS_EN_OBRA = false

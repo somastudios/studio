@@ -771,6 +771,19 @@
   margin-top: 14px;
 }
 
+/* El prompt para Claude: un texto largo que se lee y se copia. */
+.crm textarea.crm-prompt {
+  display: block;
+  width: 100%;
+  height: min(64vh, 640px);
+  min-height: 280px;
+  margin-top: 14px;
+  padding: 16px 18px;
+  font: 400 14.5px/1.55 var(--font-sans);
+  white-space: pre-wrap;
+  resize: vertical;
+}
+
 .crm-puntos {
   display: grid;
   gap: 6px;

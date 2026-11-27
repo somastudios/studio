@@ -7,6 +7,7 @@ import { V1 } from '../content/visita.js'
 import { AREA } from '../content/base.js'
 import { esc } from '../app/util.js'
 import { escena, tx, linea } from './base.js'
+import { lienzo, montaTrazos } from './trazos.js'
 
 // Las tres primeras escenas de la visita: la portada con el nombre del negocio, el acuerdo
 // (por qué no hay que ponerse en guardia) y "lo que suele pasar" (el cliente señala lo suyo).
@@ -56,9 +57,10 @@ export const acuerdo = (E) =>
           <header class="va-cab">
             <h2 class="t-display va-h">${T.titulo.map((t) => `<span class="ln">${words(t)}</span>`).join('')}</h2>
             <p class="va-somos">${esc(T.somos)}</p>
-            <ul class="va-quienes">
+            <ul class="va-quienes ${quienes.length === 2 ? 'va-quienes--2' : ''}">
               ${quienes.map((q) => `<li><span class="t-name va-nombre">${esc(q.nombre)}</span><span class="t-body va-linea">${esc(q.linea || '')}</span></li>`).join('')}
             </ul>
+            <div class="va-tv">${['precio', 'ritmo', 'no'].map((n) => lienzo(n)).join('')}</div>
           </header>
           <ol class="va-puntos">
             ${T.puntos
@@ -74,7 +76,13 @@ export const acuerdo = (E) =>
         </div>`
       const puntos = $$(el, '.va-punto')
       const anclas = puntos.map((b) => $(b, '.va-a'))
-      const marca = () => puntos.forEach((b, k) => b.setAttribute('aria-pressed', String(k === paso)) || b.classList.toggle('es-visto', k < paso))
+      // Cada compromiso tiene su dibujo: solo se ve (y solo se calcula) el del que está activo.
+      const dibujos = $$(el, '.va-tv svg')
+      montaTrazos(el)
+      const marca = () => {
+        puntos.forEach((b, k) => b.setAttribute('aria-pressed', String(k === paso)) || b.classList.toggle('es-visto', k < paso))
+        dibujos.forEach((d, k) => d.classList.toggle('es-activo', k === paso))
+      }
       const ir = (i) => {
         if (deck.busy || i === paso || i < 0 || i >= puntos.length) return false
         paso = i
@@ -87,6 +95,7 @@ export const acuerdo = (E) =>
       const tl = linea()
       rise(tl, $$(el, '.va-h .wi'), 0, { stagger: 0.08 })
       fade(tl, [$(el, '.va-somos'), ...$$(el, '.va-quienes li')], 0.4)
+      fade(tl, $(el, '.va-tv'), 0.9)
       tl.fromTo(puntos, { autoAlpha: 0, x: 24 }, { autoAlpha: 1, x: 0, duration: 0.9, ease: 'expo.out', stagger: 0.12 }, 0.5)
       return {
         tl,
