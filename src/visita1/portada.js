@@ -248,18 +248,18 @@ export const portada = (E, T = V1.portada) =>
       function llegada(tl) {
         const [ax, ay] = sitio(centroAro)
         const d = centroAro.getBoundingClientRect().width
-        const GOLPE = 0.62
+        const GOLPE = 0.5
         const rec = recorrido(
           [
-            { k: 'en', t0: 0, t1: 0.15, p: [ax, -d], d },
-            { k: 'cae', t0: 0.15, t1: GOLPE, a: [ax, -d], b: [ax, ay], d },
-            { k: 'en', t0: GOLPE, t1: 0.66, p: [ax, ay], d },
-            { k: 'arco', t0: 0.66, t1: 1.02, P: [[ax, ay], [ax, ay - d * 0.62], [ax, ay - d * 0.62], [ax, ay]], d0: d, d1: d },
-            { k: 'en', t0: 1.02, t1: 2.4, p: [ax, ay], d },
+            { k: 'en', t0: 0, t1: 0.04, p: [ax, -d], d },
+            { k: 'cae', t0: 0.04, t1: GOLPE, a: [ax, -d], b: [ax, ay], d },
+            { k: 'en', t0: GOLPE, t1: 0.54, p: [ax, ay], d },
+            { k: 'arco', t0: 0.54, t1: 0.9, P: [[ax, ay], [ax, ay - d * 0.62], [ax, ay - d * 0.62], [ax, ay]], d0: d, d1: d },
+            { k: 'en', t0: 0.9, t1: 2.3, p: [ax, ay], d },
           ],
           [
             { k: 'golpe', t: GOLPE, f: 1 },
-            { k: 'golpe', t: 1.02, f: 0.45 },
+            { k: 'golpe', t: 0.9, f: 0.45 },
           ],
         )
         conduce(tl, rec, centroAro)
@@ -271,8 +271,8 @@ export const portada = (E, T = V1.portada) =>
         tiembla(tl, GOLPE, 7)
         // el golpe empuja las letras: suben en ola desde el aro hacia afuera
         tl.fromTo(soma, { yPercent: 118 }, { yPercent: 0, duration: 0.75, ease: 'back.out(1.9)', stagger: { each: 0.075, from: 'end' } }, GOLPE + 0.08)
-        tl.fromTo(lema, { yPercent: 118 }, { yPercent: 0, duration: 0.85, ease: 'expo.out', stagger: 0.04 }, 1.25)
-        tl.fromTo(sueltos, { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: 0.7, ease: 'power3.out', stagger: 0.1 }, 1.55)
+        tl.fromTo(lema, { yPercent: 118 }, { yPercent: 0, duration: 0.85, ease: 'expo.out', stagger: 0.04 }, 1.1)
+        tl.fromTo(sueltos, { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: 0.7, ease: 'power3.out', stagger: 0.1 }, 1.4)
       }
 
       // ── De Soma al nombre del negocio ──
@@ -284,12 +284,12 @@ export const portada = (E, T = V1.portada) =>
         const dM = mezcla(dA, dB, 0.55)
         const lx = nombre.getBoundingClientRect().left + dM * 0.55
         const tope0 = Math.min(...soma.map((x) => x.parentNode.getBoundingClientRect().top))
-        const cima = Math.max(innerHeight * 0.06 + dA / 2, tope0 - dA * 0.75)
+        const cima = Math.max(innerHeight * 0.05 + dM / 2, tope0 - dA * 1.15)
         const yc = ((cima - (ay + by) / 8) * 8) / 6
         const rec = recorrido(
           [
             { k: 'en', t0: 0, t1: 0.2, p: [ax, ay], d: dA },
-            { k: 'arco', t0: 0.2, t1: 0.88, P: [[ax, ay], [ax - innerWidth * 0.05, yc], [lx + innerWidth * 0.22, yc], [lx, by]], d0: dA, d1: dM },
+            { k: 'arco', t0: 0.2, t1: 0.88, P: [[ax, ay], [ax - innerWidth * 0.08, yc], [lx + innerWidth * 0.06, yc], [lx, by]], d0: dA, d1: dM },
             { k: 'en', t0: 0.88, t1: 0.96, p: [lx, by], d: dM },
             { k: 'linea', t0: 0.96, t1: 1.62, a: [lx, by], b: [bx, by], d0: dM, d1: dB },
             { k: 'en', t0: 1.62, t1: 1.95, p: [bx, by], d: dB },
@@ -334,14 +334,14 @@ export const portada = (E, T = V1.portada) =>
         const dM = mezcla(dA, dB, 0.55)
         const lx = nombre.getBoundingClientRect().left + dM * 0.55
         const tope0 = Math.min(...soma.map((x) => x.parentNode.getBoundingClientRect().top))
-        const cima = Math.max(innerHeight * 0.06 + dA / 2, tope0 - dA * 0.75)
+        const cima = Math.max(innerHeight * 0.05 + dM / 2, tope0 - dA * 1.15)
         const yc = ((cima - (ay + by) / 8) * 8) / 6
         const rec = recorrido(
           [
             { k: 'en', t0: 0, t1: 0.14, p: [bx, by], d: dB },
             { k: 'linea', t0: 0.14, t1: 0.74, a: [bx, by], b: [lx, by], d0: dB, d1: dM },
             { k: 'en', t0: 0.74, t1: 0.98, p: [lx, by], d: dM },
-            { k: 'arco', t0: 0.98, t1: 1.66, P: [[lx, by], [lx + innerWidth * 0.22, yc], [ax - innerWidth * 0.05, yc], [ax, ay]], d0: dM, d1: dA },
+            { k: 'arco', t0: 0.98, t1: 1.66, P: [[lx, by], [lx + innerWidth * 0.06, yc], [ax - innerWidth * 0.08, yc], [ax, ay]], d0: dM, d1: dA },
             { k: 'en', t0: 1.66, t1: 2.0, p: [ax, ay], d: dA },
           ],
           [

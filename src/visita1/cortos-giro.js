@@ -10,7 +10,7 @@ import Trazo from '../core/trazo-vivo.js'
 //   2 · La cocina  La comanda toma vuelo y se vuelve campana sobre el plato, tapando al punto.
 //                  Sale vapor; la campana tiembla de lo que hierve.
 //   3 · Servido    La campana se agacha, sale volando de lado y deja ver al punto servido en el
-//                  plato. Brinca de gusto y el telón se abre desde él.
+//                  plato y brinca de gusto. Sin telón: el azul grande ya es el punto de la portada.
 //
 // Las familias que todavía no tienen corto usan el icono de su giro, dibujado a mano.
 
@@ -28,8 +28,6 @@ const VAPOR = [0, 1, 2].map((k) => {
 
 const COMIDA = {
   cartel: 7.6,
-  abre: [100, 124],
-  cierra: [100, 124],
   planos: [
     {
       nombre: 'La orden',
@@ -81,8 +79,9 @@ const COMIDA = {
         agita(q('c2forma'), 1 + 1.4 * hierve)
         traza(q('c2plato'), suave(tramo(t, 0.9, 1.35)))
         pon(q('c2perilla'), { x: 100, y: 77 + 0.6 * tiembla, sx: rebota(tramo(t, 1.15, 1.45)) })
-        // el punto queda tapado en el plato
-        pon(q('c2pt'), { x: 100, y: 124 })
+        // el punto se acomoda en el plato mientras la campana lo tapa
+        const va = suave(tramo(t, 0.15, 0.7))
+        pon(q('c2pt'), { x: mezcla(112, 100, va), y: mezcla(120, 124, va) - 7 * salto(tramo(t, 0.15, 0.7)) })
         VAPOR.forEach((_, k) => {
           const c = ((t - 1.5 - k * 0.32) % 1.2 + 1.2) % 1.2
           const el = q('c2v' + k)
