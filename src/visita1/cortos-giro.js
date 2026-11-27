@@ -1,174 +1,232 @@
 import Trazo from '../core/trazo-vivo.js'
+import { CUERPO, muneca, bocaPts, actua } from './reparto-trazo.js'
 
-// Los cortos del aro de la portada: uno por familia de giro. Se ven dentro del aro de Soma,
-// en una ventana redonda, en lugar del icono. Lienzo de 200 × 200, centro (100, 100), lo que se
-// ve es el círculo de radio 80.
+// Los cortos del aro de la portada: uno por familia de giro. Se ven dentro del aro de Soma, en
+// una ventana redonda, en lugar del icono. Lienzo de 200 × 200; se ve el círculo de radio 80.
+// Son cortos como los de la galería (docs/soma-animation.html): un personaje que actúa, cortes
+// de cámara y una historia de tres planos.
 //
-// Comida y bebida · «Su cocina» (9.4 s, en bucle sin costura)
-//   1 · La orden   La comanda sube meciéndose y sus renglones se escriben solos. El punto cae
-//                  desde arriba como sello: la comanda se hunde, se sacude y saltan rayos.
-//   2 · La cocina  La comanda toma vuelo y se vuelve campana sobre el plato, tapando al punto.
-//                  Hierve: la campana brinca sobre el plato, se le escapan bocanadas por los
-//                  lados y sube vapor.
-//   3 · Servido    La campana se agacha y sale volando de lado; el punto queda servido y brinca
-//                  de gusto. Al final se agacha, salta hacia arriba y sale del cuadro, y el
-//                  plato se borra: en el plano 1 vuelve a caer desde arriba, como sello.
-//
-// La cámara se acerca despacio durante los dos primeros planos y se abre en el tercero, así el
-// bucle empata. Sin telón: el azul grande ya es el punto de la portada.
+// Comida y bebida · «Las comandas» (10.6 s, en bucle)
+//   1 · Se juntan       Plano medio. El cocinero está tranquilo. Empiezan a llegar comandas, cada
+//                       vez más seguido. Las sigue con los ojos, se le suben las cejas, se
+//                       encoge, le escurre una gota. Una se le resbala y se cae: no lo cree.
+//   2 · Llega el punto  Detalle de las comandas revueltas. El punto cae en medio, las sacude
+//                       y se acomodan solas en una pantalla, una por una. El punto se queda de
+//                       aviso en la esquina.
+//   3 · En orden        Plano medio. La pantalla se encoge hasta ser su tableta. El cocinero la
+//                       mira, suspira, sonríe, la toca con el dedo y presume con los ojos
+//                       cerrados. Al final la tableta se va y él baja la mano: vuelve a empezar.
 //
 // Las familias que todavía no tienen corto usan el icono de su giro, dibujado a mano.
 
-const { P, D, T, G, monta, remuestra, mezclaPts, corre, tramo, mezcla, suave, frena, acelera, rebota, elastico, salto, golpe, brinco, pon, traza, ve, forma, agita, camara, punto, corona } = Trazo
+const { P, D, T, G, monta, rectPts, corre, capsula, circulo, tramo, mezcla, suave, frena, acelera, rebota, salto, golpe, campana, brinco, sacude, pon, traza, ve, forma, camara, punto, corona, manoSvg, indice } = Trazo
 
-const tope = (x) => (x < 0 ? 0 : x > 1 ? 1 : x)
-const N = 96
-const TICKET_V = [[68, 34], [132, 34], [132, 150], [125, 143], [118, 150], [111, 143], [104, 150], [97, 143], [90, 150], [83, 143], [76, 150], [68, 143]]
-const TICKET = remuestra(TICKET_V, N)
-const arcoPts = (cx, cy, r, n) => Array.from({ length: n }, (_, i) => [cx + Math.cos(Math.PI + (i / (n - 1)) * Math.PI) * r, cy + Math.sin(Math.PI + (i / (n - 1)) * Math.PI) * r])
-const CAMPANA = remuestra([...arcoPts(100, 132, 50, 26), [150, 132], [50, 132]], N)
-const VAPOR = [0, 1, 2].map((k) => {
-  const x = 84 + k * 16
-  return P.suave(Array.from({ length: 7 }, (_, i) => [x + 4 * Math.sin(i * 1.3 + k), 66 - i * 7]))
-})
-/** La cámara del corto: centro del lienzo, un poco arriba del plato. */
-const encuadra = (el, z) => camara(el, 100, 100 + 6 * (z - 1) * 4, z, 100, 100)
+// ── El cocinero: las mismas piezas que la persona de la galería, con gorro y filipina ──
+function cocinero(k) {
+  const w = muneca(0)
+  return (
+    T(P.suave(corre(CUERPO, 6, 6), true), { cls: 'blq', n: k + 'tblq' }) +
+    T(P.suave(CUERPO, true), { cls: 'ln tapa', n: k + 'torso' }) +
+    T(P.suave(CUERPO, true), { cls: 'tapa', n: k + 'tinte' }) +
+    T([P.poli([[137, 146], [150, 161], [163, 146]]), P.linea(150, 161, 150, 210, 4)], { cls: 'ln fino', amp: 0.3 }) +
+    T([P.circ(142, 172, 2, 6), P.circ(158, 172, 2, 6)], { cls: 'ln fino', amp: 0.15 }) +
+    T([P.linea(139, 128, 138, 146, 3), P.linea(161, 128, 162, 146, 3)], { cls: 'ln', amp: 0.4 }) +
+    G(
+      k + 'cab',
+      T([P.arco(117.5, 104, 5.6, 105, 255, 5), P.arco(182.5, 104, 5.6, -75, 75, 5)], { cls: 'ln', amp: 0.3 }) +
+        T(P.circ(150, 100, 34, 18), { cls: 'ln tapa', amp: 0.8 }) +
+        T(P.suave([[150.5, 102], [147.4, 109], [151, 111]]), { cls: 'ln fino', amp: 0.2 }) +
+        `<ellipse class="lleno" data-n="${k}oi"/><ellipse class="lleno" data-n="${k}od"/>` +
+        G(k + 'fi', T(P.arco(0, 2, 4.4, 205, 335, 5), { cls: 'ln fino', amp: 0.15 })) +
+        G(k + 'fd', T(P.arco(0, 2, 4.4, 205, 335, 5), { cls: 'ln fino', amp: 0.15 })) +
+        T(D(bocaPts(0, 0, 0)), { cls: 'ln fino boca', amp: 0.2, n: k + 'boca' }) +
+        T([P.linea(123.5, 113, 126.5, 108.5, 3), P.linea(128.5, 115, 131.5, 110.5, 3), P.linea(168.5, 110.5, 171.5, 115, 3), P.linea(173.5, 108.5, 176.5, 113, 3)], { cls: 'ln fino tenue', amp: 0.15, n: k + 'rub' }) +
+        G(k + 'gota', T(P.suave([[0, -5.2], [2.7, -0.4], [2.3, 2.8], [0, 4], [-2.3, 2.8], [-2.7, -0.4]], true), { cls: 'ln fino tapa', amp: 0.15 })) +
+        // el gorro: la copa esponjada y su banda
+        G(
+          k + 'pelo',
+          T(P.suave([[127, 62], [118, 50], [123, 36], [137, 33], [150, 25], [163, 33], [177, 36], [182, 50], [173, 62]], true), { cls: 'ln tapa', amp: 0.9 }) +
+            T(P.rect(126, 58, 48, 14, 3), { cls: 'ln tapa', amp: 0.4 }) +
+            T([P.linea(140, 40, 141, 52, 3), P.linea(160, 40, 159, 52, 3)], { cls: 'ln fino tenue', amp: 0.3 }),
+        ) +
+        G(k + 'ci', T(P.linea(-6.5, 0.8, 6.5, -1.2, 3), { cls: 'ln', amp: 0.3 })) +
+        G(k + 'cd', T(P.linea(-6.5, -1.2, 6.5, 0.8, 3), { cls: 'ln', amp: 0.3 })) +
+        G(k + 'lentes', ''),
+    ) +
+    T(D(capsula([219, 207], w, 18)), { cls: 'ln tapa', amp: 0.5, n: k + 'ante' }) +
+    T(D(capsula([219, 207], w, 18)), { cls: 'tapa', amp: 0.5, n: k + 'manga' }) +
+    manoSvg(k + 'm')
+  )
+}
+/** El cocinero en la ventana redonda: la cabeza queda en (100, 106). */
+const enVentana = (dentro) => `<g transform="translate(-50 6)">${dentro}</g>`
+/** Hacia dónde mirar para ver el punto (x, y) de la ventana. */
+const hacia = (x, y, f = 3.2) => {
+  const d = Math.hypot(x - 100, y - 104) || 1
+  return [((x - 100) / d) * f, ((y - 104) / d) * f]
+}
+const papel = (n, w, h) =>
+  G(
+    n,
+    T(P.poli([[-w / 2, -h / 2], [w / 2, -h / 2], [w / 2, h / 2], [-w / 2, h / 2]], true), { cls: 'ln fino tapa', amp: 0.35 }) +
+      T([P.linea(-w / 2 + 4, -h / 2 + 7, w / 2 - 4, -h / 2 + 7, 3), P.linea(-w / 2 + 4, -h / 2 + 14, w / 2 - 8, -h / 2 + 14, 3)], { cls: 'ln fino tenue', amp: 0.2 }),
+  )
+
+// Plano 1: dónde se pega cada comanda, cuánto se ladea y cuándo llega.
+const SITIOS = [[42, 88, -8], [158, 82, 7], [47, 126, 6], [154, 122, -9], [60, 54, -14], [143, 52, 12]]
+const LLEGA = [0.7, 1.3, 1.8, 2.2, 2.5, 2.75]
+const CAE = 3.15
+// Plano 2: revueltas, y en su lugar dentro de la pantalla.
+const REVUELTAS = [[62, 72, -18], [130, 64, 14], [94, 104, -6], [146, 114, 22], [60, 130, 10], [110, 140, -12]]
+const EN_ORDEN = [[69, 82], [100, 82], [131, 82], [69, 122], [100, 122], [131, 122]]
+const PANTALLA = [44, 54, 112, 96]
+const TABLETA = [126, 41, 48, 34]
+const ESCONDIDA = [20, 70, 0]
 
 const COMIDA = {
-  cartel: 8,
+  cartel: 9,
   planos: [
     {
-      nombre: 'La orden',
-      dur: 3.0,
-      svg: () =>
-        G(
-          'c1cam',
-          G(
-            'c1t',
-            T(D(corre(TICKET, 6, 6)), { cls: 'blq' }) +
-              T(D(TICKET), { cls: 'ln tapa' }) +
-              [58, 74, 90].map((y, i) => T(P.linea(80, y, i === 2 ? 106 : 120, y), { cls: 'ln fino tz', amp: 0.4, n: 'c1r' + i })).join('') +
-              T(P.linea(80, 112, 98, 112), { cls: 'ln tz', amp: 0.4, n: 'c1tot' }),
-          ) +
-            corona('c1ray', 8, 15, 24) +
-            punto(10, 'c1pt'),
-        ),
+      nombre: 'Se juntan',
+      dur: 4.4,
+      svg: () => G('k1cam', enVentana(cocinero('k')) + SITIOS.map((_, i) => papel('k1p' + i, 20, 26)).join('')),
       paso(q, t) {
-        encuadra(q('c1cam'), 1 + 0.05 * suave(tramo(t, 0, 3)))
-        // la comanda sube meciéndose; el sello la hunde y la deja temblando
-        const llega = rebota(tramo(t, 0, 0.65))
-        const pega = golpe(t, 1.85, 0.22)
-        const tiembla = golpe(t, 1.85, 0.7) * Math.sin((t - 1.85) * 24)
-        pon(q('c1t'), { ox: 100, oy: 150, y: 150 * (1 - llega) + 4 * pega, r: 5 * (1 - llega) + 2.6 * tiembla, sy: 1 - 0.035 * pega })
-        const borra = 1 - suave(tramo(t, 2.5, 2.8))
-        ;[0, 1, 2].forEach((i) => traza(q('c1r' + i), suave(tramo(t, 0.55 + i * 0.25, 0.9 + i * 0.25)) * borra))
-        traza(q('c1tot'), suave(tramo(t, 1.3, 1.55)) * borra)
-        // el punto cae como sello, estirado por la velocidad
-        const u = tramo(t, 1.55, 1.85)
-        const cae = acelera(u)
-        const estira = 0.28 * salto(u) * (u < 1 ? 1 : 0)
-        const vuelo = salto(tramo(t, 2.75, 3.0))
-        pon(q('c1pt'), { x: 112, y: mezcla(-20, 120, cae) + 4 * pega - 6 * vuelo, sx: 1 + 0.35 * pega - estira * 0.5 - 0.1 * vuelo, sy: 1 - 0.36 * pega + estira + 0.14 * vuelo, o: tramo(t, 1.5, 1.56) })
-        pon(q('c1ray'), { x: 112, y: 120, sx: mezcla(0.6, 1.25, frena(tramo(t, 1.85, 2.3))), o: golpe(t, 1.85, 0.45) })
-      },
-    },
-    {
-      nombre: 'La cocina',
-      dur: 3.2,
-      svg: () =>
-        G(
-          'c2cam',
-          T(P.elipse(100, 134, 64, 7, 18), { cls: 'ln tz', amp: 0.5, n: 'c2plato' }) +
-            punto(10, 'c2pt') +
-            G('c2b0', T(P.circ(0, 0, 7, 9), { cls: 'ln fino', amp: 0.5 })) +
-            G('c2b1', T(P.circ(0, 0, 7, 9), { cls: 'ln fino', amp: 0.5 })) +
-            T(D(corre(TICKET, 6, 6)), { cls: 'blq', n: 'c2blq' }) +
-            T(D(TICKET), { cls: 'ln tapa', n: 'c2forma' }) +
-            G('c2perilla', T(P.circ(0, 0, 6, 10), { cls: 'ln tapa', amp: 0.25 })) +
-            VAPOR.map((v, k) => T(v, { cls: 'ln fino tz', amp: 0.6, n: 'c2v' + k })).join(''),
-        ),
-      paso(q, t) {
-        encuadra(q('c2cam'), 1.05 + 0.05 * suave(tramo(t, 0, 3.2)))
-        // toma vuelo y se vuelve campana
-        const vuelo = salto(tramo(t, 0, 0.25))
-        const m = elastico(tramo(t, 0.22, 1.25))
-        const pts = mezclaPts(TICKET, CAMPANA, m)
-        forma(q('c2forma'), pts)
-        forma(q('c2blq'), corre(pts, 6, 6))
-        // hierve: la presión levanta la campana a brinquitos, cada vez más seguido
-        const hierve = suave(tramo(t, 1.7, 2.3))
-        const latido = Math.max(0, Math.sin(t * (9 + 5 * hierve)))
-        const sube = hierve * 3.4 * latido
-        const ladea = hierve * 2 * Math.sin(t * 31)
-        const cuerpo = { ox: 100, oy: 132, y: -sube, sy: 1 - 0.06 * vuelo, r: ladea }
-        pon(q('c2forma'), cuerpo)
-        pon(q('c2blq'), cuerpo)
-        agita(q('c2forma'), 1 + 1.4 * hierve)
-        traza(q('c2plato'), suave(tramo(t, 0.9, 1.35)))
-        pon(q('c2perilla'), { x: 100 + 0.5 * ladea, y: 77 - sube * 1.5, sx: rebota(tramo(t, 1.15, 1.45)) })
-        // el punto se acomoda en el plato mientras la campana lo tapa
-        const va = suave(tramo(t, 0.15, 0.7))
-        // (ya tapado se encoge tantito, para no asomar cuando la campana brinca)
-        const tapado = suave(tramo(t, 0.9, 1.3))
-        pon(q('c2pt'), { x: mezcla(112, 100, va), y: mezcla(120, 124, va) - 7 * salto(tramo(t, 0.15, 0.7)) - 4 * tapado, sx: 1 - 0.2 * tapado })
-        // se le escapan bocanadas por los lados, alternadas
-        ;[0, 1].forEach((k) => {
-          const c = (((t - 1.9 - k * 0.3) % 0.6) + 0.6) % 0.6 / 0.6
-          const lado = k ? 1 : -1
-          pon(q('c2b' + k), { x: 100 + lado * (54 + 16 * frena(c)), y: 128 - 12 * c, sx: 0.3 + 0.9 * frena(c), o: t < 1.9 + k * 0.3 ? 0 : hierve * (1 - c) })
+        camara(q('k1cam'), 100, 100, 1 + 0.07 * suave(tramo(t, 0, 4.4)), 100, 100)
+        const cuantas = LLEGA.filter((x) => t >= x).length
+        const agobio = suave(tramo(t, 0.7, 2.9))
+        const cae = acelera(tramo(t, CAE, CAE + 0.75))
+        let ojos = [0, 0.6]
+        SITIOS.forEach(([x, y, r], i) => {
+          const entra = frena(tramo(t, LLEGA[i] - 0.05, LLEGA[i] + 0.28))
+          const lado = x < 100 ? -1 : 1
+          const nervio = agobio * 2.2 * Math.sin(t * 27 + i * 1.9)
+          const suelta = i === 4 ? cae : 0
+          const px = x + lado * 46 * (1 - entra) - 10 * suelta
+          const py = y + 175 * suelta
+          pon(q('k1p' + i), { x: px, y: py, r: r + nervio + 150 * suelta, sx: rebota(tramo(t, LLEGA[i], LLEGA[i] + 0.3)), o: t < LLEGA[i] - 0.05 ? 0 : 1 })
+          if (i === cuantas - 1) ojos = hacia(x, y)
+          if (i === 4 && t > CAE) ojos = hacia(px, Math.min(py, 170), 3.6)
         })
-        VAPOR.forEach((_, k) => {
-          const c = (((t - 1.5 - k * 0.32) % 1.2) + 1.2) % 1.2
-          const el = q('c2v' + k)
-          traza(el, t < 1.5 + k * 0.32 ? 0 : suave(tope(c / 0.7)))
-          pon(el, { y: -18 * (c / 1.2), o: 1 - tope((c - 0.7) / 0.5) })
+        const nocree = golpe(t, CAE + 0.12, 0.6)
+        actua(q, 'k', {
+          gira: 2.5 * Math.sin(t * 1.2) * (1 - agobio) + 3 * agobio * Math.sin(t * 2.6) + 4 * nocree,
+          dy: 3.5 * agobio,
+          sy: 1 - 0.025 * agobio,
+          mira: ojos,
+          abre: (1 + 0.5 * agobio + 0.25 * nocree) * (1 - 0.92 * campana(t, 2.02, 0.08)) * (1 - 0.92 * campana(t, CAE + 0.1, 0.08)),
+          cejas: [-5 * agobio - 2 * nocree, -7 * agobio, -5 * agobio - 2 * nocree, 7 * agobio],
+          boca: [0.6 * Math.sin(t * 3) * agobio, mezcla(0.95, -0.6, agobio), 0.5 * tramo(t, 2.3, 2.8) + 0.4 * nocree],
+          brazo: 0.5,
+          mano: ESCONDIDA,
+          pelo: 2 * Math.sin(t * 1.2 - 0.4) + 2.4 * agobio * Math.sin(t * 2.6 - 0.5) - 5 * nocree,
+          gota: t > 2.55 ? tramo(t, 2.55, 3.7) : -1,
+          resp: 0.012 * Math.sin(t * (1.8 + 3 * agobio)),
         })
       },
     },
     {
-      nombre: 'Servido',
-      dur: 3.2,
+      nombre: 'Llega el punto',
+      dur: 2.6,
       svg: () =>
         G(
-          'c3cam',
-          T(P.elipse(100, 134, 64, 7, 18), { cls: 'ln tz', amp: 0.5, n: 'c3plato' }) +
-            corona('c3ray', 9, 16, 26) +
-            punto(10, 'c3pt') +
-            G('c3campana', T(D(corre(CAMPANA, 6, 6)), { cls: 'blq' }) + T(D(CAMPANA), { cls: 'ln tapa' }) + T(P.circ(100, 77, 6, 10), { cls: 'ln tapa', amp: 0.25 })) +
-            VAPOR.map((v, k) => T(v, { cls: 'ln fino tz', amp: 0.6, n: 'c3v' + k })).join(''),
+          'k2cam',
+          T(P.rect(PANTALLA[0] + 6, PANTALLA[1] + 6, PANTALLA[2], PANTALLA[3], 10), { cls: 'blq', n: 'k2blq' }) +
+            T(P.rect(...PANTALLA, 10), { cls: 'ln tapa tz', n: 'k2marco' }) +
+            REVUELTAS.map((_, i) => papel('k2p' + i, 26, 34)).join('') +
+            corona('k2ray', 10, 16, 28) +
+            punto(10, 'k2pt'),
         ),
       paso(q, t) {
-        // la cámara se abre: el plato respira y el bucle empata con el plano 1
-        encuadra(q('c3cam'), mezcla(1.1, 1, suave(tramo(t, 0.2, 2.6))))
-        // la campana se agacha, sale volando de lado y gira
-        const agacha = salto(tramo(t, 0.1, 0.3))
-        const sale = acelera(tramo(t, 0.3, 0.85))
-        pon(q('c3campana'), { ox: 100, oy: 132, y: 4 * agacha - 150 * sale, x: 90 * sale, r: 40 * sale, sy: 1 - 0.07 * agacha })
-        // el punto servido brinca de gusto; al final toma vuelo y sale por arriba
-        const b1 = brinco(tramo(t, 0.75, 1.2), 26)
-        const b2 = brinco(tramo(t, 1.2, 1.5), 9)
-        const b = b1.dy ? b1 : b2
-        const vuelo = salto(tramo(t, 2.45, 2.72))
-        const u = tramo(t, 2.68, 3.05)
-        const sube = acelera(u)
-        const estira = u > 0 ? 0.3 * (1 - 0.5 * u) : 0
-        const crece = mezcla(0.8, 1, rebota(tramo(t, 0.3, 0.7))) // recupera su tamaño al destaparse
-        pon(q('c3pt'), {
-          x: 100,
-          y: 124 - 4 * (1 - tramo(t, 0.3, 0.6)) + b.dy + 10 * (1 - b.sy) + 3.4 * vuelo - 190 * sube,
-          sx: crece * b.sx * (1 + 0.3 * vuelo) * (1 - estira * 0.5),
-          sy: crece * b.sy * (1 - 0.34 * vuelo) * (1 + estira),
+        const GOLPE = 0.5
+        camara(q('k2cam'), 100 + sacude(t, GOLPE, 3), 100 + sacude(t, GOLPE, 2.2), 1.05, 100, 100)
+        const empuje = golpe(t, GOLPE, 0.32)
+        REVUELTAS.forEach(([x, y, r], i) => {
+          // el golpe las avienta hacia afuera; luego cada una vuela a su lugar y se pasa tantito
+          const d = Math.hypot(x - 100, y - 100) || 1
+          const va = rebota(tramo(t, 0.85 + 0.1 * i, 1.4 + 0.1 * i))
+          const nervio = (1 - tramo(t, GOLPE, 0.9)) * 2.4 * Math.sin(t * 27 + i * 1.9)
+          pon(q('k2p' + i), {
+            x: mezcla(x + ((x - 100) / d) * 10 * empuje, EN_ORDEN[i][0], va),
+            y: mezcla(y + ((y - 100) / d) * 10 * empuje, EN_ORDEN[i][1], va) - 9 * salto(tramo(t, 0.85 + 0.1 * i, 1.4 + 0.1 * i)),
+            r: mezcla(r + nervio + 12 * empuje * (i % 2 ? 1 : -1), 0, va),
+          })
         })
-        pon(q('c3ray'), { x: 100, y: 124, sx: mezcla(0.6, 1.25, frena(tramo(t, 0.75, 1.3))), o: golpe(t, 0.75, 0.5) })
-        // el plato se hunde tantito con cada caída y se borra cuando el punto se va
-        const peso = golpe(t, 1.2, 0.18) + 0.5 * golpe(t, 1.5, 0.15) + 0.8 * vuelo
-        pon(q('c3plato'), { y: 1.6 * peso })
-        traza(q('c3plato'), 1 - suave(tramo(t, 2.75, 3.15)))
-        VAPOR.forEach((_, k) => {
-          const el = q('c3v' + k)
-          const c = tramo(t, 1.3 + k * 0.18, 2.4 + k * 0.18)
-          traza(el, suave(tope(c * 1.6)))
-          pon(el, { y: 50 - 22 * c, o: 1 - tope((c - 0.6) / 0.4) })
+        // la pantalla se dibuja alrededor cuando ya van llegando
+        traza(q('k2marco'), suave(tramo(t, 1.3, 2.0)))
+        ve(q('k2blq'), tramo(t, 1.8, 2.1))
+        // el punto cae estirado, se aplasta y brinca a la esquina, de aviso
+        const u = tramo(t, 0.1, GOLPE)
+        const brinca = tramo(t, 1.1, 1.6)
+        const b = brinco(brinca, 30)
+        const estira = t < GOLPE ? 0.3 * u : 0
+        const fin = [PANTALLA[0] + PANTALLA[2] - 3, PANTALLA[1] + 3]
+        const s = mezcla(1, 0.72, brinca)
+        const queda = golpe(t, 1.6, 0.2)
+        pon(q('k2pt'), {
+          x: mezcla(100, fin[0], suave(brinca)),
+          y: mezcla(mezcla(-26, 100, acelera(u)), fin[1], suave(brinca)) + b.dy + 5 * empuje,
+          sx: s * b.sx * (1 + 0.36 * empuje + 0.25 * queda - estira * 0.5),
+          sy: s * b.sy * (1 - 0.38 * empuje - 0.25 * queda + estira),
+        })
+        pon(q('k2ray'), { x: 100, y: 100, sx: mezcla(0.6, 1.3, frena(tramo(t, GOLPE, GOLPE + 0.5))), o: golpe(t, GOLPE, 0.5) })
+      },
+    },
+    {
+      nombre: 'En orden',
+      dur: 3.6,
+      svg: () =>
+        G(
+          'k3cam',
+          enVentana(cocinero('c')) +
+            T(D(rectPts(...PANTALLA, 10)), { cls: 'blq', n: 'k3blq' }) +
+            T(D(rectPts(...PANTALLA, 10)), { cls: 'ln tapa', n: 'k3tab' }) +
+            [0, 1, 2].map((j) => T(D([[0, 0], [1, 0], [2, 0], [3, 0]], false), { cls: 'ln fino', amp: 0.3, n: 'k3r' + j })).join('') +
+            corona('k3ray', 7, 9, 15) +
+            punto(7.2, 'k3pt'),
+        ),
+      paso(q, t) {
+        camara(q('k3cam'), 100, 100, mezcla(1.05, 1, suave(tramo(t, 0, 1.2))), 100, 100)
+        // la pantalla se encoge hasta ser su tableta; al final se va
+        const chica = rebota(tramo(t, 0.1, 0.95))
+        const seva = acelera(tramo(t, 3.05, 3.5))
+        const toque = golpe(t, 2.3, 0.22)
+        const r = PANTALLA.map((v, k) => mezcla(v, TABLETA[k], chica))
+        r[0] += 90 * seva
+        r[1] -= 30 * seva + 2 * toque
+        const pts = rectPts(r[0], r[1], r[2], r[3], mezcla(10, 6, chica))
+        forma(q('k3tab'), pts)
+        forma(q('k3blq'), corre(pts, mezcla(6, 4, chica), mezcla(6, 4, chica)))
+        ;[0, 1, 2].forEach((j) => {
+          const y = r[1] + r[3] * (0.3 + 0.2 * j)
+          const x0 = r[0] + r[2] * 0.16
+          const x1 = r[0] + r[2] * (0.84 - 0.16 * j)
+          forma(q('k3r' + j), [0, 1, 2, 3].map((k) => [mezcla(x0, x1, k / 3), y]))
+        })
+        const aviso = [r[0] + r[2] - 2, r[1] + 2]
+        pon(q('k3pt'), { x: aviso[0], y: aviso[1], sx: 1 + 0.4 * toque })
+        pon(q('k3ray'), { x: aviso[0], y: aviso[1], sx: mezcla(0.7, 1.4, frena(tramo(t, 2.3, 2.7))), o: golpe(t, 2.3, 0.4) })
+        // el cocinero: la mira, suspira, sonríe, la toca con el dedo y presume
+        const alivio = suave(tramo(t, 0.6, 1.3))
+        const suspiro = salto(tramo(t, 1.0, 1.6))
+        const sube = rebota(tramo(t, 1.5, 2.05)) * (1 - suave(tramo(t, 3.0, 3.45)))
+        const presume = suave(tramo(t, 2.45, 2.7)) * (1 - suave(tramo(t, 3.0, 3.25)))
+        const vuelve = suave(tramo(t, 3.05, 3.5))
+        const tab = hacia(r[0] + r[2] / 2, r[1] + r[3] / 2)
+        actua(q, 'c', {
+          gira: mezcla(4, -3, alivio) * (1 - vuelve) + 2.2 * presume * Math.sin(t * 7.5),
+          dy: 3.5 * (1 - alivio) + 2 * suspiro,
+          sy: 1 - 0.025 * (1 - alivio) - 0.02 * suspiro,
+          mira: [tab[0] * (1 - vuelve), mezcla(tab[1], 0.6, vuelve)],
+          abre: mezcla(1.5, 1, alivio) * (1 - 0.92 * campana(t, 0.75, 0.08)) * (1 - 0.92 * campana(t, 3.3, 0.08)),
+          feliz: presume,
+          cejas: [mezcla(-5, 0, alivio) - 2.5 * presume, mezcla(-7, 0, alivio), mezcla(-5, 0, alivio) - 2.5 * presume, mezcla(7, 0, alivio)],
+          boca: [0, mezcla(-0.6, 1.25, rebota(tramo(t, 0.9, 1.5))) * (1 - 0.25 * vuelve), 0.45 * suspiro],
+          brazo: 0.5,
+          dedo: frena(tramo(t, 1.75, 2.0)) * (1 - tramo(t, 2.95, 3.1)),
+          mano: [mezcla(ESCONDIDA[0], 2, sube), mezcla(ESCONDIDA[1], -14, sube) - 4 * toque, 18 * sube],
+          pelo: -6 * salto(tramo(t, 0.6, 0.95)) + 3 * presume * Math.sin(t * 7.5 - 1),
+          rubor: presume,
+          resp: 0.012 * Math.sin(t * 1.8) - 0.035 * suspiro,
         })
       },
     },
