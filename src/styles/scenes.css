@@ -122,6 +122,28 @@
   margin-top: calc(var(--u) * 2.6);
 }
 
+/* Las ondas y las chispas del impacto, encima del aro. */
+.s0-logo .s0-ondas {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.s0-onda {
+  fill: none;
+  stroke: var(--fg);
+  stroke-width: 1.3;
+  opacity: 0;
+}
+
+.s0-chispas {
+  stroke: var(--color-blue);
+  stroke-width: 3.2;
+  stroke-linecap: round;
+  opacity: 0;
+}
+
 /* El icono del giro, dentro del aro vacío. */
 .s0p-giro {
   position: absolute;

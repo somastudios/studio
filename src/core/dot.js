@@ -13,12 +13,15 @@ export function createDot(el) {
     cls: 'dot-shape',
   })}</svg>`
   const shape = el.firstElementChild
-  const state = { x: innerWidth / 2, y: innerHeight / 2, d: 0 }
+  // r, sx y sy deforman el punto (estirar, aplastar) sin cambiar su tamaño: los usan las
+  // escenas que lo animan cuadro por cuadro. Quien los toca los devuelve a 0, 1 y 1.
+  const state = { x: innerWidth / 2, y: innerHeight / 2, d: 0, r: 0, sx: 1, sy: 1 }
   let anchor = null
   let tween = null
 
   const apply = () => {
-    el.style.transform = `translate3d(${state.x}px,${state.y}px,0) scale(${Math.max(state.d, 0) / BASE})`
+    const k = Math.max(state.d, 0) / BASE
+    el.style.transform = state.r || state.sx !== 1 || state.sy !== 1 ? `translate3d(${state.x}px,${state.y}px,0) rotate(${state.r}deg) scale(${k * state.sx},${k * state.sy})` : `translate3d(${state.x}px,${state.y}px,0) scale(${k})`
   }
 
   const measure = (target) => {
@@ -37,7 +40,7 @@ export function createDot(el) {
       anchor = target
       const m = to || measure(target)
       tween?.kill()
-      tween = gsap.to(state, { x: m.x, y: m.y, d: m.d, duration, ease, delay, onUpdate: apply, onComplete })
+      tween = gsap.to(state, { x: m.x, y: m.y, d: m.d, r: 0, sx: 1, sy: 1, duration, ease, delay, onUpdate: apply, onComplete })
       return tween
     },
     /** Se coloca en el ancla sin animar (resize, seguimiento por cuadro). */
@@ -45,7 +48,7 @@ export function createDot(el) {
       if (!target) return
       anchor = target
       tween?.kill()
-      Object.assign(state, measure(target))
+      Object.assign(state, measure(target), { r: 0, sx: 1, sy: 1 })
       apply()
     },
     set(v) {

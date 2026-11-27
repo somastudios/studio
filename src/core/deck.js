@@ -1,5 +1,9 @@
 import gsap from 'gsap'
 
+// En desarrollo, el reloj de las animaciones queda a la mano para revisarlas a cámara lenta
+// (scripts/portada.cjs). Es la misma copia de GSAP que usa la app.
+if (import.meta.env.DEV) window.__gsap = gsap
+
 // La baraja: una escena visible a la vez y una sola transición, el iris.
 // Avanzar abre el anillo desde donde está el punto; retroceder lo cierra sobre
 // el lugar al que el punto regresa.

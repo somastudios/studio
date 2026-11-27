@@ -1,6 +1,7 @@
-// Fotografía la portada de una visita en sus dos tiempos y en el cambio de uno a otro.
+// La portada de una visita, cuadro por cuadro. Detiene el reloj de GSAP y lo avanza a mano, así
+// que cada foto es exactamente el instante que dice.
 //   node scripts/portada.cjs <puerto> <carpeta-de-salida> [negocio] [ancho] [alto]
-// Deja tiempo-0.png, tiempo-1.png, regreso.png y cambio.png (la tira del paso 0 → 1).
+// Deja llegada.png, escribe.png y borra.png (tiras de cuadros) y tiempo-0.png, tiempo-1.png.
 const { chromium } = require('playwright')
 const fs = require('fs')
 const path = require('path')
@@ -13,45 +14,62 @@ const [, , puerto, salida, negocio = 'La Casona', ancho = '1440', alto = '810'] 
   const errores = []
   p.on('pageerror', (e) => errores.push(e.message))
   await p.addInitScript(() => {
-    localStorage.setItem('soma.local', '1')
-    localStorage.setItem('soma.nombre', 'Dalí')
+    try {
+      localStorage.setItem('soma.local', '1')
+      localStorage.setItem('soma.nombre', 'Dalí')
+    } catch {}
   })
   await p.goto(`http://localhost:${puerto}/#/presala`)
-  await p.waitForTimeout(900)
+  await p.waitForTimeout(1200)
   await p.fill('#ps-negocio', negocio)
   await p.locator('[data-nicho="restaurante"]').click()
-  await p.locator('[data-empezar]').click()
-  await p.waitForTimeout(3200)
-  await p.screenshot({ path: `${dir}/tiempo-0.png` })
 
-  // El cambio, cuadro por cuadro: se detiene el reloj de GSAP y se avanza a mano.
-  await p.evaluate(() => window.__gsap?.ticker && 0)
-  const celdas = []
-  await p.keyboard.press('ArrowRight')
-  const t0 = Date.now()
-  for (const ms of [120, 300, 500, 700, 900, 1150, 1450, 2200]) {
-    const falta = ms - (Date.now() - t0)
-    if (falta > 0) await p.waitForTimeout(falta)
-    const f = `${dir}/_c${celdas.length}.png`
-    await p.screenshot({ path: f })
-    celdas.push('<div style="position:relative"><img src="file://' + f + '" style="width:100%;display:block"><b style="position:absolute;left:4px;top:3px;background:#fff;color:#000;padding:0 4px">' + ms + ' ms</b></div>')
+  // Cámara lenta: el reloj de GSAP corre 12 veces más despacio y la foto se toma cuando llega
+  // al instante pedido. Cada cuadro lleva el instante real en que se tomó.
+  const LENTO = 12
+  const ahora = () => p.evaluate(() => window.__portada?.actual().time() ?? 0)
+  async function tira(nombre, accion, tiempos, cols = 5) {
+    await p.evaluate((k) => window.__gsap.globalTimeline.timeScale(1 / k), LENTO)
+    await accion()
+    await p.waitForTimeout(250)
+    const t0 = 0
+    const celdas = []
+    for (const t of tiempos) {
+      let real = (await ahora()) - t0
+      while (real < t - 0.004) {
+        await p.waitForTimeout(Math.max(8, (t - real) * 1000 * LENTO * 0.6))
+        real = (await ahora()) - t0
+      }
+      const f = `${dir}/_${nombre}-${celdas.length}.png`
+      await p.screenshot({ path: f })
+      if (process.env.LOG) console.log(nombre, t, real.toFixed(3), new Date().toISOString().slice(14, 23))
+      celdas.push('<div style="position:relative"><img src="file://' + f + '" style="width:100%;display:block"><b style="position:absolute;left:4px;top:3px;background:#fff;color:#000;padding:0 4px;font:12px sans-serif">' + real.toFixed(2) + ' s</b></div>')
+    }
+    await p.evaluate(() => window.__gsap.globalTimeline.timeScale(1))
+    await p.waitForTimeout(2500)
+    fs.writeFileSync(`${dir}/_${nombre}.html`, '<body style="margin:0;background:#888"><div style="display:grid;grid-template-columns:repeat(' + cols + ',1fr);gap:4px;padding:4px">' + celdas.join('') + '</div></body>')
+    const h = await b.newPage({ viewport: { width: 1600, height: 600 } })
+    await h.goto(`file://${dir}/_${nombre}.html`)
+    await h.waitForTimeout(400)
+    await h.screenshot({ path: `${dir}/${nombre}.png`, fullPage: true })
+    await h.close()
   }
-  await p.waitForTimeout(800)
+
+  await tira('llegada', () => p.locator('[data-empezar]').click(), [0.1, 0.35, 0.52, 0.6, 0.64, 0.7, 0.8, 0.95, 1.05, 1.15, 1.35, 1.6, 2.4])
+  await p.waitForTimeout(600)
+  await p.screenshot({ path: `${dir}/tiempo-0.png` })
+  await tira('escribe', () => p.keyboard.press('ArrowRight'), [0.08, 0.2, 0.35, 0.5, 0.65, 0.8, 0.9, 1.0, 1.15, 1.3, 1.45, 1.6, 1.68, 1.8, 2.3])
+  await p.waitForTimeout(600)
   await p.screenshot({ path: `${dir}/tiempo-1.png` })
-  // a la siguiente escena y de regreso: debe volver al tiempo 1
+  await tira('borra', () => p.keyboard.press('ArrowLeft'), [0.1, 0.3, 0.5, 0.7, 0.85, 1.0, 1.15, 1.3, 1.45, 1.6, 1.7, 1.85, 2.4])
+  // ida y vuelta con la escena siguiente
+  await p.keyboard.press('ArrowRight')
+  await p.waitForTimeout(2600)
   await p.keyboard.press('ArrowRight')
   await p.waitForTimeout(1800)
   await p.keyboard.press('ArrowLeft')
   await p.waitForTimeout(2600)
   await p.screenshot({ path: `${dir}/regreso.png` })
-  await p.keyboard.press('ArrowLeft')
-  await p.waitForTimeout(2000)
-  await p.screenshot({ path: `${dir}/regreso-0.png` })
   console.log('errores:', errores.length ? [...new Set(errores)].join(' | ') : 0)
-  fs.writeFileSync(dir + '/_h.html', '<body style="margin:0;background:#888;font:12px sans-serif"><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:4px">' + celdas.join('') + '</div></body>')
-  const h = await b.newPage({ viewport: { width: 1400, height: 600 } })
-  await h.goto('file://' + dir + '/_h.html')
-  await h.waitForTimeout(300)
-  await h.screenshot({ path: dir + '/cambio.png', fullPage: true })
   await b.close()
 })()
