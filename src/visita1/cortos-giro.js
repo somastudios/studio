@@ -1,210 +1,178 @@
 import Trazo from '../core/trazo-vivo.js'
 
-// Los cortos del aro de la portada: uno por familia de giro. Se ven dentro del aro de Soma, en
-// una ventana redonda, en lugar del icono. Lienzo de 200 × 200; se ve el círculo de radio 80.
+// Los cortos del aro de la portada: uno por familia de giro. Se ven dentro del aro de Soma,
+// en una ventana redonda, en lugar del icono. Lienzo de 200 × 200, centro (100, 100), lo que se
+// ve es el círculo de radio 80.
 //
-// Son una sola toma, sin cortes. En pantalla hay tres cosas y nunca desaparecen: cambian de
-// papel. Lo que se va no se borra, se vuelve lo que sigue.
+// Comida y bebida · «Su cocina» (9.4 s, en bucle sin costura)
+//   1 · La orden   La comanda sube meciéndose y sus renglones se escriben solos. El punto cae
+//                  desde arriba como sello: la comanda se hunde, se sacude y saltan rayos.
+//   2 · La cocina  La comanda toma vuelo y se vuelve campana sobre el plato, tapando al punto.
+//                  Hierve: la campana brinca sobre el plato, se le escapan bocanadas por los
+//                  lados y sube vapor.
+//   3 · Servido    La campana se agacha y sale volando de lado; el punto queda servido y brinca
+//                  de gusto. Al final se agacha, salta hacia arriba y sale del cuadro, y el
+//                  plato se borra: en el plano 1 vuelve a caer desde arriba, como sello.
 //
-// Comida y bebida · «Su cocina» (8.4 s, en bucle)
-//
-//                 La figura                  Los tres renglones        El punto
-//   La orden      comanda                    son el texto              cae: es el sello
-//   La cocina     se vuelve campana          se despegan: son vapor    sube: es la perilla
-//   Servido       se aplasta: es el plato    vapor sobre la comida     cae al plato: la comida
-//   La cuenta     se levanta: comanda        bajan: son texto          brinca y vuelve de sello
-//
-// Cómo se siente continuo:
-//   · La figura cambia en ola: la parte de arriba sale primero y la de abajo la sigue, y cada
-//     punto se pasa tantito al llegar. No es un fundido de una forma a otra.
-//   · Las acciones se enciman: los renglones empiezan a despegarse antes de que la comanda
-//     cambie, y el punto ya va en el aire cuando la campana termina de formarse.
-//   · Antes de cada cambio todo toma vuelo (se agacha) y al terminar hay un golpe que se nota
-//     en tres lugares: el punto se aplasta, la figura se hunde y saltan rayos.
-//   · La cámara nunca se queda quieta: deriva despacio y da un empujón en cada transformación.
+// La cámara se acerca despacio durante los dos primeros planos y se abre en el tercero, así el
+// bucle empata. Sin telón: el azul grande ya es el punto de la portada.
 //
 // Las familias que todavía no tienen corto usan el icono de su giro, dibujado a mano.
 
-const { P, D, T, G, monta, remuestra, elipsePts, corre, tramo, mezcla, suave, frena, acelera, rebota, salto, golpe, brinco, pon, forma, agita, camara, punto, corona } = Trazo
+const { P, D, T, G, monta, remuestra, mezclaPts, corre, tramo, mezcla, suave, frena, acelera, rebota, elastico, salto, golpe, brinco, pon, traza, ve, forma, agita, camara, punto, corona } = Trazo
 
-const TAU = Math.PI * 2
 const tope = (x) => (x < 0 ? 0 : x > 1 ? 1 : x)
 const N = 96
-
-/** Gira la lista para que empiece en el punto de hasta arriba: así todas las figuras empatan. */
-const alinea = (pts) => {
-  let k = 0
-  pts.forEach((p, i) => {
-    if (p[1] < pts[k][1] - 0.01 || (Math.abs(p[1] - pts[k][1]) <= 0.01 && Math.abs(p[0] - 100) < Math.abs(pts[k][0] - 100))) k = i
-  })
-  return [...pts.slice(k), ...pts.slice(0, k)]
-}
+const TICKET_V = [[68, 34], [132, 34], [132, 150], [125, 143], [118, 150], [111, 143], [104, 150], [97, 143], [90, 150], [83, 143], [76, 150], [68, 143]]
+const TICKET = remuestra(TICKET_V, N)
 const arcoPts = (cx, cy, r, n) => Array.from({ length: n }, (_, i) => [cx + Math.cos(Math.PI + (i / (n - 1)) * Math.PI) * r, cy + Math.sin(Math.PI + (i / (n - 1)) * Math.PI) * r])
-
-const COMANDA = alinea(remuestra([[68, 34], [132, 34], [132, 150], [125, 143], [118, 150], [111, 143], [104, 150], [97, 143], [90, 150], [83, 143], [76, 150], [68, 143]], N))
-const CAMPANA = alinea(remuestra([...arcoPts(100, 132, 50, 26), [150, 132], [50, 132]], N))
-const PLATO = elipsePts(100, 134, 64, 7, N)
-
-// Qué tan tarde sale cada punto de la figura: 0 arriba, 1 abajo.
-const ORDEN = Array.from({ length: N }, (_, i) => Math.min(i, N - i) / (N / 2))
-/** Llega y se pasa un poco. */
-const atras = (x) => 1 + 2.4 * Math.pow(x - 1, 3) + 1.4 * Math.pow(x - 1, 2)
-/** De A a B en ola: lo de arriba sale primero. */
-const ola = (A, B, m) =>
-  A.map((a, i) => {
-    const p = atras(tope(m * 1.45 - 0.45 * ORDEN[i]))
-    return [a[0] + (B[i][0] - a[0]) * p, a[1] + (B[i][1] - a[1]) * p]
-  })
-
-// Los tres renglones: derechos sobre la comanda, o de vapor subiendo desde `base`.
-const RENGLONES = [[58, 120], [74, 120], [90, 106]]
-const renglon = (i) => Array.from({ length: 9 }, (_, j) => [mezcla(80, RENGLONES[i][1], j / 8), RENGLONES[i][0]])
-const vapor = (i, t, base, alto) =>
-  Array.from({ length: 9 }, (_, j) => {
-    const u = j / 8
-    return [84 + i * 16 + (1.5 + 5.5 * u) * Math.sin(u * 4.4 + i * 1.7 - t * 3.4), base - alto * u]
-  })
-const entre = (A, B, p) => A.map((a, j) => [mezcla(a[0], B[j][0], p), mezcla(a[1], B[j][1], p)])
-
-const DUR = 8.4
-const SELLO = [112, 118]
-const PERILLA = [100, 73]
-const COMIDA_P = [100, 123]
+const CAMPANA = remuestra([...arcoPts(100, 132, 50, 26), [150, 132], [50, 132]], N)
+const VAPOR = [0, 1, 2].map((k) => {
+  const x = 84 + k * 16
+  return P.suave(Array.from({ length: 7 }, (_, i) => [x + 4 * Math.sin(i * 1.3 + k), 66 - i * 7]))
+})
+/** La cámara del corto: centro del lienzo, un poco arriba del plato. */
+const encuadra = (el, z) => camara(el, 100, 100 + 6 * (z - 1) * 4, z, 100, 100)
 
 const COMIDA = {
-  cartel: 1,
-  svg: () =>
-    G(
-      'cam',
-      G('b0', T(P.circ(0, 0, 7, 9), { cls: 'ln fino', amp: 0.5 })) +
-        G('b1', T(P.circ(0, 0, 7, 9), { cls: 'ln fino', amp: 0.5 })) +
-        T(D(corre(COMANDA, 6, 6)), { cls: 'blq', n: 'sombra' }) +
-        T(D(COMANDA), { cls: 'ln tapa', n: 'figura' }) +
-        [0, 1, 2].map((i) => T(D(renglon(i), false), { cls: 'ln fino', amp: 0.4, n: 'h' + i })).join('') +
-        corona('ray', 8, 15, 24) +
-        punto(10, 'pt'),
-    ),
-  paso(q, t) {
-    // ── los cuatro cambios: cuánto lleva cada uno ──
-    const aCampana = tramo(t, 1.9, 2.9)
-    const aPlato = tramo(t, 4.4, 5.2)
-    const aComanda = tramo(t, 6.7, 7.6)
-    const hierve = suave(tramo(t, 3.0, 3.6)) * (1 - tramo(t, 4.1, 4.3))
-    const latido = (z) => Math.max(0, Math.sin(z * (9 + 5 * hierve)))
-
-    // ── la figura ──
-    const pts = aComanda > 0 ? ola(PLATO, COMANDA, aComanda) : aPlato > 0 ? ola(CAMPANA, PLATO, aPlato) : aCampana > 0 ? ola(COMANDA, CAMPANA, aCampana) : COMANDA
-    forma(q('figura'), pts)
-    forma(q('sombra'), corre(pts, 6, 6))
-    const cambia = salto(aCampana) + salto(aPlato) + salto(aComanda)
-    agita(q('figura'), 1 + 1.2 * cambia + 1.2 * hierve)
-    // toma vuelo antes de cada cambio; se hunde y tiembla cuando le cae el punto
-    const vuelo = 0.06 * salto(tramo(t, 1.68, 1.95)) + 0.09 * salto(tramo(t, 4.15, 4.44)) + 0.05 * salto(tramo(t, 6.5, 6.74))
-    const sellazo = golpe(t, 0.45, 0.22)
-    const tiembla = golpe(t, 0.45, 0.7) * Math.sin((t - 0.45) * 24)
-    const cae = golpe(t, 4.95, 0.2)
-    const mece = golpe(t, 4.95, 0.7) * Math.sin((t - 4.95) * 20)
-    const esComanda = t < 1.9 || t >= 7.6
-    const cuerpo = {
-      ox: 100,
-      oy: esComanda ? 150 : 134,
-      y: 4 * sellazo - 3.4 * hierve * latido(t) + 2.4 * cae,
-      r: 2.6 * tiembla + 2 * hierve * Math.sin(t * 31) + 1.8 * mece - 3 * salto(aCampana) + 2 * salto(aComanda),
-      sy: 1 - vuelo - 0.035 * sellazo,
-    }
-    pon(q('figura'), cuerpo)
-    pon(q('sombra'), cuerpo)
-
-    // ── los renglones: texto, vapor sobre la campana, vapor sobre la comida y texto otra vez ──
-    ;[0, 1, 2].forEach((i) => {
-      const sube = suave(tramo(t, 1.78 + 0.13 * i, 2.75 + 0.13 * i))
-      const baja = suave(tramo(t, 4.5, 5.25))
-      const vuelve = suave(tramo(t, 6.95 + 0.1 * i, 7.9 + 0.1 * i))
-      const humo = vapor(i, t, mezcla(60, 106, baja), mezcla(40, 44, baja))
-      const el = q('h' + i)
-      forma(el, vuelve > 0 ? entre(humo, renglon(i), vuelve) : entre(renglon(i), humo, sube))
-      pon(el, sube === 0 || vuelve === 1 ? cuerpo : {})
-    })
-
-    // ── el punto: sello, perilla, comida y sello otra vez ──
-    let x = SELLO[0]
-    let y = SELLO[1]
-    let s = 1
-    let sx = 1
-    let sy = 1
-    const aplasta = (k) => {
-      sy *= 1 - k
-      sx /= 1 - k
-      y += 10 * s * k
-    }
-    const estira = (k) => {
-      sy *= 1 + k
-      sx /= 1 + k
-    }
-    if (t < 0.45) {
-      // cae desde arriba, estirado por la velocidad
-      const u = tramo(t, 0, 0.45)
-      y = mezcla(-26, SELLO[1], acelera(u))
-      estira(0.3 * u)
-    } else if (t < 1.95) {
-      aplasta(0.36 * sellazo + 0.24 * salto(tramo(t, 1.72, 1.95)))
-      y += 4 * sellazo
-    } else if (t < 2.75) {
-      // sube en arco a la punta de la campana
-      const u = tramo(t, 1.95, 2.75)
-      const b = brinco(u, 30)
-      x = mezcla(SELLO[0], PERILLA[0], suave(u))
-      y = mezcla(SELLO[1], PERILLA[1], suave(u)) + b.dy
-      s = mezcla(1, 0.82, u)
-      sx = b.sx
-      sy = b.sy
-    } else if (t < 4.42) {
-      // de perilla: brinca con la campana, un instante después y un poco más
-      ;[x, y] = PERILLA
-      s = 0.82
-      y -= 4.6 * hierve * latido(t - 0.05)
-      aplasta(0.3 * golpe(t, 2.75, 0.2) + 0.22 * salto(tramo(t, 4.18, 4.42)))
-      y += 5 * salto(tramo(t, 4.18, 4.42))
-    } else if (t < 4.95) {
-      // la campana se aplasta bajo él y cae al plato
-      const u = tramo(t, 4.42, 4.95)
-      x = PERILLA[0]
-      y = mezcla(PERILLA[1], COMIDA_P[1], acelera(u))
-      s = mezcla(0.82, 1, u)
-      estira(0.26 * u)
-    } else if (t < 6.92) {
-      ;[x, y] = COMIDA_P
-      const b1 = brinco(tramo(t, 5.02, 5.42), 17)
-      const b2 = brinco(tramo(t, 5.42, 5.68), 6)
-      const b = b1.dy ? b1 : b2
-      y += b.dy
-      sx = b.sx
-      sy = b.sy
-      aplasta(0.34 * cae + 0.3 * salto(tramo(t, 6.66, 6.92)))
-    } else {
-      // brinca hacia arriba y sale del cuadro: vuelve cayendo, como sello
-      const u = tramo(t, 6.92, 7.36)
-      x = mezcla(COMIDA_P[0], SELLO[0], suave(u))
-      y = mezcla(COMIDA_P[1], -30, frena(u) * 0.55 + acelera(u) * 0.45)
-      estira(0.3 * (1 - 0.6 * u))
-    }
-    pon(q('pt'), { x, y, sx: s * sx, sy: s * sy })
-    const rayos = t < 3 ? [SELLO, 0.45] : [COMIDA_P, 4.95]
-    pon(q('ray'), { x: rayos[0][0], y: rayos[0][1], sx: mezcla(0.6, 1.25, frena(tramo(t, rayos[1], rayos[1] + 0.45))), o: golpe(t, rayos[1], 0.45) })
-
-    // ── las bocanadas que se le escapan a la campana por los lados ──
-    ;[0, 1].forEach((k) => {
-      const c = ((((t - 3.1 - k * 0.3) % 0.6) + 0.6) % 0.6) / 0.6
-      const lado = k ? 1 : -1
-      pon(q('b' + k), { x: 100 + lado * (54 + 16 * frena(c)), y: 128 - 12 * c, sx: 0.3 + 0.9 * frena(c), o: hierve * (1 - c) })
-    })
-
-    // ── la cámara: sigue a la figura, deriva despacio y empuja en cada cambio ──
-    const esCampana = suave(aCampana) * (1 - suave(aPlato))
-    const esPlato = suave(aPlato) * (1 - suave(aComanda))
-    const cy = 96 + 6 * esCampana + 14 * esPlato
-    camara(q('cam'), 100 + 1.5 * Math.sin((t / DUR) * TAU), cy, 1.04 + 0.025 * Math.sin((t / DUR) * TAU * 2) + 0.05 * cambia, 100, 100)
-  },
+  cartel: 8,
+  planos: [
+    {
+      nombre: 'La orden',
+      dur: 3.0,
+      svg: () =>
+        G(
+          'c1cam',
+          G(
+            'c1t',
+            T(D(corre(TICKET, 6, 6)), { cls: 'blq' }) +
+              T(D(TICKET), { cls: 'ln tapa' }) +
+              [58, 74, 90].map((y, i) => T(P.linea(80, y, i === 2 ? 106 : 120, y), { cls: 'ln fino tz', amp: 0.4, n: 'c1r' + i })).join('') +
+              T(P.linea(80, 112, 98, 112), { cls: 'ln tz', amp: 0.4, n: 'c1tot' }),
+          ) +
+            corona('c1ray', 8, 15, 24) +
+            punto(10, 'c1pt'),
+        ),
+      paso(q, t) {
+        encuadra(q('c1cam'), 1 + 0.05 * suave(tramo(t, 0, 3)))
+        // la comanda sube meciéndose; el sello la hunde y la deja temblando
+        const llega = rebota(tramo(t, 0, 0.65))
+        const pega = golpe(t, 1.85, 0.22)
+        const tiembla = golpe(t, 1.85, 0.7) * Math.sin((t - 1.85) * 24)
+        pon(q('c1t'), { ox: 100, oy: 150, y: 150 * (1 - llega) + 4 * pega, r: 5 * (1 - llega) + 2.6 * tiembla, sy: 1 - 0.035 * pega })
+        const borra = 1 - suave(tramo(t, 2.5, 2.8))
+        ;[0, 1, 2].forEach((i) => traza(q('c1r' + i), suave(tramo(t, 0.55 + i * 0.25, 0.9 + i * 0.25)) * borra))
+        traza(q('c1tot'), suave(tramo(t, 1.3, 1.55)) * borra)
+        // el punto cae como sello, estirado por la velocidad
+        const u = tramo(t, 1.55, 1.85)
+        const cae = acelera(u)
+        const estira = 0.28 * salto(u) * (u < 1 ? 1 : 0)
+        const vuelo = salto(tramo(t, 2.75, 3.0))
+        pon(q('c1pt'), { x: 112, y: mezcla(-20, 120, cae) + 4 * pega - 6 * vuelo, sx: 1 + 0.35 * pega - estira * 0.5 - 0.1 * vuelo, sy: 1 - 0.36 * pega + estira + 0.14 * vuelo, o: tramo(t, 1.5, 1.56) })
+        pon(q('c1ray'), { x: 112, y: 120, sx: mezcla(0.6, 1.25, frena(tramo(t, 1.85, 2.3))), o: golpe(t, 1.85, 0.45) })
+      },
+    },
+    {
+      nombre: 'La cocina',
+      dur: 3.2,
+      svg: () =>
+        G(
+          'c2cam',
+          T(P.elipse(100, 134, 64, 7, 18), { cls: 'ln tz', amp: 0.5, n: 'c2plato' }) +
+            punto(10, 'c2pt') +
+            G('c2b0', T(P.circ(0, 0, 7, 9), { cls: 'ln fino', amp: 0.5 })) +
+            G('c2b1', T(P.circ(0, 0, 7, 9), { cls: 'ln fino', amp: 0.5 })) +
+            T(D(corre(TICKET, 6, 6)), { cls: 'blq', n: 'c2blq' }) +
+            T(D(TICKET), { cls: 'ln tapa', n: 'c2forma' }) +
+            G('c2perilla', T(P.circ(0, 0, 6, 10), { cls: 'ln tapa', amp: 0.25 })) +
+            VAPOR.map((v, k) => T(v, { cls: 'ln fino tz', amp: 0.6, n: 'c2v' + k })).join(''),
+        ),
+      paso(q, t) {
+        encuadra(q('c2cam'), 1.05 + 0.05 * suave(tramo(t, 0, 3.2)))
+        // toma vuelo y se vuelve campana
+        const vuelo = salto(tramo(t, 0, 0.25))
+        const m = elastico(tramo(t, 0.22, 1.25))
+        const pts = mezclaPts(TICKET, CAMPANA, m)
+        forma(q('c2forma'), pts)
+        forma(q('c2blq'), corre(pts, 6, 6))
+        // hierve: la presión levanta la campana a brinquitos, cada vez más seguido
+        const hierve = suave(tramo(t, 1.7, 2.3))
+        const latido = Math.max(0, Math.sin(t * (9 + 5 * hierve)))
+        const sube = hierve * 3.4 * latido
+        const ladea = hierve * 2 * Math.sin(t * 31)
+        const cuerpo = { ox: 100, oy: 132, y: -sube, sy: 1 - 0.06 * vuelo, r: ladea }
+        pon(q('c2forma'), cuerpo)
+        pon(q('c2blq'), cuerpo)
+        agita(q('c2forma'), 1 + 1.4 * hierve)
+        traza(q('c2plato'), suave(tramo(t, 0.9, 1.35)))
+        pon(q('c2perilla'), { x: 100 + 0.5 * ladea, y: 77 - sube * 1.5, sx: rebota(tramo(t, 1.15, 1.45)) })
+        // el punto se acomoda en el plato mientras la campana lo tapa
+        const va = suave(tramo(t, 0.15, 0.7))
+        // (ya tapado se encoge tantito, para no asomar cuando la campana brinca)
+        const tapado = suave(tramo(t, 0.9, 1.3))
+        pon(q('c2pt'), { x: mezcla(112, 100, va), y: mezcla(120, 124, va) - 7 * salto(tramo(t, 0.15, 0.7)) - 4 * tapado, sx: 1 - 0.2 * tapado })
+        // se le escapan bocanadas por los lados, alternadas
+        ;[0, 1].forEach((k) => {
+          const c = (((t - 1.9 - k * 0.3) % 0.6) + 0.6) % 0.6 / 0.6
+          const lado = k ? 1 : -1
+          pon(q('c2b' + k), { x: 100 + lado * (54 + 16 * frena(c)), y: 128 - 12 * c, sx: 0.3 + 0.9 * frena(c), o: t < 1.9 + k * 0.3 ? 0 : hierve * (1 - c) })
+        })
+        VAPOR.forEach((_, k) => {
+          const c = (((t - 1.5 - k * 0.32) % 1.2) + 1.2) % 1.2
+          const el = q('c2v' + k)
+          traza(el, t < 1.5 + k * 0.32 ? 0 : suave(tope(c / 0.7)))
+          pon(el, { y: -18 * (c / 1.2), o: 1 - tope((c - 0.7) / 0.5) })
+        })
+      },
+    },
+    {
+      nombre: 'Servido',
+      dur: 3.2,
+      svg: () =>
+        G(
+          'c3cam',
+          T(P.elipse(100, 134, 64, 7, 18), { cls: 'ln tz', amp: 0.5, n: 'c3plato' }) +
+            corona('c3ray', 9, 16, 26) +
+            punto(10, 'c3pt') +
+            G('c3campana', T(D(corre(CAMPANA, 6, 6)), { cls: 'blq' }) + T(D(CAMPANA), { cls: 'ln tapa' }) + T(P.circ(100, 77, 6, 10), { cls: 'ln tapa', amp: 0.25 })) +
+            VAPOR.map((v, k) => T(v, { cls: 'ln fino tz', amp: 0.6, n: 'c3v' + k })).join(''),
+        ),
+      paso(q, t) {
+        // la cámara se abre: el plato respira y el bucle empata con el plano 1
+        encuadra(q('c3cam'), mezcla(1.1, 1, suave(tramo(t, 0.2, 2.6))))
+        // la campana se agacha, sale volando de lado y gira
+        const agacha = salto(tramo(t, 0.1, 0.3))
+        const sale = acelera(tramo(t, 0.3, 0.85))
+        pon(q('c3campana'), { ox: 100, oy: 132, y: 4 * agacha - 150 * sale, x: 90 * sale, r: 40 * sale, sy: 1 - 0.07 * agacha })
+        // el punto servido brinca de gusto; al final toma vuelo y sale por arriba
+        const b1 = brinco(tramo(t, 0.75, 1.2), 26)
+        const b2 = brinco(tramo(t, 1.2, 1.5), 9)
+        const b = b1.dy ? b1 : b2
+        const vuelo = salto(tramo(t, 2.45, 2.72))
+        const u = tramo(t, 2.68, 3.05)
+        const sube = acelera(u)
+        const estira = u > 0 ? 0.3 * (1 - 0.5 * u) : 0
+        const crece = mezcla(0.8, 1, rebota(tramo(t, 0.3, 0.7))) // recupera su tamaño al destaparse
+        pon(q('c3pt'), {
+          x: 100,
+          y: 124 - 4 * (1 - tramo(t, 0.3, 0.6)) + b.dy + 10 * (1 - b.sy) + 3.4 * vuelo - 190 * sube,
+          sx: crece * b.sx * (1 + 0.3 * vuelo) * (1 - estira * 0.5),
+          sy: crece * b.sy * (1 - 0.34 * vuelo) * (1 + estira),
+        })
+        pon(q('c3ray'), { x: 100, y: 124, sx: mezcla(0.6, 1.25, frena(tramo(t, 0.75, 1.3))), o: golpe(t, 0.75, 0.5) })
+        // el plato se hunde tantito con cada caída y se borra cuando el punto se va
+        const peso = golpe(t, 1.2, 0.18) + 0.5 * golpe(t, 1.5, 0.15) + 0.8 * vuelo
+        pon(q('c3plato'), { y: 1.6 * peso })
+        traza(q('c3plato'), 1 - suave(tramo(t, 2.75, 3.15)))
+        VAPOR.forEach((_, k) => {
+          const el = q('c3v' + k)
+          const c = tramo(t, 1.3 + k * 0.18, 2.4 + k * 0.18)
+          traza(el, suave(tope(c * 1.6)))
+          pon(el, { y: 50 - 22 * c, o: 1 - tope((c - 0.6) / 0.4) })
+        })
+      },
+    },
+  ],
 }
 
 const CORTOS = { comida: COMIDA }
@@ -216,19 +184,11 @@ export const hayCorto = (familia) => !!CORTOS[familia]
 export function cortoGiro(svg, familia) {
   const obra = CORTOS[familia]
   if (!obra) return null
-  let t0 = null
-  monta(svg, {
-    dur: Infinity,
-    cartel: obra.cartel,
-    svg: obra.svg,
-    paso(q, t) {
-      if (t0 === null) t0 = t
-      obra.paso(q, (((t - t0) % DUR) + DUR) % DUR)
-    },
-  })
+  const corto = { ...obra, t0: 0 }
+  monta(svg, corto)
   return {
     desde(t = performance.now() / 1000) {
-      t0 = t
+      corto.t0 = t
     },
   }
 }

@@ -206,8 +206,8 @@ Las cuatro fichas de «Hoy» llevan una película de pixel art con cortes de cá
 - La guía del estilo de la interfaz (piezas con volumen, formas, fichas de color, en blanco y en negro) está en `.claude/skills/ui-soma/SKILL.md`, con su hoja base y una galería.
 - Dentro de la app, el trazo vivo entra por `src/core/trazo-vivo.js` (el motor es `src/core/trazo.js`, copia exacta del de la skill). El dibujo grande de «Antes de empezar» vive en `src/visita1/trazos.js`: una sola figura que cambia de forma con cada compromiso (`acuerdoVivo(svg).ir(i)`), mientras el texto entra por palabras desde `src/visita1/apertura.js`. Un `<svg class="tv">` toma la tinta y el fondo de la escena donde esté. Se revisa con `node scripts/acuerdo.cjs`.
 - El prompt para construir el sistema de un cliente sale de `src/crm/prompt.js` (`promptDe`), una función pura que lee el expediente. Quién decide se guarda en `visita.datos.decisor`.
-- `docs/trazo-vivo.html` es un documento aparte, sin dependencias: el trazo que hierve a 60 cuadros por segundo (o en treses), tres cortos de varios planos (una persona pensando, la puerta que se vuelve expediente y el cobro que se vuelve recibo), cuatro bucles y un menú de iconos. No está conectado al CRM.
-- La guía para hacer animaciones así (el motor suelto, sus estilos, un ejemplo mínimo, la galería y cómo revisarlas en tiras de fotos) está en `.claude/skills/soma-animation/SKILL.md`. Su `galeria.html` es copia de `docs/trazo-vivo.html`.
+- `docs/soma-animation.html` es un documento aparte, sin dependencias: el trazo que hierve a 60 cuadros por segundo (o en treses), tres cortos de varios planos (una persona pensando, la puerta que se vuelve expediente y el cobro que se vuelve recibo), cuatro bucles y un menú de iconos. No está conectado al CRM.
+- La guía para hacer animaciones así (el motor suelto, sus estilos, un ejemplo mínimo, la galería y cómo revisarlas en tiras de fotos) está en `.claude/skills/soma-animation/SKILL.md`. Su `galeria.html` es copia de `docs/soma-animation.html`.
 
 ## El lenguaje visual del CRM
 

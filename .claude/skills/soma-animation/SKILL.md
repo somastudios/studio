@@ -248,4 +248,4 @@ Y tres cosas del motor: `forma` necesita siempre el mismo número de puntos que 
 
 ## 10. En el repositorio de Soma (studio)
 
-La galería vive también en `docs/trazo-vivo.html` (es la que está publicada) y hay que mantener las dos copias iguales. No está conectada al CRM. Las películas de pixel art, las viñetas de cada sección y el boil de tres dibujos del CRM son otra cosa: skill `animacion-soma`.
+La galería vive también en `docs/soma-animation.html` (es la que está publicada) y hay que mantener las dos copias iguales. No está conectada al CRM. Las películas de pixel art, las viñetas de cada sección y el boil de tres dibujos del CRM son otra cosa: skill `animacion-soma`.
