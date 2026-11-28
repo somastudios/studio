@@ -103,7 +103,7 @@ Todo se arma con `tramo(t, a, b)`, que va de 0 a 1 entre el segundo `a` y el `b`
 | `camara(el, x, y, z)` | Pone `(x, y)` al centro de un cuadro de cine, con acercamiento `z` |
 | `ojo(el, x, y, rx, ry)` | Coloca una `<ellipse>`: un ojo que mira, se abre o parpadea |
 
-Piezas hechas: `punto(r, n)`, `rayos(n, líneas)`, `corona(n, cuántos, r0, r1)` y `manoSvg(k)` con `indice(e)`.
+Piezas hechas: `punto(r, n)`, `rayos(n, líneas)`, `corona(n, cuántos, r0, r1)`, `manoSvg(k)` con `indice(e)`, `madeja(cx, cy, R, e, fase)` (un enredo que con `e = 0` es un círculo) y `nube(cx, cy, r)`.
 
 Modos: `Trazo.modo('suave' | 'treses' | 'quieto')`. «Treses» es el hervor clásico de 8 dibujos por segundo.
 
@@ -120,11 +120,12 @@ Esto no es teoría, es lo que Alex dijo al ver cada animación. Antes de planear
 | Una sola toma donde todo se transformaba en otra cosa, sin cortes | «Quedó peor» | Era ingeniosa y no le pasaba nada a nadie. El morph era la historia |
 | Dibujitos chicos en una esquina de la lámina | No | No se veían. Una animación que acompaña a un texto ocupa su mitad de la pantalla |
 | Un objeto solo que se mueve (una etiqueta, un reloj, un globo) | «Hay que pulirlas» | Se lee como icono. Se arregló poniendo al lado a la persona que reacciona al objeto |
-| Las dos visitas completas, hechas en una tarde con un plan aprobado antes (28 nov) | Pendiente de veredicto | Se anota aquí cuando Alex las vea moverse |
+| Las dos visitas completas, hechas en una tarde (28 nov): un dibujo por lámina, casi todos de un solo encuadre | «La idea ya la tienes», pero «hay partes donde nomás se ve el gerente y no te demuestra nada» | Un busto que parpadea no cuenta nada. Pidió objetos, morphing y escenas distintas, y que se construyera como su galería |
+| La segunda vuelta (28 nov): la madeja y el carrete, «Primero el problema» en tres planos, la libreta con mano y lápiz, el local que se construye | Pendiente de veredicto | Se anota aquí cuando Alex las vea moverse |
 
 De ahí salen siete reglas. Van en orden de importancia:
 
-1. **Alguien con cara siente algo.** Una persona que se agobia, desconfía, descansa o presume jala más que cualquier forma bonita. Si la animación no tiene a nadie, se queda en icono.
+1. **A alguien le pasa algo.** Una persona que se agobia, desconfía, descansa o presume jala más que cualquier forma bonita. Pero ojo: una cara no basta. Un busto que solo parpadea y asiente no demuestra nada, y Alex lo rechazó. La persona va solo donde su reacción es el tema, y actúa con objetos; en lo demás, el que actúa es el objeto, o una mano que entra, hace algo y se va.
 2. **Es el problema de quien la mira.** El dueño de un restaurante ve a un cocinero con comandas encima y se reconoce. Primero se ve el problema, después cómo queda. Un símbolo que se mueve no es un problema.
 3. **El punto llega en el giro.** El punto es Soma: no carga con toda la historia, entra cuando las cosas cambian y las acomoda. La persona siente y el punto resuelve. Solo en un bucle sin persona el punto es el personaje.
 4. **Sube y remata.** Lo que se repite va cada vez más rápido o más grande (cada comanda llega antes que la anterior) hasta que algo se rompe, y al final hay un gesto chico que hace sonreír: el cocinero presume su tableta.
@@ -133,6 +134,69 @@ De ahí salen siete reglas. Van en orden de importancia:
 7. **Cierra donde empezó.** La última pose es la primera, para que el bucle no brinque.
 
 Antes de dibujar, contesta en una línea cada una: ¿quién es?, ¿qué le pasa?, ¿qué siente?, ¿en qué momento llega el punto?, ¿cuál es el remate? Si no hay respuesta para alguna, todavía no está lista.
+
+### La galería contra un borrador
+
+`galeria.html` es la vara. Alex la señaló como la calidad que quiere, y al comparar su código con un primer intento flojo la diferencia no estaba en el motor sino en cómo se construye:
+
+| En la galería | En el borrador flojo |
+|---|---|
+| Tres planos: general, detalle, general. Cada uno con su cámara | Un solo encuadre fijo |
+| El objeto actúa: el frasco abre la boca antes de cada moneda, traga y brinca de gusto | El objeto aparece y se queda |
+| 8 a 12 gestos encimados por plano, cada uno con vuelo, acción y rebote | 2 o 3 gestos |
+| Cada golpe se siente en tres lugares: quien pega se aplasta, salen rayos, la cámara se sacude | Casi ningún golpe |
+| El morph arrastra a los demás: el frasco se vuelve recibo y las monedas, sus renglones | El morph va solo |
+| Una mano entra, hace algo y se va. Hay gente sin un busto de frente | Busto de frente |
+| El dibujo llena su cuadro; el detalle recorta sin miedo | Figura chica con aire alrededor |
+| Se entra a la escena siguiente por una forma (el globo crece hasta llenar el cuadro) | Fundido |
+
+Antes de escribir un plano, cuenta: ¿cuántos gestos tiene?, ¿qué objeto actúa?, ¿dónde está el golpe y cuáles son sus tres ecos?, ¿qué hace la cámara?, ¿el dibujo llena el cuadro? Si alguna respuesta es «nada», todavía es borrador.
+
+### Entrar a un detalle sin que engorde la línea
+
+Para ver «lo que ve la lupa» el mundo se agranda con la cámara (3.2 veces) y la línea se adelgaza lo mismo. `trazo.css` ya trae la regla: basta con poner `--z` en el grupo que se agranda.
+
+```js
+const z = mezcla(1, 3.2, entra)
+camara(q('mundo'), cx, cy, z)
+q('mundo').style.setProperty('--z', z)            // la línea mide 3.1 / z
+```
+
+- El mismo dibujo sirve para el plano general y para el detalle: es una función (`local(k)`) que se llama en cada plano con otro prefijo.
+- Lo de afuera de la lente se tapa con `<circle class="mascara">`, un aro gordo del color del papel.
+- El `<svg>` de un plano así lleva `overflow: hidden`. Si no, el mundo agrandado y la máscara se salen del cuadro y tapan el texto de la página.
+- La lente crece hasta llenar el cuadro al final del plano general, y el detalle empieza con ese mismo aro: el corte no se nota.
+
+### Una mano en lugar de un busto
+
+Cuando hace falta alguien pero no su cara: una mano con su herramienta. El origen del grupo es la punta de la herramienta (la punta del lápiz, la base del sello), así se mueve diciendo dónde toca.
+
+```js
+G('mano',
+  T(D(capsula([34, 14], [150, 150], 19)), { cls: 'ln tapa' }) +     // el brazo, hasta fuera del cuadro
+  T(D(capsula([3, -5], [29, -50], 6.4, 3)), { cls: 'ln tapa' }) +   // el lápiz
+  `<g transform="translate(30 12) rotate(-58)">${manoSvg('m')}</g>` +
+  '<circle class="azul" cx="30" cy="-51.5" r="4.6"/>')              // la goma es el punto
+pon(q('mano'), { x: punta[0], y: punta[1] })
+```
+
+El brazo sale del cuadro, así que ese `<svg>` también lleva `overflow: hidden`.
+
+### Que el dibujo caiga sobre la interfaz de verdad
+
+Si la animación termina en algo que existe en la página (las filas de una ficha), no dibujes una copia: mide la pieza real y pon el dibujo encima con sus mismas medidas.
+
+```js
+const r = ficha.getBoundingClientRect()
+const k = 320 / r.width                              // el dibujo siempre mide 320 de ancho
+svg.setAttribute('viewBox', `0 0 320 ${r.height * k}`)
+const filas = items.map((it) => { const b = it.getBoundingClientRect(); return [(b.left - r.left) * k, (b.top + 15 - r.top) * k, …] })
+```
+
+- Se mide cuando la lámina entra, no al montarla: antes puede estar oculta y medir cero.
+- Lo que se mide no puede traer un `transform` de entrada (un `x: 18` de GSAP corre la medida). Esas piezas entran solo con opacidad.
+- Cada fila real aparece cuando su hilo termina, y el hilo se desvanece: si se queda encima parece tachado.
+- Si no hay filas, la animación no corre.
 
 ### Tres tamaños, y no todas llevan gente
 
@@ -336,6 +400,9 @@ El script también avisa de errores y de desplazamiento lateral. Al entregar di 
 | `rotate(NaN)` en la consola | Un reloj «todavía no» puesto en `Infinity`: `Math.sin(-Infinity)` es `NaN` y `0 * NaN` también. Usa un número grande (`1e9`) |
 | El dibujo empuja el texto fuera de la lámina | Se agregó sin quitar nada. Si entra un dibujo, el título baja de tamaño o cambia de lugar: se revisa la lámina completa, en ancho y en vertical |
 | Una lámina vecina se rompió | Compartía clases con la que se rehízo. Antes de borrar un estilo, busca quién más lo usa |
+| El dibujo tapa el texto de la página | El `<svg>` tiene `overflow: visible` y algo se sale: un brazo, una máscara, el mundo agrandado. Ponle `overflow: hidden` |
+| Las piezas de una tarjeta oscura salen con colores de papel | La tarjeta vive en una lámina clara y hereda sus variables. Dale las suyas a la tarjeta |
+| En celular se encima con el pie de la lámina | La lámina tiene alto fijo y el contenido no cabe. En vertical se desplaza y cada mitad mide lo que su contenido |
 | Se ve bien hecha y no dice nada | No hay nadie a quien le pase algo. Vuelve a «Lo que ya se probó» |
 | Todo se ve gris en oscuro | Se escribió un color fijo en vez de una variable |
 
@@ -343,7 +410,8 @@ Y tres cosas del motor: `forma` necesita siempre el mismo número de puntos que 
 
 ## 9. Antes de entregar
 
-- [ ] Hay alguien con cara, o un objeto donde vive el punto. Le pasa algo que le pasa a quien la mira.
+- [ ] Hay un objeto que actúa (o una persona que actúa con objetos). Ningún busto que solo parpadea.
+- [ ] Cada plano tiene su cámara, un golpe con sus tres ecos y el cuadro lleno.
 - [ ] Si son varias láminas, algo regresa de una a otra.
 - [ ] La lámina completa se ve bien con el dibujo puesto, en laptop y en celular.
 - [ ] Hay un remate, y a lo mucho dos morphs.
@@ -357,4 +425,4 @@ Y tres cosas del motor: `forma` necesita siempre el mismo número de puntos que 
 
 ## 10. En el repositorio de Soma (studio)
 
-La galería vive también en `docs/soma-animation.html` (es la que está publicada) y hay que mantener las dos copias iguales. El motor está en `src/core/trazo.js` (copia exacta de `trazo.js`, se importa con `src/core/trazo-vivo.js`) y el reparto en `src/visita1/reparto-trazo.js` (de ahí sale `reparto.js`). Dentro de la app las clases del dibujo van bajo `svg.tv`. Las láminas de las dos visitas están en `src/visita1/trazos-escenas.js` (se revisan con `node scripts/escena.cjs <puerto> <carpeta> <escena>`). Ya lo usan la portada de la visita (`src/visita1/cortos-giro.js`, la plantilla `corto(persona, cosa)` con seis familias; se revisan con `node scripts/cortos.cjs`) y «Antes de empezar» (`src/visita1/trazos.js`, el dueño que reacciona a cada compromiso; se revisa con `node scripts/acuerdo.cjs`). Las películas de pixel art, las viñetas de cada sección y el boil de tres dibujos del CRM son otra cosa: skill `animacion-soma`.
+La galería vive también en `docs/soma-animation.html` (es la que está publicada) y hay que mantener las dos copias iguales. El motor está en `src/core/trazo.js` (copia exacta de `trazo.js`, se importa con `src/core/trazo-vivo.js`) y el reparto en `src/visita1/reparto-trazo.js` (de ahí sale `reparto.js`). Dentro de la app las clases del dibujo van bajo `svg.tv`. Las láminas de las dos visitas están en `src/visita1/trazos-escenas.js` (la madeja, «Primero el problema» en tres planos, la libreta, el local que se construye; `fichaViva` mide la ficha real) (se revisan con `node scripts/escena.cjs <puerto> <carpeta> <escena>`). Ya lo usan la portada de la visita (`src/visita1/cortos-giro.js`, la plantilla `corto(persona, cosa)` con seis familias; se revisan con `node scripts/cortos.cjs`) y «Antes de empezar» (`src/visita1/trazos.js`, el dueño que reacciona a cada compromiso; se revisa con `node scripts/acuerdo.cjs`). Las películas de pixel art, las viñetas de cada sección y el boil de tres dibujos del CRM son otra cosa: skill `animacion-soma`.

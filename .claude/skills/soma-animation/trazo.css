@@ -128,3 +128,19 @@
 .punteada {
   stroke-dasharray: 0.001 0.085;
 }
+
+/* Planos de detalle: pon --z en el grupo que la cámara agranda y su línea se adelgaza lo mismo. */
+[style*='--z'] .ln {
+  stroke-width: calc(var(--trazo, 3.1px) / var(--z, 1));
+}
+
+[style*='--z'] .fino {
+  stroke-width: calc(var(--trazo-fino, 2.2px) / var(--z, 1));
+}
+
+/* Lo que queda fuera de una lente: un aro gordo del color del papel. */
+.mascara {
+  fill: none;
+  stroke: var(--lamina);
+  stroke-width: 200;
+}
