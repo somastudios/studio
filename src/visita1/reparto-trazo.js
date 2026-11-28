@@ -96,3 +96,49 @@ export function actua(q, k, { gira = 0, dy = 0, sy = 1, mira = [0, 0], abre = 1,
   pon(q(k + 'm'), { x: w[0], y: w[1], r: mezcla(-39, 3, brazo) + mano[2] })
   forma(q(k + 'mi'), indice(dedo))
 }
+
+/**
+ * Una persona cualquiera, de medio cuerpo, con las mismas piezas que `persona` (así `actua` la
+ * mueve igual). `pelo` es lo que va en la cabeza (pelo, gorro), `pecho` lo que va sobre la ropa
+ * (cuello, botones) y `ropa` la clase del relleno de la ropa ('blq' oscura, 'tapa' clara).
+ */
+export function gente(k, { pelo = '', pecho = '', ropa = 'blq' } = {}) {
+  const w = muneca(0)
+  return (
+    T(P.suave(corre(CUERPO, 6, 6), true), { cls: 'blq', n: k + 'tblq' }) +
+    T(P.suave(CUERPO, true), { cls: 'ln tapa', n: k + 'torso' }) +
+    T(P.suave(CUERPO, true), { cls: ropa, n: k + 'tinte' }) +
+    pecho +
+    T([P.linea(139, 128, 138, 146, 3), P.linea(161, 128, 162, 146, 3)], { cls: 'ln', amp: 0.4 }) +
+    G(
+      k + 'cab',
+      T([P.arco(117.5, 104, 5.6, 105, 255, 5), P.arco(182.5, 104, 5.6, -75, 75, 5)], { cls: 'ln', amp: 0.3 }) +
+        T(P.circ(150, 100, 34, 18), { cls: 'ln tapa', amp: 0.8 }) +
+        T(P.suave([[150.5, 102], [147.4, 109], [151, 111]]), { cls: 'ln fino', amp: 0.2 }) +
+        `<ellipse class="lleno" data-n="${k}oi"/><ellipse class="lleno" data-n="${k}od"/>` +
+        G(k + 'fi', T(P.arco(0, 2, 4.4, 205, 335, 5), { cls: 'ln fino', amp: 0.15 })) +
+        G(k + 'fd', T(P.arco(0, 2, 4.4, 205, 335, 5), { cls: 'ln fino', amp: 0.15 })) +
+        T(D(bocaPts(0, 0, 0)), { cls: 'ln fino boca', amp: 0.2, n: k + 'boca' }) +
+        T([P.linea(123.5, 113, 126.5, 108.5, 3), P.linea(128.5, 115, 131.5, 110.5, 3), P.linea(168.5, 110.5, 171.5, 115, 3), P.linea(173.5, 108.5, 176.5, 113, 3)], { cls: 'ln fino tenue', amp: 0.15, n: k + 'rub' }) +
+        G(k + 'gota', T(P.suave([[0, -5.2], [2.7, -0.4], [2.3, 2.8], [0, 4], [-2.3, 2.8], [-2.7, -0.4]], true), { cls: 'ln fino tapa', amp: 0.15 })) +
+        G(k + 'pelo', pelo) +
+        G(k + 'ci', T(P.linea(-6.5, 0.8, 6.5, -1.2, 3), { cls: 'ln', amp: 0.3 })) +
+        G(k + 'cd', T(P.linea(-6.5, -1.2, 6.5, 0.8, 3), { cls: 'ln', amp: 0.3 })) +
+        G(k + 'lentes', ''),
+    ) +
+    T(D(capsula(CODO, w, 18)), { cls: 'ln tapa', amp: 0.5, n: k + 'ante' }) +
+    T(D(capsula(CODO, w, 18)), { cls: ropa, amp: 0.5, n: k + 'manga' }) +
+    manoSvg(k + 'm')
+  )
+}
+
+/** Mezcla dos poses de `actua` (mismas llaves): para pasar de una actuación a otra sin brinco. */
+export function mezclaPose(A, B, p) {
+  const o = {}
+  for (const k in B) {
+    const a = A[k] ?? B[k]
+    const b = B[k]
+    o[k] = Array.isArray(b) ? b.map((v, i) => mezcla((Array.isArray(a) ? a[i] : a) ?? v, v, p)) : mezcla(a, b, p)
+  }
+  return o
+}

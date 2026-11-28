@@ -1751,3 +1751,25 @@ textarea.v-in {
 .tv .telon {
   fill: var(--acento);
 }
+
+/* El dibujo de «Antes de empezar» va a 0.62 junto a la persona: la línea se engruesa lo mismo
+   para que mida igual que la de ella. */
+.tv.cine .va-chico .ln {
+  stroke-width: 5;
+}
+
+.tv.cine .va-chico .fino {
+  stroke-width: 3.5;
+}
+
+.tv {
+  --pelo: var(--fg);
+}
+
+.tv .cabello {
+  fill: var(--pelo);
+}
+
+.tv .boca {
+  fill: var(--tinta);
+}

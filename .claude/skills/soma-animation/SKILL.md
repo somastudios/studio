@@ -7,7 +7,7 @@ description: Hace animaciones SVG con el «trazo vivo» de Soma, líneas que tie
 
 Animaciones de línea, hechas con código, que se ven dibujadas a mano. La línea tiembla todo el tiempo (el hervor), hay un bloque gris fuera de registro detrás de cada pieza y un punto azul que hace de personaje. Corren a 60 cuadros por segundo y no usan ninguna librería.
 
-Lo que las hace buenas no es el temblor: es que **cuentan algo y que las cosas tienen peso**. La sección 5 es la importante.
+Lo que las hace buenas no es el temblor: es que **le pasa algo a alguien y que las cosas tienen peso**. La sección 5 es la importante, y empieza por lo que ya se probó con Alex: qué gustó, qué no y por qué.
 
 ## 1. Archivos
 
@@ -17,6 +17,7 @@ Lo que las hace buenas no es el temblor: es que **cuentan algo y que las cosas t
 | `trazo.css` | Los estilos del dibujo y sus seis colores, en claro y en oscuro. |
 | `ejemplo.html` | Lo mínimo que funciona: un bucle y un corto de dos planos. Empieza copiándolo. |
 | `galeria.html` | La referencia completa, en un solo archivo: tres cortos de tres planos (una persona que piensa, una puerta que se vuelve expediente, un cobro que se vuelve recibo), cuatro bucles e iconos. Lee el corto que más se parezca a lo que vas a hacer antes de escribir. |
+| `reparto.js` | Las personas: `persona` (Alex), `gente` (cualquier otra), `actua` para ponerlas en una pose y `mezclaPose` para pasar de una pose a otra. Se carga después de `trazo.js` y deja todo en `window.Reparto`. |
 | `scripts/tira.cjs` | Detiene la animación en varios instantes y junta las fotos en una hoja. Es la única manera de revisarla. |
 
 ## 2. Empezar
@@ -108,6 +109,55 @@ Modos: `Trazo.modo('suave' | 'treses' | 'quieto')`. «Treses» es el hervor clá
 
 ## 5. El oficio
 
+### Lo que ya se probó
+
+Esto no es teoría, es lo que Alex dijo al ver cada animación. Antes de planear una nueva, léelo. Cuando Alex dé un veredicto nuevo, se agrega un renglón aquí.
+
+| Animación | Qué dijo | Por qué |
+|---|---|---|
+| Alex pensando (la persona duda, se le ocurre algo, levanta el dedo) | Gustó | Hay alguien con cara y se le ve lo que siente |
+| El cocinero al que se le juntan las comandas, llega el punto y quedan en orden | «Me encantaron» | Es el problema del dueño que la está viendo, y se ve cómo queda resuelto |
+| Una sola toma donde todo se transformaba en otra cosa, sin cortes | «Quedó peor» | Era ingeniosa y no le pasaba nada a nadie. El morph era la historia |
+| Dibujitos chicos en una esquina de la lámina | No | No se veían. Una animación que acompaña a un texto ocupa su mitad de la pantalla |
+| Un objeto solo que se mueve (una etiqueta, un reloj, un globo) | «Hay que pulirlas» | Se lee como icono. Se arregló poniendo al lado a la persona que reacciona al objeto |
+
+De ahí salen siete reglas. Van en orden de importancia:
+
+1. **Alguien con cara siente algo.** Una persona que se agobia, desconfía, descansa o presume jala más que cualquier forma bonita. Si la animación no tiene a nadie, se queda en icono.
+2. **Es el problema de quien la mira.** El dueño de un restaurante ve a un cocinero con comandas encima y se reconoce. Primero se ve el problema, después cómo queda. Un símbolo que se mueve no es un problema.
+3. **El punto llega en el giro.** El punto es Soma: no carga con toda la historia, entra cuando las cosas cambian y las acomoda. La persona siente y el punto resuelve. Solo en un bucle sin persona el punto es el personaje.
+4. **Sube y remata.** Lo que se repite va cada vez más rápido o más grande (cada comanda llega antes que la anterior) hasta que algo se rompe, y al final hay un gesto chico que hace sonreír: el cocinero presume su tableta.
+5. **El morph es sazón.** Uno por corto, a lo mucho dos, y que diga algo (las comandas sueltas se vuelven una pantalla). Si quitas los morphs y ya no queda historia, no había historia.
+6. **Planos con cortes.** Tres planos que empatan se entienden mejor que una toma larga donde todo fluye. El corte le da aire al ojo.
+7. **Cierra donde empezó.** La última pose es la primera, para que el bucle no brinque.
+
+Antes de dibujar, contesta en una línea cada una: ¿quién es?, ¿qué le pasa?, ¿qué siente?, ¿en qué momento llega el punto?, ¿cuál es el remate? Si no hay respuesta para alguna, todavía no está lista.
+
+### Un objeto solo es un icono: ponle a alguien al lado
+
+Cuando el texto habla de una idea (un precio, el tiempo, decir que no), el dibujo del objeto no alcanza. Se pone a la persona a la que le habla el texto y el objeto pasa a ser lo que ella mira.
+
+- La persona va grande y abajo, el objeto más chico y arriba, del lado hacia donde ella mira.
+- **La persona causa lo que le pasa al objeto.** Levanta el dedo y por eso el reloj se detiene; niega con la cabeza mientras se escribe el NO. Su gesto empieza 0.1 a 0.2 s antes que el efecto.
+- Cada idea lleva un arco de tres tiempos: cómo llega (desconfía), el giro (se sorprende cuando tachan el precio) y cómo queda (suspira y sonríe).
+- Mira al objeto casi siempre (`mira: [3, -1.7]`) y voltea a otro lado solo cuando la historia lo pide.
+
+```js
+const { gente, actua, mezclaPose } = Reparto
+// en el svg: la persona en su lugar y el objeto reducido en su propio grupo
+'<g transform="translate(-58 46)">' + gente('u', { pelo, pecho }) + '</g>' +
+'<g class="chico" transform="translate(124 3.6) scale(0.62)">' + objeto + '</g>'
+
+// en paso: la pose de este momento, entrando desde la pose en que estaba
+const nueva = PASOS[a].pose(L)                    // { gira, mira, abre, cejas, boca, mano, … }
+pose = u < 0.6 ? mezclaPose(poseSale, nueva, suave(tramo(u, 0, 0.6))) : nueva
+actua(q, 'u', pose)
+// la mano solo existe cuando actúa: en reposo se desvanece
+for (const n of ['um', 'uante', 'umanga']) ve(q(n), levantada)   // 0 en reposo, 1 con la mano arriba
+```
+
+Dos cuidados: un grupo reducido adelgaza la línea, así que se le sube el grosor en proporción (`.chico .ln { stroke-width: 5 }` para una escala de 0.62); y una mano en reposo que se asoma bajo el busto parece muñón, por eso se oculta.
+
 ### Primero la historia
 
 Antes de dibujar, escribe el guion como comentario: qué pasa, en una frase por plano. Si no se puede contar en tres frases, no está listo.
@@ -115,7 +165,7 @@ Antes de dibujar, escribe el guion como comentario: qué pasa, en una frase por 
 - **Bucle** (3 a 6 s): una sola idea que se repite. *El punto recorre los días y aparta uno.*
 - **Corto** (10 a 16 s, tres planos): algo cambia. *Toca la puerta. Le abren. La puerta se vuelve su expediente.*
 - El final dice lo mismo que el texto que acompaña a la animación. Si el texto es «su expediente aparecerá aquí», la animación termina en un expediente.
-- **El punto es el personaje.** Quiere algo, lo intenta y lo consigue. No tiene cara: su carácter está en cómo se mueve.
+- **En un bucle sin persona, el punto es el personaje.** Quiere algo, lo intenta y lo consigue. No tiene cara: su carácter está en cómo se mueve. En un corto con persona, el punto llega en el giro (regla 3).
 
 Un corto se monta con planos; el motor muestra uno a la vez y `t` vuelve a 0 en cada plano:
 
@@ -176,7 +226,7 @@ forma(q('hoja'), mezclaPts(PUERTA, CARPETA, elastico(tramo(t, 2.3, 3.4))))
 ### Manos y personas
 
 - **Una mano nunca es un círculo.** `manoSvg(k)` dibuja un puño de frente: la palma, las tres rayas entre los dedos, la línea donde se doblan, el pulgar cruzado y un índice que se estira con `forma(q(k + 'i'), indice(e))`. Se coloca con `pon(q(k), { x, y, r })` en la muñeca. Unos dedos sueltos (agarrando un canto) son cápsulas: `capsula(a, b, ancho)`.
-- **Una persona** está en `galeria.html`: `persona(k)` la dibuja y `actua(q, k, { gira, mira, abre, cejas, boca, brazo, dedo, mano, pelo, lentes, … })` la pone en una pose. Cópialas completas y cambia los rasgos.
+- **Una persona** sale de `reparto.js`: `persona(k)` dibuja a Alex, `gente(k, { pelo, pecho, ropa })` a cualquier otra (tú le das el pelo o el gorro y lo que lleva en el pecho) y `actua(q, k, { gira, mira, abre, cejas, boca, brazo, dedo, mano, pelo, lentes, … })` la pone en una pose. `mezclaPose(A, B, p)` pasa de una pose a otra sin brinco. Un oficio se dice con una prenda: gorro de cocinero, cuello de camisa, mandil.
 - Para que se parezca a alguien bastan **tres rasgos**: la silueta del pelo, lo que lleva en la cara (lentes, barba) y la ropa. El resto queda igual de simple.
 - Los ojos son elipses (`ojo`), las cejas una raya cada una, la boca un trazo cerrado que se abre. Con eso alcanza para dudar, suspirar, sorprenderse, sonreír y guiñar.
 
@@ -218,6 +268,8 @@ Mira la hoja y busca:
 - El corte entre planos: la última foto de uno y la primera del otro deben empatar.
 - Lo mismo en oscuro.
 
+Y que la revisión no se coma la entrega: una tira por plano, se corrige lo que se ve mal y se entrega. Si dos intentos de captura fallan, no pelees con la herramienta: toma fotos en tiempo real cada 0.4 s o entrega y di qué no pudiste ver. Alex prefiere algo que ya funciona hoy a algo perfecto en una hora.
+
 El script también avisa de errores y de desplazamiento lateral. Al entregar di qué revisaste en fotos y que **el ritmo en vivo solo lo puede juzgar quien lo ve moverse**.
 
 ## 8. Errores que ya nos costaron
@@ -232,12 +284,17 @@ El script también avisa de errores y de desplazamiento lateral. Al entregar di 
 | Una sonrisa sale en V | Tres puntos no alcanzan para una curva: usa cinco o más |
 | `q('x')` devuelve `null` | El nombre se repite en otro plano o está mal escrito. Ponles prefijo por plano |
 | Un globo queda escondido detrás del pelo | El orden de las capas, o está encima de otra pieza: muévelo |
+| Una mano se asoma debajo del busto, como muñón | Está en reposo y sigue dibujada. Ocúltala con `ve` mientras no actúa |
+| La línea adelgaza en una pieza | Va dentro de un grupo reducido. Súbele el grosor en proporción a la escala |
+| Se ve bien hecha y no dice nada | No hay nadie a quien le pase algo. Vuelve a «Lo que ya se probó» |
 | Todo se ve gris en oscuro | Se escribió un color fijo en vez de una variable |
 
 Y tres cosas del motor: `forma` necesita siempre el mismo número de puntos que la forma original; el costo con todo en pantalla debe quedar bajo 4 ms por cuadro (lo que no está a la vista no se calcula); con `prefers-reduced-motion` se muestra el `cartel` y nada se mueve, así que elige un `cartel` donde la historia ya se entienda.
 
 ## 9. Antes de entregar
 
+- [ ] Hay alguien con cara, le pasa algo que le pasa a quien la mira, y el punto llega en el giro.
+- [ ] Hay un remate, y a lo mucho dos morphs.
 - [ ] El guion está escrito arriba del código y cada plano hace una sola cosa.
 - [ ] El final coincide con el texto que acompaña.
 - [ ] Todo lo que se mueve toma vuelo y se pasa al llegar; lo que brinca se aplasta y se estira.
@@ -248,4 +305,4 @@ Y tres cosas del motor: `forma` necesita siempre el mismo número de puntos que 
 
 ## 10. En el repositorio de Soma (studio)
 
-La galería vive también en `docs/soma-animation.html` (es la que está publicada) y hay que mantener las dos copias iguales. No está conectada al CRM. Las películas de pixel art, las viñetas de cada sección y el boil de tres dibujos del CRM son otra cosa: skill `animacion-soma`.
+La galería vive también en `docs/soma-animation.html` (es la que está publicada) y hay que mantener las dos copias iguales. El motor está en `src/core/trazo.js` (copia exacta de `trazo.js`, se importa con `src/core/trazo-vivo.js`) y el reparto en `src/visita1/reparto-trazo.js` (de ahí sale `reparto.js`). Dentro de la app las clases del dibujo van bajo `svg.tv`. Ya lo usan la portada de la visita (`src/visita1/cortos-giro.js`, un corto por giro; el de comida es el cocinero) y «Antes de empezar» (`src/visita1/trazos.js`, el dueño que reacciona a cada compromiso; se revisa con `node scripts/acuerdo.cjs`). Las películas de pixel art, las viñetas de cada sección y el boil de tres dibujos del CRM son otra cosa: skill `animacion-soma`.

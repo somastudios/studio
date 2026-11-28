@@ -1,4 +1,5 @@
 import Trazo from '../core/trazo-vivo.js'
+import { gente, actua, mezclaPose } from './reparto-trazo.js'
 
 // El dibujo grande de «Antes de empezar». Es uno solo, y su figura principal se transforma
 // con cada compromiso:
@@ -10,11 +11,16 @@ import Trazo from '../core/trazo-vivo.js'
 //   2 · «Puede decir que no»     el reloj se vuelve globo de diálogo. Se escribe un NO grande y
 //                                 el punto contesta con una palomita.
 //
+// A la izquierda está «usted», el dueño del negocio, y es quien lleva la historia: desconfía
+// del precio y descansa cuando lo tachan; levanta el dedo y el reloj se detiene, atiende lo
+// suyo y vuelve; dice que no con la cabeza y sonríe cuando le contestan que está bien. El
+// dibujo de la derecha es lo que él mira.
+//
 // Entre uno y otro no hay corte: lo que rodeaba a la figura se desvanece, la figura cambia de
 // forma, el punto viaja a su nuevo lugar y lo nuevo se dibuja. Cómo se hace y cómo se revisa:
 // skill soma-animation.
 
-const { P, D, T, G, monta, remuestra, circulo, mezclaPts, corre, tramo, mezcla, suave, rebota, elastico, salto, golpe, brinco, pon, traza, ve, forma, agita, punto } = Trazo
+const { P, D, T, G, monta, remuestra, circulo, mezclaPts, corre, tramo, mezcla, suave, frena, rebota, elastico, salto, golpe, campana, brinco, pon, traza, ve, forma, agita, punto } = Trazo
 
 const N = 96
 const ETIQUETA = remuestra([[160, 40], [204, 80], [204, 196], [116, 196], [116, 80]], N)
@@ -35,10 +41,45 @@ const arco = (a, b, p, alto) => {
   return { x, y: y + j.dy, sx: j.sx, sy: j.sy }
 }
 
+// ── «Usted»: pelo corto de lado y camisa de cuello ──
+const DUENO = () =>
+  gente('u', {
+    pelo: T(P.suave([[116, 99], [115, 80], [124, 66], [140, 59], [157, 58], [171, 63], [182, 75], [185, 96], [179, 86], [168, 77], [152, 74], [136, 78], [125, 88]], true), { cls: 'ln cabello', amp: 0.7 }),
+    pecho: T([P.poli([[137, 146], [146, 159], [150, 151]]), P.poli([[163, 146], [154, 159], [150, 151]]), P.linea(150, 159, 150, 210, 4)], { cls: 'ln fino', amp: 0.3 }),
+    ropa: 'blq',
+  })
+const ESCONDIDA = [20, 80, 0] // la mano, fuera de cuadro
+const AL_DIBUJO = [3, -1.7] // hacia dónde mira para ver el dibujo
+const parpadea = (L, ...cuando) => cuando.reduce((a, c) => a * (1 - 0.92 * campana(L, c, 0.08)), 1)
+
 const PASOS = [
   {
     // La etiqueta cuelga y se mece. El punto toma vuelo, tacha el precio y se queda de botón.
     dur: 5.6,
+    // Usted desconfía: una ceja abajo, la boca de lado, echado hacia atrás. Cuando tachan el
+    // precio se sorprende, y cuando en su lugar quedan renglones, suspira y sonríe.
+    pose(L) {
+      const recelo = 1 - suave(tramo(L, 1.9, 2.3)) + suave(tramo(L, 5.1, 5.6))
+      const sorpresa = golpe(L, 1.9, 0.5)
+      const alivio = suave(tramo(L, 2.7, 3.4)) * (1 - suave(tramo(L, 5.0, 5.5)))
+      const suspiro = salto(tramo(L, 2.6, 3.2))
+      return {
+        gira: -4 * recelo + 2.5 * alivio + 1.2 * Math.sin(L * 1.3),
+        dy: 1.5 * recelo - 2.5 * sorpresa + 1.5 * suspiro,
+        sy: 1 - 0.02 * suspiro,
+        mira: AL_DIBUJO,
+        abre: (1 - 0.28 * recelo + 0.5 * sorpresa) * parpadea(L, 0.9, 2.02, 4.3),
+        feliz: 0,
+        cejas: [2 * recelo - 4.5 * sorpresa - 1.5 * alivio, 11 * recelo, 0.5 * recelo - 4.5 * sorpresa - 1.5 * alivio, -3 * recelo],
+        boca: [-0.7 * recelo, mezcla(-0.4 * recelo, 1.05, alivio), 0.4 * sorpresa + 0.35 * suspiro],
+        brazo: 0.5,
+        dedo: 0,
+        mano: ESCONDIDA,
+        pelo: -4 * sorpresa,
+        rubor: 0,
+        resp: 0.012 * Math.sin(L * 1.8) - 0.035 * suspiro,
+      }
+    },
     forma: ETIQUETA,
     giro: (L) => ({ ox: 160, oy: -14, r: 5 * Math.sin(L * 2.1) + 4 * golpe(L, 1.9, 0.5) * Math.sin((L - 1.9) * 20) }),
     svg: () =>
@@ -77,6 +118,30 @@ const PASOS = [
   {
     // El reloj corre, se detiene pasándose tantito y más tarde sigue.
     dur: 5.2,
+    // Usted levanta el dedo, «un momento», y por eso se detiene el reloj. Voltea a atender lo
+    // suyo, habla con alguien fuera de cuadro, vuelve, baja la mano y asiente.
+    pose(L) {
+      const levanta = rebota(tramo(L, 0.85, 1.3)) * (1 - suave(tramo(L, 3.0, 3.4)))
+      const atiende = suave(tramo(L, 1.6, 1.95)) * (1 - suave(tramo(L, 2.7, 3.02)))
+      const listo = suave(tramo(L, 3.2, 3.6)) * (1 - suave(tramo(L, 4.6, 5.2)))
+      const asiente = salto(tramo(L, 3.5, 3.9))
+      return {
+        gira: -7 * atiende + 2 * (1 - atiende) * Math.sin(L * 1.2),
+        dy: 2.6 * asiente,
+        sy: 1,
+        mira: [mezcla(AL_DIBUJO[0], -3.4, atiende), mezcla(AL_DIBUJO[1], 0.8, atiende)],
+        abre: parpadea(L, 1.62, 2.86, 4.4),
+        feliz: 0,
+        cejas: [-2.2 * levanta - 1.5 * listo, 0, -2.2 * levanta - 1.5 * listo, 0],
+        boca: [-0.5 * atiende, mezcla(0.35, 1.05, listo), 0.4 * atiende * Math.abs(Math.sin(L * 11))],
+        brazo: 0.5,
+        dedo: frena(tramo(L, 0.95, 1.2)) * (1 - tramo(L, 3.0, 3.2)),
+        mano: [mezcla(ESCONDIDA[0], 2, levanta), mezcla(ESCONDIDA[1], -8, levanta), 14 * levanta],
+        pelo: 5 * salto(tramo(L, 1.6, 1.9)) - 4 * salto(tramo(L, 2.7, 3.0)) - 3 * asiente,
+        rubor: 0,
+        resp: 0.012 * Math.sin(L * 1.8),
+      }
+    },
     forma: RELOJ,
     giro: (L) => ({ ox: 150, oy: 122, r: 2.5 * golpe(L, 1.42, 0.35) * Math.sin((L - 1.42) * 24) }),
     svg: () =>
@@ -105,6 +170,31 @@ const PASOS = [
   {
     // Se escribe el NO, el globo se sacude y el punto contesta tranquilo.
     dur: 5.4,
+    // Usted dice que no: niega con la cabeza, firme, mientras el NO se escribe en su globo. Le
+    // contestan con una palomita y se le quita lo serio: sube las cejas, sonríe y asiente.
+    pose(L) {
+      const niega = salto(tramo(L, 0.1, 1.0))
+      const ve = suave(tramo(L, 1.7, 2.0)) * (1 - suave(tramo(L, 4.8, 5.3)))
+      const bien = suave(tramo(L, 2.3, 2.8)) * (1 - suave(tramo(L, 4.8, 5.3)))
+      const gusto = suave(tramo(L, 3.1, 3.4)) * (1 - suave(tramo(L, 4.2, 4.5)))
+      const asiente = salto(tramo(L, 2.6, 3.0))
+      return {
+        gira: 7.5 * niega * Math.sin((L - 0.1) * 14) + 2 * bien,
+        dy: 2.6 * asiente,
+        sy: 1,
+        mira: [3.2 * ve, 1.4 * ve],
+        abre: (1 - 0.2 * niega) * parpadea(L, 1.45, 3.9),
+        feliz: gusto,
+        cejas: [1.6 * niega - 3 * bien, 9 * niega, 1.6 * niega - 3 * bien, -9 * niega],
+        boca: [0, mezcla(-0.45 * niega, 1.15, bien), 0.55 * niega * Math.abs(Math.sin(L * 10))],
+        brazo: 0.5,
+        dedo: 0,
+        mano: ESCONDIDA,
+        pelo: -5 * niega * Math.sin((L - 0.18) * 14),
+        rubor: gusto,
+        resp: 0.012 * Math.sin(L * 1.8),
+      }
+    },
     forma: GLOBO,
     giro: (L) => ({ ox: 98, oy: 192, r: 3 * golpe(L, 0.92, 0.5) * Math.sin((L - 0.92) * 20) }),
     svg: () =>
@@ -140,15 +230,20 @@ export function acuerdoVivo(svg, inicial = 0) {
   let t0 = null
   let sale = null // dónde estaba el punto cuando empezó el cambio
   let ultimo = PASOS[inicial].punto(0)
+  let pose = PASOS[inicial].pose(0)
+  let poseSale = null // la pose en que estaba cuando empezó el cambio
 
   monta(svg, {
     dur: Infinity,
     cartel: 4,
     svg: () =>
+      `<g transform="translate(-58 46)">${DUENO()}</g>` +
+      `<g class="va-chico" transform="translate(124 3.6) scale(0.62)">` +
       T(D(corre(PASOS[inicial].forma, 8, 8)), { cls: 'blq', n: 'sombra' }) +
       T(D(PASOS[inicial].forma), { cls: 'ln tapa', n: 'figura' }) +
       PASOS.map((p, k) => G('d' + k, p.svg())).join('') +
-      punto(9.5),
+      punto(11.5) +
+      '</g>',
     paso(q, t) {
       if (t0 === null) t0 = t
       const u = t - t0
@@ -186,6 +281,13 @@ export function acuerdoVivo(svg, inicial = 0) {
       }
       pon(q('pt'), pos)
       ultimo = pos
+      // usted: su actuación de este compromiso, entrando desde la pose en que estaba
+      const nueva = PASOS[a].pose(L)
+      pose = poseSale && u < 0.6 ? mezclaPose(poseSale, nueva, suave(tramo(u, 0, 0.6))) : nueva
+      actua(q, 'u', pose)
+      // la mano solo existe cuando la levanta: en reposo queda detrás del cuerpo
+      const alza = suave(tramo(Math.hypot(pose.mano[0] - ESCONDIDA[0], pose.mano[1] - ESCONDIDA[1]), 6, 46))
+      for (const n of ['um', 'uante', 'umanga']) ve(q(n), alza)
     },
   })
 
@@ -200,6 +302,7 @@ export function acuerdoVivo(svg, inicial = 0) {
       de = a
       a = i
       sale = { ...ultimo }
+      poseSale = JSON.parse(JSON.stringify(pose))
       t0 = t ?? performance.now() / 1000
     },
   }

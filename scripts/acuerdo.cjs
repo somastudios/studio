@@ -23,6 +23,8 @@ const [, , puerto, salida, dos] = process.argv
   await p.locator('[data-nicho="restaurante"]').click()
   if (dos) await p.locator('[data-va]').nth(1).click()
   await p.locator('[data-empezar]').click()
+  await p.waitForTimeout(3000)
+  await p.keyboard.press('ArrowRight') // la portada pasa al nombre del negocio
   await p.waitForTimeout(2600)
   await p.keyboard.press('ArrowRight')
   await p.waitForTimeout(3200)
