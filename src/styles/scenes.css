@@ -1981,3 +1981,54 @@
     margin: 0 auto;
   }
 }
+
+/* En vertical, «Primero el problema» y «Cómo trabajamos» dejan libre el pie de la lámina: lo que
+   no cabe se desplaza en lugar de encimarse con el número y las flechas. */
+@media (max-aspect-ratio: 1/1) {
+  .s1,
+  .s4 {
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-width: none;
+    touch-action: pan-y;
+  }
+
+  .s1 {
+    grid-template-rows: none;
+    grid-auto-rows: max-content;
+    align-content: start;
+  }
+
+  .s1-h {
+    font-size: calc(var(--u) * 6.4);
+    margin-bottom: 0;
+  }
+
+  /* el número y el dibujo comparten renglón; el texto va debajo */
+  .s4-stage {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: end;
+    gap: calc(var(--u) * 2);
+    margin-top: calc(var(--u) * 3);
+  }
+
+  .s4-num {
+    font-size: calc(var(--u) * 15);
+  }
+
+  .s4-tv {
+    order: 0;
+    grid-column: 2;
+    grid-row: 1;
+    width: 100%;
+    max-width: calc(var(--u) * 26);
+    margin: 0;
+    justify-self: end;
+  }
+
+  .s4-copy {
+    grid-column: 1 / -1;
+    min-height: 0;
+  }
+}

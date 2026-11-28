@@ -2100,3 +2100,17 @@ textarea.v-in {
     min-height: auto;
   }
 }
+
+/* En vertical las láminas de dos columnas arrancan arriba, sin repartir el espacio sobrante. */
+@media (max-aspect-ratio: 1/1) {
+  .ve,
+  .vl,
+  .vr,
+  .vg,
+  .vs,
+  .wx,
+  .wp,
+  .wg {
+    align-content: start;
+  }
+}
