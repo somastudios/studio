@@ -10,6 +10,11 @@ const [, , puerto, salida, cual, giro = 'restaurante'] = process.argv
 
 // flechas: cuántas veces → hasta llegar; sel: el svg; cuadros(p, api): devuelve [rótulo, prepara()]
 const ESCENAS = {
+  premisa: {
+    flechas: 5,
+    sel: '.s1-tv',
+    cuadros: (api) => [0.3, 0.95, 1.3, 1.6, 2.0, 2.5, 3.3, 3.8, 4.3, 4.6, 5.4, 6.2, 7.0, 7.4, 7.9].map((u) => [`${u}`, async () => (await api.vivo('desde', 300), api.fija(300 + u))]),
+  },
   suele: {
     flechas: 6,
     sel: '.vs-tv',

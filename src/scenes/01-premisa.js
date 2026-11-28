@@ -2,6 +2,7 @@ import gsap from 'gsap'
 import { boil, P } from '../core/boil.js'
 import { $, $$, words, wordsDot, rise, fade } from '../core/fx.js'
 import { C } from '../content/es.js'
+import { premisaVivo } from '../visita1/trazos-escenas.js'
 
 // Solo el punto, sin anillo: primero el problema, la solución viene después.
 // El punto es el punto final del titular.
@@ -25,6 +26,7 @@ export default {
         </div>
       </div>
       <p class="t-body s1-body">${C.s1.body}</p>
+      <div class="s1-tv"><svg class="tv cine" viewBox="0 0 320 200" aria-hidden="true"></svg></div>
       <h2 class="t-display s1-h"><span class="ln">${words(C.s1.title[0])}</span><span class="ln">${wordsDot(C.s1.title[1])}</span></h2>
     </div>`,
   setup(el) {
@@ -34,6 +36,11 @@ export default {
     tl.fromTo($(el, '.strike .boil'), { '--draw': 1.06 }, { '--draw': 0, duration: 0.7, ease: 'power3.inOut' }, 1)
     fade(tl, $(el, '.s1-ours'), 1.45)
     fade(tl, $(el, '.s1-body'), 1.7)
+    const svg = $(el, '.s1-tv svg')
+    const vivo = premisaVivo(svg)
+    svg._vivo = vivo
+    tl.call(() => vivo.desde(), null, 0.6)
+    tl.fromTo($(el, '.s1-tv'), { autoAlpha: 0, y: 20 }, { autoAlpha: 1, y: 0, duration: 0.9, ease: 'expo.out' }, 0.6)
     return { enter: tl, anchor: () => $(el, '.period') }
   },
 }

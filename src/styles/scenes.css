@@ -1931,3 +1931,26 @@
     gap: calc(var(--u) * 0.5);
   }
 }
+
+/* «Primero el problema»: el dibujo va a la derecha de «Primero», encima del segundo renglón. */
+.s1-tv {
+  position: absolute;
+  right: 0;
+  top: 19%;
+  width: 50%;
+  pointer-events: none;
+}
+
+.s1-tv svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+
+@media (max-aspect-ratio: 1/1) {
+  .s1-tv {
+    position: static;
+    width: 100%;
+    grid-column: 1 / -1;
+  }
+}
