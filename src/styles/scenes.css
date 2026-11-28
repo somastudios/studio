@@ -1954,3 +1954,30 @@
     grid-column: 1 / -1;
   }
 }
+
+/* «Cómo trabajamos»: la figura del paso, a la derecha del texto. */
+.s4-tv {
+  flex: none;
+  margin-left: auto;
+  width: calc(var(--u) * 34);
+  align-self: flex-end;
+  pointer-events: none;
+}
+
+.s4-tv svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+
+@media (max-aspect-ratio: 1/1) {
+  .s4-stage {
+    flex-wrap: wrap;
+  }
+
+  .s4-tv {
+    order: -1;
+    width: calc(var(--u) * 26);
+    margin: 0 auto;
+  }
+}

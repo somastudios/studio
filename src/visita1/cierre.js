@@ -9,7 +9,7 @@ import { SOL } from '../content/soluciones.js'
 import { store } from '../data/store.js'
 import { esc, fecha, dia, sumaDias, telBonito, plantilla } from '../app/util.js'
 import { escena, tx, linea } from './base.js'
-import { entendidoVivo } from './trazos-escenas.js'
+import { entendidoVivo, alcanceVivo } from './trazos-escenas.js'
 
 // La segunda mitad de la visita: lo que no se dijo, hasta dónde quiere llegar, el expediente
 // a la vista, la fecha de la siguiente visita y la despedida.
@@ -82,7 +82,7 @@ export const alcance = (E) =>
       const pr = () => E.prospecto
       el.innerHTML = `
         <div class="scene-inner vl">
-          <header class="vl-cab">${titular(T.titulo, 'vl-h')}<p class="t-body vl-intro">${esc(T.intro)}</p><p class="t-label vl-nota">${esc(T.nota)}</p></header>
+          <header class="vl-cab"><div class="vl-tv"><svg class="tv cine" viewBox="44 -22 240 232" aria-hidden="true"></svg></div>${titular(T.titulo, 'vl-h')}<p class="t-body vl-intro">${esc(T.intro)}</p><p class="t-label vl-nota">${esc(T.nota)}</p></header>
           <div class="vl-cuerpo">
             <div class="vl-niveles" role="radiogroup" aria-label="${esc(T.nav)}">
               ${niveles
@@ -103,11 +103,24 @@ export const alcance = (E) =>
           </div>
         </div>`
       const ancla = () => $(el, '.vl-nivel[aria-checked="true"] .vl-a') || $(el, '.period')
-      on('[data-alcance]', (b) => {
+      const cual = () => niveles.findIndex((n) => n.name === pr().alcance)
+      const svg = $(el, '.vl-tv svg')
+      const vivo = alcanceVivo(svg, Math.max(0, cual()))
+      svg._vivo = vivo
+      const elige = (b) => {
         E.ponProspecto({ alcance: b.dataset.alcance })
         $$(el, '.vl-nivel').forEach((x) => x.setAttribute('aria-checked', String(x === b)))
+        vivo.ir(cual())
         if (!deck.busy) dot.to(ancla(), { duration: 0.6, ease: 'expo.out' })
-      })
+      }
+      on('[data-alcance]', elige)
+      // con las flechas ↑ ↓ se cambia de nivel sin tocar el ratón
+      const tecla = (e) => {
+        if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return false
+        const i = Math.max(0, Math.min(niveles.length - 1, cual() + (e.key === 'ArrowDown' ? 1 : -1)))
+        elige($$(el, '.vl-nivel')[i])
+        return true
+      }
       on('[data-presupuesto]', (b) => {
         const v = pr().presupuesto === b.dataset.presupuesto ? null : b.dataset.presupuesto
         E.ponProspecto({ presupuesto: v })
@@ -122,7 +135,9 @@ export const alcance = (E) =>
       fade(tl, [$(el, '.vl-intro'), $(el, '.vl-nota')], 0.4)
       tl.fromTo($$(el, '.vl-nivel'), { autoAlpha: 0, x: 20 }, { autoAlpha: 1, x: 0, duration: 0.8, ease: 'expo.out', stagger: 0.1 }, 0.4)
       fade(tl, $$(el, '.vl-bloque'), 0.75, { stagger: 0.12 })
-      return { tl, anchor: ancla }
+      tl.fromTo($(el, '.vl-tv'), { autoAlpha: 0, y: 20 }, { autoAlpha: 1, y: 0, duration: 0.9, ease: 'expo.out' }, 0.3)
+      tl.call(() => vivo.pon(Math.max(0, cual())), null, 0.3)
+      return { tl, anchor: ancla, key: tecla }
     },
   })
 

@@ -10,7 +10,7 @@ import { DUENO, parpadea } from './trazos.js'
 // nudo se vuelve los renglones de su expediente. Cómo se hace y cómo se revisa: skill
 // soma-animation.
 
-const { P, D, T, G, monta, mezclaPts, tramo, mezcla, suave, salto, golpe, elastico, brinco, pon, traza, ve, forma, agita, punto } = Trazo
+const { P, D, T, G, monta, remuestra, corre, corona, mezclaPts, tramo, mezcla, suave, salto, golpe, elastico, rebota, brinco, pon, traza, ve, forma, agita, punto } = Trazo
 
 const ahora = () => performance.now() / 1000
 const HEBRAS = 4
@@ -289,4 +289,331 @@ export function premisaVivo(svg) {
       t0 = t ?? ahora()
     },
   }
+}
+
+// ── Una figura que cambia de forma con cada paso ────────────────────────────────────────────
+// Es el sistema de «Antes de empezar», suelto: cada paso es { dur, forma, giro(L), svg(),
+// detalle(q, L), punto(L) }. Al cambiar de paso lo de antes se desvanece, la figura cambia y se
+// pasa tantito, el punto viaja a su nuevo lugar y lo nuevo se dibuja.
+
+const quieto = (x, y) => ({ x, y, sx: 1, sy: 1 })
+const va2 = (a, b, p) => [mezcla(a[0], b[0], p), mezcla(a[1], b[1], p)]
+/** Un brinco de a hasta b. */
+const arco = (a, b, p, alto) => {
+  const j = brinco(p, alto)
+  const [x, y] = va2(a, b, suave(p))
+  return { x, y: y + j.dy, sx: j.sx, sy: j.sy }
+}
+/** El punto que va a la fracción p de una línea de puntos. */
+const sobre = (pts, p) => {
+  const f = Math.max(0, Math.min(1, p)) * (pts.length - 1)
+  const i = Math.min(pts.length - 2, Math.floor(f))
+  return va2(pts[i], pts[i + 1], f - i)
+}
+
+function figuraViva(svg, PASOS, { inicial = 0, r = 7, despues = '' } = {}) {
+  let de = inicial
+  let a = inicial
+  let t0 = null
+  let sale = null
+  let ultimo = PASOS[inicial].punto(0)
+
+  monta(svg, {
+    dur: Infinity,
+    cartel: 3,
+    svg: () => T(D(corre(PASOS[inicial].forma, 7, 7)), { cls: 'blq', n: 'sombra' }) + T(D(PASOS[inicial].forma), { cls: 'ln tapa', n: 'figura' }) + PASOS.map((p, k) => G('d' + k, p.svg())).join('') + despues + punto(r),
+    paso(q, t) {
+      if (t0 === null) t0 = t
+      const u = t - t0
+      const cambia = de !== a
+      const pts = cambia ? mezclaPts(PASOS[de].forma, PASOS[a].forma, elastico(tramo(u, 0.12, 0.98))) : PASOS[a].forma
+      const presente = suave(tramo(u, cambia ? 0.6 : 0.15, cambia ? 0.98 : 0.6))
+      const L = Math.max(0, u - (cambia ? 0.8 : 0.3)) % PASOS[a].dur
+      const g = PASOS[a].giro(L)
+      const giro = { ox: g.ox, oy: g.oy, r: g.r * presente }
+      forma(q('figura'), pts)
+      forma(q('sombra'), corre(pts, 7, 7))
+      agita(q('figura'), 1 + (cambia ? 1.6 * salto(tramo(u, 0.1, 0.95)) : 0))
+      pon(q('figura'), giro)
+      pon(q('sombra'), giro)
+      PASOS.forEach((p, k) => {
+        const d = q('d' + k)
+        ve(d, k === a ? presente : k === de ? 1 - tramo(u, 0, 0.18) : 0)
+        if (k !== a) return
+        pon(d, giro)
+        p.detalle(q, L)
+      })
+      const fin = PASOS[a].punto(L)
+      let pos = fin
+      if (cambia && sale && u < 0.85) {
+        const p = tramo(u, 0.05, 0.85)
+        const j = brinco(p, 30)
+        pos = { x: mezcla(sale.x, fin.x, suave(p)), y: mezcla(sale.y, fin.y, suave(p)) + j.dy, sx: j.sx, sy: j.sy }
+      }
+      pon(q('pt'), pos)
+      ultimo = pos
+    },
+  })
+
+  return {
+    /** Vuelve a empezar el paso actual en el segundo `t` del reloj (para revisarlo). */
+    desde(t) {
+      de = a
+      t0 = t
+    },
+    /** Se transforma al paso `i`. */
+    ir(i, t) {
+      if (i === a || !PASOS[i]) return
+      de = a
+      a = i
+      sale = { ...ultimo }
+      t0 = t ?? ahora()
+    },
+    /** Queda en el paso `i` sin transformarse (al entrar a la escena). */
+    pon(i, t) {
+      if (!PASOS[i]) return
+      de = a = i
+      sale = null
+      t0 = t ?? ahora()
+    },
+  }
+}
+
+// ── «Cómo trabajamos» ───────────────────────────────────────────────────────────────────────
+
+const NF = 96
+// todas empiezan arriba al centro y giran hacia la derecha, para que el cambio no se tuerza
+const F_LENTE = Array.from({ length: NF }, (_, i) => enAro(56, -90 + (360 * i) / NF)).map(([x, y]) => [160 + x, 104 + y])
+const F_ROMBO = remuestra([[160, 32], [238, 110], [160, 188], [82, 110]], NF)
+const F_PANTALLA = remuestra([[160, 46], [244, 46], [252, 54], [252, 152], [244, 160], [76, 160], [68, 152], [68, 54], [76, 46]], NF)
+const F_HOJA = remuestra([[160, 26], [198, 26], [226, 54], [226, 192], [94, 192], [94, 26]], NF)
+const F_LOCAL = remuestra([[160, 40], [236, 40], [248, 78], [236, 78], [236, 192], [84, 192], [84, 78], [72, 78], [84, 40]], NF)
+const MINI = marana(160, 104, 17).flat()
+const RUTAS = [
+  [[160, 162], [150, 138], [128, 118], [112, 100]],
+  [[160, 162], [160, 130], [160, 100], [160, 72]],
+  [[160, 162], [170, 138], [192, 118], [208, 100]],
+]
+const FIRMA = [[112, 170], [122, 158], [130, 172], [140, 156], [150, 172], [162, 160], [174, 170], [188, 164]]
+const cabeza = ([x, y], g) => {
+  const [a, b] = [enAro(9, g + 150), enAro(9, g - 150)]
+  return P.poli([[x + a[0], y + a[1]], [x, y], [x + b[0], y + b[1]]])
+}
+
+const METODO = [
+  {
+    // Diagnóstico: una lupa sobre la maraña. El punto la rodea, buscando de dónde sale.
+    dur: (Math.PI * 2) / 1.5,
+    forma: F_LENTE,
+    giro: (L) => ({ ox: 160, oy: 104, r: 4 * Math.sin(L * 1.5) }),
+    svg: () =>
+      T(P.linea(160 + 56 * Math.cos(2.13), 104 + 56 * Math.sin(2.13), 160 + 96 * Math.cos(2.13), 104 + 96 * Math.sin(2.13), 4), { cls: 'ln', amp: 0.5 }) +
+      T(P.arco(160, 104, 44, 196, 246, 6), { cls: 'ln fino tenue', amp: 0.3 }) +
+      T(D(MINI, false), { cls: 'ln fino', amp: 1.2, n: 'mini' }),
+    detalle(q, L) {
+      agita(q('mini'), 1.4 + 0.8 * Math.sin(L * 3))
+    },
+    punto: (L) => ({ x: 160 + 34 * Math.cos(L * 1.5 - 1.2), y: 104 + 30 * Math.sin(L * 1.5 - 1.2), sx: 1, sy: 1 }),
+  },
+  {
+    // Soluciones: tres rutas salen del mismo lugar. El punto duda, elige una y la recorre.
+    dur: 5,
+    forma: F_ROMBO,
+    giro: (L) => ({ ox: 160, oy: 110, r: 2 * Math.sin(L * 1.3) }),
+    svg: () =>
+      RUTAS.map((r, i) => T([P.suave(r), cabeza(r[3], [-125, -90, -55][i])], { cls: 'ln fino tz', amp: 0.4, n: 'ru' + i })).join('') +
+      T([P.suave(RUTAS[2]), cabeza(RUTAS[2][3], -55)], { cls: 'ln ln-azul tz', amp: 0.4, n: 'elegida' }),
+    detalle(q, L) {
+      const fin = 1 - suave(tramo(L, 4.4, 4.9))
+      ;[0, 1, 2].forEach((i) => traza(q('ru' + i), suave(tramo(L, 0.1 + i * 0.22, 0.7 + i * 0.22)) * fin))
+      traza(q('elegida'), suave(tramo(L, 2.4, 3.05)) * fin)
+    },
+    punto(L) {
+      const base = RUTAS[0][0]
+      if (L < 2.2) return { x: base[0] - 7 * salto(tramo(L, 1.1, 1.6)) + 7 * salto(tramo(L, 1.6, 2.15)), y: base[1], sx: 1, sy: 1 }
+      if (L < 2.4) {
+        const v = salto(tramo(L, 2.2, 2.4))
+        return { x: base[0] - 3 * v, y: base[1] + 4 * v, sx: 1 + 0.15 * v, sy: 1 - 0.15 * v }
+      }
+      if (L < 3.05) {
+        const [x, y] = sobre(abierta(RUTAS[2], 24), suave(tramo(L, 2.4, 3.05)))
+        return quieto(x, y)
+      }
+      if (L < 4.4) {
+        const g = golpe(L, 3.05, 0.3)
+        return { x: RUTAS[2][3][0], y: RUTAS[2][3][1], sx: 1 + 0.3 * g, sy: 1 + 0.3 * g }
+      }
+      return arco(RUTAS[2][3], base, tramo(L, 4.4, 5), 22)
+    },
+  },
+  {
+    // Demostración: una pantalla. El punto oprime «reproducir» y aparece el sistema andando.
+    dur: 5.2,
+    forma: F_PANTALLA,
+    giro: (L) => ({ ox: 160, oy: 104, r: 1.6 * golpe(L, 1.42, 0.4) * Math.sin((L - 1.42) * 22) }),
+    svg: () =>
+      T([P.linea(160, 160, 160, 184, 3), P.linea(126, 186, 194, 186, 4)], { cls: 'ln', amp: 0.4 }) +
+      G('play', T(P.poli([[-16, -22], [22, 0], [-16, 22]], true), { cls: 'ln tapa', amp: 0.4 })) +
+      [0, 1, 2].map((i) => T([P.rect(88, 66 + i * 28, 16, 16, 3), P.linea(114, 74 + i * 28, [214, 190, 204][i], 74 + i * 28, 4)], { cls: 'ln fino tz', amp: 0.35, n: 'fi' + i })).join('') +
+      T(P.poli([[91, 74], [95, 79], [102, 69]]), { cls: 'ln ln-azul tz', amp: 0.2, n: 'ok' }),
+    detalle(q, L) {
+      const fin = 1 - suave(tramo(L, 4.5, 5))
+      const anda = suave(tramo(L, 1.45, 1.7)) * fin
+      pon(q('play'), { x: 160, y: 104, sx: (1 - 0.25 * golpe(L, 1.4, 0.2)) * (1 - anda), o: 1 - anda })
+      ;[0, 1, 2].forEach((i) => traza(q('fi' + i), suave(tramo(L, 1.7 + i * 0.25, 2.3 + i * 0.25)) * fin))
+      traza(q('ok'), suave(tramo(L, 3.25, 3.5)) * fin)
+    },
+    punto(L) {
+      const espera = [226, 136]
+      if (L < 1.0) return { x: espera[0], y: espera[1] + 2 * Math.sin(L * 5), sx: 1, sy: 1 }
+      if (L < 1.4) return arco(espera, [160, 104], tramo(L, 1.0, 1.4), 26)
+      if (L < 1.7) {
+        const g = golpe(L, 1.4, 0.25)
+        return { x: 160, y: 104, sx: 1 + 0.35 * g, sy: 1 - 0.3 * g }
+      }
+      if (L < 3.2) return arco([160, 104], [96, 74], tramo(L, 2.7, 3.2), 16)
+      if (L < 4.5) return { x: 96 + 30 * suave(tramo(L, 3.5, 3.9)) * 4.2, y: 74 + 44 * suave(tramo(L, 3.5, 3.9)), sx: 1, sy: 1 }
+      return arco([222, 118], espera, tramo(L, 4.5, 5.1), 14)
+    },
+  },
+  {
+    // Plano: una hoja con lo acordado. El punto firma al pie.
+    dur: 5,
+    forma: F_HOJA,
+    giro: (L) => ({ ox: 160, oy: 110, r: -2 + 1.2 * Math.sin(L * 1.2) }),
+    svg: () =>
+      T(P.poli([[198, 26], [198, 54], [226, 54]]), { cls: 'ln fino', amp: 0.3 }) +
+      [0, 1, 2, 3].map((i) => T(P.linea(112, 76 + i * 20, [206, 190, 206, 168][i], 76 + i * 20, 4), { cls: 'ln fino tz', amp: 0.4, n: 're' + i })).join('') +
+      T(P.suave(FIRMA), { cls: 'ln ln-azul tz', amp: 0.5, n: 'firma' }),
+    detalle(q, L) {
+      const fin = 1 - suave(tramo(L, 4.4, 4.9))
+      ;[0, 1, 2, 3].forEach((i) => traza(q('re' + i), suave(tramo(L, 0.15 + i * 0.22, 0.75 + i * 0.22)) * fin))
+      traza(q('firma'), suave(tramo(L, 2.1, 3.0)) * fin)
+    },
+    punto(L) {
+      const espera = [240, 60]
+      if (L < 1.5) return { x: espera[0], y: espera[1] + 2 * Math.sin(L * 4.4), sx: 1, sy: 1 }
+      if (L < 2.0) return arco(espera, FIRMA[0], tramo(L, 1.5, 2.0), 24)
+      if (L < 3.0) {
+        const [x, y] = sobre(abierta(FIRMA, 30), suave(tramo(L, 2.1, 3.0)))
+        return quieto(x, y)
+      }
+      if (L < 4.4) return quieto(196, 166)
+      return arco([196, 166], espera, tramo(L, 4.4, 5), 20)
+    },
+  },
+  {
+    // Implementación: el local, ya andando. El punto sube al techo y se enciende.
+    dur: 5,
+    forma: F_LOCAL,
+    giro: (L) => ({ ox: 160, oy: 192, r: 1.5 * golpe(L, 1.6, 0.4) * Math.sin((L - 1.6) * 24) }),
+    svg: () =>
+      T([0, 1, 2, 3].map((i) => P.arco(101 + i * 39.3, 78, 19.6, 0, 180, 7)), { cls: 'ln tz', amp: 0.4, n: 'toldo' }) +
+      T(P.poli([[112, 192], [112, 132], [146, 132], [146, 192]]), { cls: 'ln tz', amp: 0.4, n: 'puerta' }) +
+      T(P.rect(166, 126, 50, 34, 2), { cls: 'ln fino tz', amp: 0.4, n: 'vent' }) +
+      T(P.poli([[176, 144], [186, 154], [206, 132]]), { cls: 'ln ln-azul tz', amp: 0.3, n: 'listo' }) +
+      G('luz', corona('rayos', 7, 13, 23)),
+    detalle(q, L) {
+      const fin = 1 - suave(tramo(L, 4.4, 4.9))
+      traza(q('toldo'), suave(tramo(L, 0.1, 0.8)) * fin)
+      traza(q('puerta'), suave(tramo(L, 0.4, 1.0)) * fin)
+      traza(q('vent'), suave(tramo(L, 0.6, 1.2)) * fin)
+      traza(q('listo'), suave(tramo(L, 2.3, 2.7)) * fin)
+      const luz = rebota(tramo(L, 1.6, 2.0)) * fin
+      pon(q('luz'), { x: 160, y: 28, sx: luz * (1 + 0.08 * Math.sin(L * 6)), r: L * 14, o: luz })
+    },
+    punto(L) {
+      const espera = [262, 176]
+      if (L < 1.1) return { x: espera[0], y: espera[1] + 0, sx: 1, sy: 1 }
+      if (L < 1.6) return arco(espera, [160, 28], tramo(L, 1.1, 1.6), 46)
+      if (L < 4.4) {
+        const g = golpe(L, 1.6, 0.25)
+        return { x: 160, y: 28, sx: 1 + 0.3 * g, sy: 1 - 0.25 * g }
+      }
+      return arco([160, 28], espera, tramo(L, 4.4, 5), 30)
+    },
+  },
+]
+
+/** «Cómo trabajamos»: una figura por paso. El <svg> lleva viewBox="44 0 240 212". */
+export const metodoVivo = (svg, inicial = 0) => figuraViva(svg, METODO, { inicial })
+
+// ── «¿Hasta dónde quiere llegar?» ───────────────────────────────────────────────────────────
+
+const F_PUESTO = remuestra([[160, 104], [212, 104], [222, 126], [208, 126], [208, 192], [112, 192], [112, 126], [98, 126], [108, 104]], NF)
+const F_EDIFICIO = remuestra([[160, 22], [226, 22], [226, 86], [250, 86], [250, 192], [70, 192], [70, 86], [94, 86], [94, 22]], NF)
+const vive = (L) => ({ ox: 160, oy: 192, r: 0.7 * Math.sin(L * 1.3) })
+const luzDe = (q, L, x, y, cuando, tam = 1) => {
+  const luz = rebota(tramo(L, cuando, cuando + 0.4))
+  pon(q('luz'), { x, y, sx: tam * luz * (1 + 0.08 * Math.sin(L * 6)), r: L * 14, o: luz })
+}
+
+const ALCANCE = [
+  {
+    // Essential: un puesto. Lo justo, y ya atiende.
+    dur: 1e6,
+    forma: F_PUESTO,
+    giro: vive,
+    svg: () =>
+      T([0, 1, 2].map((i) => P.arco(116.3 + i * 36.7, 126, 18.3, 0, 180, 7)), { cls: 'ln tz', amp: 0.4, n: 'a0toldo' }) +
+      T(P.linea(112, 158, 208, 158, 4), { cls: 'ln tz', amp: 0.4, n: 'a0barra' }),
+    detalle(q, L) {
+      traza(q('a0toldo'), suave(tramo(L, 0.1, 0.7)))
+      traza(q('a0barra'), suave(tramo(L, 0.4, 0.9)))
+      pon(q('luz'), { x: 160, y: 150, sx: 0, o: 0 })
+    },
+    punto: (L) => {
+      const b = brinco(tramo(L % 3.2, 0.2, 0.7), 9)
+      return { x: 160, y: 150 + b.dy, sx: b.sx, sy: b.sy }
+    },
+  },
+  {
+    // Advanced: el local completo, con toldo, puerta y ventana. El punto lo enciende.
+    dur: 1e6,
+    forma: F_LOCAL,
+    giro: vive,
+    svg: () =>
+      T([0, 1, 2, 3].map((i) => P.arco(101 + i * 39.3, 78, 19.6, 0, 180, 7)), { cls: 'ln tz', amp: 0.4, n: 'a1toldo' }) +
+      T(P.poli([[112, 192], [112, 132], [146, 132], [146, 192]]), { cls: 'ln tz', amp: 0.4, n: 'a1puerta' }) +
+      T(P.rect(166, 126, 50, 34, 2), { cls: 'ln fino tz', amp: 0.4, n: 'a1vent' }),
+    detalle(q, L) {
+      traza(q('a1toldo'), suave(tramo(L, 0.1, 0.8)))
+      traza(q('a1puerta'), suave(tramo(L, 0.4, 1.0)))
+      traza(q('a1vent'), suave(tramo(L, 0.6, 1.2)))
+      luzDe(q, L, 160, 28, 0.9, 0.8)
+    },
+    punto: (L) => {
+      const g = golpe(L, 0.6, 0.25)
+      return { x: 160, y: 28, sx: 1 + 0.3 * g, sy: 1 - 0.25 * g }
+    },
+  },
+  {
+    // Enterprise: dos pisos, letrero y todas las ventanas. La luz se ve desde lejos.
+    dur: 1e6,
+    forma: F_EDIFICIO,
+    giro: vive,
+    svg: () =>
+      T([0, 1, 2].map((i) => P.rect(106 + i * 38, 38, 26, 30, 2)), { cls: 'ln fino tz', amp: 0.4, n: 'a2arriba' }) +
+      T([0, 1, 2, 3].map((i) => P.arco(92.5 + i * 45, 86, 22.5, 0, 180, 7)), { cls: 'ln tz', amp: 0.4, n: 'a2toldo' }) +
+      T(P.poli([[140, 192], [140, 134], [180, 134], [180, 192]]), { cls: 'ln tz', amp: 0.4, n: 'a2puerta' }) +
+      T([P.rect(86, 130, 38, 34, 2), P.rect(196, 130, 38, 34, 2)], { cls: 'ln fino tz', amp: 0.4, n: 'a2vent' }) +
+      T(P.linea(160, 134, 160, 192, 3), { cls: 'ln fino tz', amp: 0.3, n: 'a2hoja' }),
+    detalle(q, L) {
+      traza(q('a2toldo'), suave(tramo(L, 0.1, 0.8)))
+      traza(q('a2puerta'), suave(tramo(L, 0.3, 0.9)))
+      traza(q('a2hoja'), suave(tramo(L, 0.7, 1.0)))
+      traza(q('a2vent'), suave(tramo(L, 0.5, 1.2)))
+      traza(q('a2arriba'), suave(tramo(L, 0.8, 1.6)))
+      luzDe(q, L, 160, 8, 1.1, 1.15)
+    },
+    punto: (L) => {
+      const g = golpe(L, 0.6, 0.25)
+      return { x: 160, y: 8, sx: 1 + 0.3 * g, sy: 1 - 0.25 * g }
+    },
+  },
+]
+
+/** «¿Hasta dónde quiere llegar?»: el local crece con el nivel. viewBox="44 -22 240 232". */
+export function alcanceVivo(svg, inicial = 0) {
+  return figuraViva(svg, ALCANCE, { inicial, despues: G('luz', corona('a-rayos', 7, 13, 23)) })
 }

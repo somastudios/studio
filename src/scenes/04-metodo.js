@@ -2,6 +2,7 @@ import gsap from 'gsap'
 import { boil, P } from '../core/boil.js'
 import { $, $$, pad, words, rise, fade } from '../core/fx.js'
 import { C } from '../content/es.js'
+import { metodoVivo } from '../visita1/trazos-escenas.js'
 
 // Cinco estaciones sobre una línea. El punto es el cabezal: en cada estación
 // queda dentro de su anillo, y por un momento esa estación es el logo.
@@ -40,6 +41,7 @@ export default {
           <h3 class="t-display s4-name"></h3>
           <p class="t-body s4-text"></p>
         </div>
+        <div class="s4-tv"><svg class="tv cine" viewBox="44 0 240 212" aria-hidden="true"></svg></div>
       </div>
     </div>`,
   setup(el, { dot, deck }) {
@@ -52,6 +54,9 @@ export default {
     const copy = $(el, '.s4-copy')
     let step = 0
     let roll = null
+    const svg = $(el, '.s4-tv svg')
+    const vivo = metodoVivo(svg, 0)
+    svg._vivo = vivo
 
     const mark = (i) => {
       stations.forEach((s, k) => {
@@ -70,6 +75,7 @@ export default {
       const dir = i > step ? 1 : -1
       step = i
       mark(i)
+      vivo.ir(i)
       gsap.to(prog, { '--draw': off(i), duration: 0.95, ease: 'expo.inOut' })
       dot.to(anchors[i], { duration: 0.95, ease: 'expo.inOut' })
       roll?.kill()
@@ -99,6 +105,7 @@ export default {
         step = dir < 0 ? N - 1 : 0
         mark(step)
         fill(step)
+        vivo.pon(step)
         gsap.set(num, { yPercent: 0 })
         gsap.set(copy, { autoAlpha: 1, y: 0 })
         gsap.set(prog, { '--draw': off(step) })

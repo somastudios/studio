@@ -1859,3 +1859,26 @@ textarea.v-in {
     transform: none;
   }
 }
+
+/* «¿Hasta dónde quiere llegar?»: el local que crece, arriba del título. */
+.vl .vl-h {
+  font-size: calc(var(--u) * 4.3);
+}
+
+.vl-tv {
+  width: calc(var(--u) * 25);
+  margin-bottom: calc(var(--u) * 2);
+  pointer-events: none;
+}
+
+.vl-tv svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+
+@media (max-aspect-ratio: 1/1) {
+  .vl-tv {
+    width: calc(var(--u) * 20);
+  }
+}

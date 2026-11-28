@@ -15,6 +15,48 @@ const ESCENAS = {
     sel: '.s1-tv',
     cuadros: (api) => [0.3, 0.95, 1.3, 1.6, 2.0, 2.5, 3.3, 3.8, 4.3, 4.6, 5.4, 6.2, 7.0, 7.4, 7.9].map((u) => [`${u}`, async () => (await api.vivo('desde', 300), api.fija(300 + u))]),
   },
+  metodo: {
+    flechas: 6,
+    antes: async (p) => {
+      for (let i = 0; i < 30 && !(await p.locator('.s4-tv svg').count() && await p.locator('.s4-tv').isVisible()); i++) {
+        await p.keyboard.press('ArrowRight')
+        await p.waitForTimeout(1500)
+      }
+    },
+    sel: '.s4-tv',
+    cuadros: (api) => {
+      const c = []
+      const L = [[0.6, 1.8, 3.2], [0.9, 1.9, 2.8, 3.4], [0.8, 1.45, 2.4, 3.4, 4.0], [1.0, 2.2, 2.7, 3.4], [0.9, 1.4, 1.8, 2.8]]
+      for (let k = 0; k < 5; k++) {
+        c.push([`→${k} · 0.45`, async () => (k ? await api.vivo('ir', k, 100 * k) : await api.vivo('pon', 0, 0), api.fija(100 * k + 0.45))])
+        for (const l of L[k]) c.push([`${k} · ${l}`, () => api.fija(100 * k + (k ? 0.8 : 0.3) + l)])
+      }
+      return c
+    },
+  },
+  alcance: {
+    flechas: 6,
+    antes: async (p) => {
+      for (let i = 0; i < 30 && !(await p.locator('.vl-tv svg').count()); i++) {
+        await p.keyboard.press('ArrowRight')
+        await p.waitForTimeout(1500)
+      }
+    },
+    sel: '.vl-tv',
+    cuadros: (api) => {
+      const c = [['0 · 2', async () => (await api.vivo('pon', 0, 0), api.fija(2))]]
+      for (const k of [1, 2]) {
+        for (const u of [0.3, 0.6, 1.0]) c.push([`→${k} · ${u}`, async () => (await api.vivo('ir', k, 100 * k), api.fija(100 * k + u))])
+        for (const l of [0.9, 1.6, 3]) c.push([`${k} · ${l}`, () => api.fija(100 * k + 0.8 + l)])
+      }
+      return c
+    },
+    antesDeFoto: async (p) => {
+      await p.keyboard.press('ArrowDown')
+      await p.waitForTimeout(400)
+      await p.keyboard.press('ArrowDown')
+    },
+  },
   suele: {
     flechas: 6,
     sel: '.vs-tv',
