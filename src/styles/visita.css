@@ -1917,3 +1917,47 @@ textarea.v-in {
     display: none;
   }
 }
+
+/* Diagnóstico: la ruta que interesó queda palomeada. */
+.vd-ta svg {
+  position: absolute;
+  inset: 0;
+  fill: none;
+  stroke: var(--bg);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0;
+}
+
+.vd-tab.es-interesa .vd-ta svg {
+  opacity: 1;
+}
+
+.vd-tab.es-recien .vd-ta {
+  animation: vd-pop 0.55s cubic-bezier(0.2, 1.7, 0.4, 1) both;
+}
+
+.vd-tab.es-recien .vd-ta path {
+  stroke-dasharray: 13;
+  animation: vd-traza 0.4s 0.18s ease-out both;
+}
+
+@keyframes vd-pop {
+  from {
+    transform: scale(0.3);
+  }
+}
+
+@keyframes vd-traza {
+  from {
+    stroke-dashoffset: 13;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vd-tab.es-recien .vd-ta,
+  .vd-tab.es-recien .vd-ta path {
+    animation: none;
+  }
+}

@@ -1,5 +1,5 @@
 import Trazo from '../core/trazo-vivo.js'
-import { CUERPO, muneca, bocaPts, actua } from './reparto-trazo.js'
+import { CUERPO, muneca, bocaPts, actua, gente } from './reparto-trazo.js'
 
 // Los cortos del aro de la portada: uno por familia de giro. Se ven dentro del aro de Soma, en
 // una ventana redonda, en lugar del icono. Lienzo de 200 × 200; se ve el círculo de radio 80.
@@ -17,7 +17,10 @@ import { CUERPO, muneca, bocaPts, actua } from './reparto-trazo.js'
 //                       mira, suspira, sonríe, la toca con el dedo y presume con los ojos
 //                       cerrados. Al final la tableta se va y él baja la mano: vuelve a empezar.
 //
-// Las familias que todavía no tienen corto usan el icono de su giro, dibujado a mano.
+// Las demás familias cuentan lo mismo con su propia gente y lo que a ellos se les junta: a la
+// tendera, preguntas de «¿tiene…?»; al barbero, citas a la misma hora; a la doctora,
+// expedientes; al recepcionista, llaves; a cualquier otro negocio, papelitos. `corto(persona,
+// cosa)` arma los tres planos con quien actúa y lo que se le junta.
 
 const { P, D, T, G, monta, rectPts, corre, capsula, circulo, tramo, mezcla, suave, frena, acelera, rebota, salto, golpe, campana, brinco, sacude, pon, traza, ve, forma, camara, punto, corona, manoSvg, indice } = Trazo
 
@@ -83,13 +86,13 @@ const PANTALLA = [44, 54, 112, 96]
 const TABLETA = [126, 41, 48, 34]
 const ESCONDIDA = [20, 70, 0]
 
-const COMIDA = {
+const corto = (persona, cosa) => ({
   cartel: 9,
   planos: [
     {
       nombre: 'Se juntan',
       dur: 4.4,
-      svg: () => G('k1cam', enVentana(cocinero('k')) + SITIOS.map((_, i) => papel('k1p' + i, 20, 26)).join('')),
+      svg: () => G('k1cam', enVentana(persona('k')) + SITIOS.map((_, i) => cosa('k1p' + i, 20, 26)).join('')),
       paso(q, t) {
         camara(q('k1cam'), 100, 100, 1 + 0.07 * suave(tramo(t, 0, 4.4)), 100, 100)
         const cuantas = LLEGA.filter((x) => t >= x).length
@@ -132,7 +135,7 @@ const COMIDA = {
           'k2cam',
           T(P.rect(PANTALLA[0] + 6, PANTALLA[1] + 6, PANTALLA[2], PANTALLA[3], 10), { cls: 'blq', n: 'k2blq' }) +
             T(P.rect(...PANTALLA, 10), { cls: 'ln tapa tz', n: 'k2marco' }) +
-            REVUELTAS.map((_, i) => papel('k2p' + i, 26, 34)).join('') +
+            REVUELTAS.map((_, i) => cosa('k2p' + i, 26, 34)).join('') +
             corona('k2ray', 10, 16, 28) +
             punto(10, 'k2pt'),
         ),
@@ -177,7 +180,7 @@ const COMIDA = {
       svg: () =>
         G(
           'k3cam',
-          enVentana(cocinero('c')) +
+          enVentana(persona('c')) +
             T(D(rectPts(...PANTALLA, 10)), { cls: 'blq', n: 'k3blq' }) +
             T(D(rectPts(...PANTALLA, 10)), { cls: 'ln tapa', n: 'k3tab' }) +
             [0, 1, 2].map((j) => T(D([[0, 0], [1, 0], [2, 0], [3, 0]], false), { cls: 'ln fino', amp: 0.3, n: 'k3r' + j })).join('') +
@@ -231,9 +234,79 @@ const COMIDA = {
       },
     },
   ],
+})
+
+// ── La gente de las otras familias: mismo cuerpo, otro pelo y otra ropa ──
+const pelo = (pts, mas = '') => T(P.suave(pts, true), { cls: 'ln cabello', amp: 0.7 }) + mas
+const fino = (formas) => T(formas, { cls: 'ln fino', amp: 0.3 })
+
+// tiendas: la tendera, de chongo y mandil
+const tendera = (k) =>
+  gente(k, {
+    pelo: T(P.circ(150, 50, 13, 10), { cls: 'ln cabello', amp: 0.5 }) + pelo([[115, 100], [114, 80], [124, 65], [140, 58], [160, 58], [176, 65], [186, 80], [185, 100], [178, 84], [164, 74], [150, 72], [136, 74], [122, 84]]),
+    pecho: T(P.poli([[134, 152], [166, 152], [172, 212], [128, 212]], true), { cls: 'ln fino tapa', amp: 0.3 }) + fino([P.linea(136, 152, 140, 146, 3), P.linea(164, 152, 160, 146, 3), P.linea(140, 182, 160, 182, 3)]),
+  })
+// cuidado: el barbero, de copete y bigote, con el peine en la bolsa
+const barbero = (k) =>
+  gente(k, {
+    pelo:
+      pelo([[116, 98], [114, 78], [122, 62], [138, 52], [158, 48], [176, 56], [186, 72], [186, 96], [180, 84], [170, 76], [150, 78], [132, 74], [124, 84]]) +
+      T(P.suave([[135, 116], [143, 111.5], [150, 114], [157, 111.5], [165, 116], [157, 116.5], [150, 116], [143, 116.5]], true), { cls: 'ln fino cabello', amp: 0.2 }),
+    pecho: fino([P.poli([[137, 146], [150, 161], [163, 146]]), P.rect(160, 172, 17, 18, 2), P.linea(164, 172, 164, 165, 2), P.linea(168.5, 172, 168.5, 165, 2), P.linea(173, 172, 173, 165, 2)]),
+    ropa: 'tapa',
+  })
+// salud: la doctora, de melena, bata y estetoscopio
+const doctora = (k) =>
+  gente(k, {
+    pelo:
+      pelo([[113, 90], [108, 112], [112, 134], [122, 136], [118, 118], [119, 100]]) +
+      pelo([[187, 90], [192, 112], [188, 134], [178, 136], [182, 118], [181, 100]]) +
+      pelo([[114, 96], [113, 78], [122, 63], [140, 56], [160, 56], [178, 63], [187, 78], [186, 96], [180, 82], [166, 72], [150, 76], [134, 72], [120, 82]]),
+    pecho: fino([P.poli([[137, 146], [146, 174], [150, 161]]), P.poli([[163, 146], [154, 174], [150, 161]]), P.linea(150, 174, 150, 212, 4), P.suave([[132, 152], [128, 172], [138, 188], [150, 187]]), P.circ(154, 187, 4, 7)]),
+    ropa: 'tapa',
+  })
+// estancia: el recepcionista, bien peinado, de chaleco y moño
+const recepcionista = (k) =>
+  gente(k, {
+    pelo: pelo([[116, 98], [115, 78], [126, 62], [146, 56], [166, 58], [180, 68], [186, 84], [185, 98], [176, 80], [160, 70], [140, 72], [126, 82]]),
+    pecho: T([P.poli([[150, 153], [137, 146], [137, 160]], true), P.poli([[150, 153], [163, 146], [163, 160]], true)], { cls: 'ln fino cabello', amp: 0.2 }) + fino([P.linea(138, 162, 150, 204, 4), P.linea(162, 162, 150, 204, 4)]),
+  })
+// otro: el dueño de «Antes de empezar», pelo corto y camisa de cuello
+const dueno = (k) =>
+  gente(k, {
+    pelo: pelo([[116, 99], [115, 80], [124, 66], [140, 59], [157, 58], [171, 63], [182, 75], [185, 96], [179, 86], [168, 77], [152, 74], [136, 78], [125, 88]]),
+    pecho: fino([P.poli([[137, 146], [146, 159], [150, 151]]), P.poli([[163, 146], [154, 159], [150, 151]]), P.linea(150, 159, 150, 210, 4)]),
+  })
+
+// ── Lo que se le junta a cada quien (cabe en una caja de w × h, centrada) ──
+const caja = (n, contorno, dentro) => G(n, T(P.poli(contorno, true), { cls: 'ln fino tapa', amp: 0.35 }) + dentro)
+// una pregunta: «¿tiene…?»
+const pregunta = (n, w, h) =>
+  caja(n, [[-w / 2, -h / 2], [w / 2, -h / 2], [w / 2, h / 4], [-w / 8, h / 4], [-w / 3, h / 2], [-w / 4, h / 4], [-w / 2, h / 4]], T(P.arco(0, -h * 0.22, w * 0.17, 190, 415, 6), { cls: 'ln fino', amp: 0.15 }) + `<circle class="lleno" cx="0" cy="${(h * 0.1).toFixed(1)}" r="1.3"/>`)
+// una cita: tarjeta con su reloj
+const cita = (n, w, h) =>
+  caja(n, [[-w / 2, -h / 2], [w / 2, -h / 2], [w / 2, h / 2], [-w / 2, h / 2]], T(P.circ(0, -h * 0.08, w * 0.3, 9), { cls: 'ln fino', amp: 0.15 }) + T([P.linea(0, -h * 0.08, 0, -h * 0.08 - w * 0.2, 2), P.linea(0, -h * 0.08, w * 0.14, -h * 0.08 + 1, 2), P.linea(-w / 2 + 4, h / 2 - 5, w / 2 - 4, h / 2 - 5, 3)], { cls: 'ln fino tenue', amp: 0.15 }))
+// un expediente: la carpeta con su pestaña
+const carpeta = (n, w, h) =>
+  caja(n, [[-w / 2, -h / 2], [-w / 8, -h / 2], [0, -h / 2 + 5], [w / 2, -h / 2 + 5], [w / 2, h / 2], [-w / 2, h / 2]], T([P.linea(-w / 2 + 4, -h / 2 + 12, w / 2 - 4, -h / 2 + 12, 3), P.linea(-w / 2 + 4, -h / 2 + 19, w / 2 - 9, -h / 2 + 19, 3)], { cls: 'ln fino tenue', amp: 0.2 }))
+// una llave con su número
+const llave = (n, w, h) =>
+  caja(n, [[-w / 2, -h / 2 + 4], [0, -h / 2], [w / 2, -h / 2 + 4], [w / 2, h / 2], [-w / 2, h / 2]], T(P.circ(0, -h / 2 + 7, 2.2, 6), { cls: 'ln fino', amp: 0.1 }) + T([P.circ(-w * 0.14, h * 0.12, w * 0.15, 7), P.linea(-w * 0.14 + w * 0.15, h * 0.12, w * 0.32, h * 0.12, 3), P.linea(w * 0.22, h * 0.12, w * 0.22, h * 0.26, 2)], { cls: 'ln fino', amp: 0.15 }))
+// un papelito pegado, con la esquina doblada
+const papelito = (n, w, h) =>
+  caja(n, [[-w / 2, -h / 2 + 2], [w / 2, -h / 2 + 2], [w / 2, h / 4], [w / 5, h / 2 - 2], [-w / 2, h / 2 - 2]], T([P.poli([[w / 2, h / 4], [w / 5, h / 4], [w / 5, h / 2 - 2]]), P.linea(-w / 2 + 4, -h / 2 + 9, w / 2 - 4, -h / 2 + 9, 3), P.linea(-w / 2 + 4, -h / 2 + 16, w / 2 - 8, -h / 2 + 16, 3)], { cls: 'ln fino tenue', amp: 0.2 }))
+
+const CORTOS = {
+  comida: corto(cocinero, papel),
+  tiendas: corto(tendera, pregunta),
+  cuidado: corto(barbero, cita),
+  salud: corto(doctora, carpeta),
+  estancia: corto(recepcionista, llave),
+  otro: corto(dueno, papelito),
 }
 
-const CORTOS = { comida: COMIDA }
+/** Las familias que tienen corto (para revisarlos). */
+export const FAMILIAS_CON_CORTO = Object.keys(CORTOS)
 
 /** ¿Esta familia de giro ya tiene su corto? */
 export const hayCorto = (familia) => !!CORTOS[familia]

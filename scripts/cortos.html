@@ -1,0 +1,26 @@
+<!doctype html>
+<!-- Hoja de revisión: los cortos de portada de todas las familias, lado a lado.
+     Se abre con el servidor de desarrollo: http://localhost:<puerto>/scripts/cortos.html?t=2.6
+     `t` detiene el reloj en ese segundo; sin `t`, corren. -->
+<meta charset="utf-8" />
+<title>Cortos por giro</title>
+<style>
+  body { margin: 0; padding: 12px; background: #ece9e1; --fg: #0b0b0b; --bg: #ece9e1; --acento: #1f6bff; --color-blue: #1f6bff; font: 12px sans-serif; }
+  #hoja { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+  figure { margin: 0; }
+  svg { display: block; width: 100%; clip-path: circle(50%); background: #f6f4ee; }
+</style>
+<div id="hoja"></div>
+<script type="module">
+  import '/src/styles/visita.css'
+  import Trazo from '/src/core/trazo-vivo.js'
+  import { cortoGiro, FAMILIAS_CON_CORTO } from '/src/visita1/cortos-giro.js'
+  const hoja = document.getElementById('hoja')
+  for (const f of FAMILIAS_CON_CORTO) {
+    hoja.insertAdjacentHTML('beforeend', `<figure><svg class="tv cine" viewBox="0 0 200 200" data-f="${f}"></svg><figcaption>${f}</figcaption></figure>`)
+    cortoGiro(hoja.lastElementChild.firstElementChild, f).desde(0)
+  }
+  const t = new URLSearchParams(location.search).get('t')
+  if (t !== null) Trazo.fija(+t)
+  window.listo = true
+</script>

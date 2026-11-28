@@ -124,11 +124,17 @@ export const diagnostico = (E) =>
         }
       }
 
+      // la palomita de una ruta que interesó se dibuja una sola vez, cuando el punto la suelta
+      const palomeadas = new Set()
       const pestanas = (R) => `<div class="vd-tabs" role="tablist">
         ${R.map((r, k) => {
           const re = reaccion(r.sol)
-          return `<button type="button" role="tab" class="vd-tab ${r.choca ? 'es-choca' : ''} ${re ? 'es-' + re : ''}" data-r="${k}" aria-selected="${k === foco && !todasNo()}">
-            <i class="vd-ta"></i><span class="t-label vd-tn">${pad(k + 1)}</span><span class="t-name vd-tt">${esc(r.solucion.nombre)}</span>
+          const sel = k === foco && !todasNo()
+          const recien = re === 'interesa' && !sel && !palomeadas.has(r.sol)
+          if (recien) palomeadas.add(r.sol)
+          if (re !== 'interesa') palomeadas.delete(r.sol)
+          return `<button type="button" role="tab" class="vd-tab ${r.choca ? 'es-choca' : ''} ${re ? 'es-' + re : ''} ${recien ? 'es-recien' : ''}" data-r="${k}" aria-selected="${sel}">
+            <i class="vd-ta"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.3 8.5l2.6 2.6 4.9-5.7"/></svg></i><span class="t-label vd-tn">${pad(k + 1)}</span><span class="t-name vd-tt">${esc(r.solucion.nombre)}</span>
           </button>`
         }).join('')}
       </div>`
