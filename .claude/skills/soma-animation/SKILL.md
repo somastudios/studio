@@ -120,6 +120,7 @@ Esto no es teoría, es lo que Alex dijo al ver cada animación. Antes de planear
 | Una sola toma donde todo se transformaba en otra cosa, sin cortes | «Quedó peor» | Era ingeniosa y no le pasaba nada a nadie. El morph era la historia |
 | Dibujitos chicos en una esquina de la lámina | No | No se veían. Una animación que acompaña a un texto ocupa su mitad de la pantalla |
 | Un objeto solo que se mueve (una etiqueta, un reloj, un globo) | «Hay que pulirlas» | Se lee como icono. Se arregló poniendo al lado a la persona que reacciona al objeto |
+| Las dos visitas completas, hechas en una tarde con un plan aprobado antes (28 nov) | Pendiente de veredicto | Se anota aquí cuando Alex las vea moverse |
 
 De ahí salen siete reglas. Van en orden de importancia:
 
@@ -132,6 +133,52 @@ De ahí salen siete reglas. Van en orden de importancia:
 7. **Cierra donde empezó.** La última pose es la primera, para que el bucle no brinque.
 
 Antes de dibujar, contesta en una línea cada una: ¿quién es?, ¿qué le pasa?, ¿qué siente?, ¿en qué momento llega el punto?, ¿cuál es el remate? Si no hay respuesta para alguna, todavía no está lista.
+
+### Tres tamaños, y no todas llevan gente
+
+Alex lo dijo así: «no es necesario que en todas salgan monos, pero que tengan mucha personalidad». En una presentación de varias láminas se reparte así:
+
+| Tamaño | Cuándo | Ejemplo |
+|---|---|---|
+| **Con persona** | La lámina habla de cómo se siente quien la mira | El dueño y su maraña, Alex anotando |
+| **Objeto con carácter** | La lámina explica algo | El «?» que se vuelve lupa, el local que crece, el calendario |
+| **Respuesta al toque** | El cliente está eligiendo o leyendo; un dibujo grande distrae | La palomita en la ruta que interesó |
+
+Un objeto tiene carácter cuando **el punto vive en él**: es el punto del «?», la pupila de la lupa, la luz del local, la moneda del billete. Y cuando reacciona: se sacude al encontrar algo, da un saltito al quedar apartada la fecha.
+
+### Un hilo que une las láminas
+
+Diez dibujos sueltos se sienten como diez dibujos. Para que sea una sola historia, **algo regresa**:
+
+- Un personaje: el dueño aparece en cuatro láminas y siempre es el mismo.
+- Un objeto que cambia de sentido: la maraña crece con cada problema y más tarde el punto la desenreda en renglones. La etiqueta que se tachó el primer día vuelve el segundo, y ahora el punto sí escribe en ella.
+- Una promesa que se cumple: «usted marca el ritmo» fue un reloj en pausa; cuando el cliente dice «lo voy a pensar», aparece ese mismo reloj.
+
+Se planea antes de dibujar: una tabla con todas las láminas, su tamaño y qué regresa en cada una. Con Alex funcionó aprobar ese guion una sola vez y luego hacerlas de corrido, entregando cada tanda.
+
+### Que el dibujo responda a lo que pasa en la lámina
+
+En una interfaz la animación no corre sola: le avisan. Cada función devuelve con qué se le habla, y el estado cambia con una mezcla de medio segundo, nunca de golpe.
+
+```js
+const vivo = sueleVivo(svg, marcados.length)   // { pon(n) }
+boton.addEventListener('click', () => vivo.pon(marcados.length))
+// adentro: de cuántos «se veían» a cuántos son, en 0.55 s, más un susto al subir
+const nv = mezcla(desde, n, suave(tramo(t - tk, 0, 0.55)))
+```
+
+- Lo que el estado controla es **cuánto**: cuánta maraña está trazada, qué tan apurado está (`s = nv / 4`), si la mano ya subió.
+- Cada cambio lleva su golpe: un susto al marcar, un suspiro al desmarcar.
+- Para revisar, las funciones aceptan el segundo del reloj (`vivo.pon(3, 100)`) y se detienen con `Trazo.fija(100.4)`.
+- Si el dibujo va **antes** del contenido (la maraña que se vuelve la ficha), dura menos de tres segundos y se quita solo.
+
+### Una figura por paso
+
+Para una lámina de pasos (método, niveles, compromisos): una sola figura cerrada que cambia de forma, con los detalles de cada paso dibujándose encima. Todas las formas llevan el mismo número de puntos, **empiezan arriba al centro y giran hacia la derecha**. En el repo es `figuraViva(svg, PASOS)` y cada paso es `{ dur, forma, giro(L), svg(), detalle(q, L), punto(L) }`.
+
+### Una plantilla, varias pieles
+
+Cuando hacen falta varios cortos que cuentan lo mismo (uno por giro), el corto se escribe una vez como función de **quién actúa** y **qué se le junta**: `corto(persona, cosa)`. La persona sale de `gente(k, { pelo, pecho, ropa })` y la cosa es un dibujo que cabe en una caja de `w × h`. Seis familias salieron de un solo corto en media hora. Lo que no debe compartirse es el remate: cada piel merece el suyo.
 
 ### Un objeto solo es un icono: ponle a alguien al lado
 
@@ -286,6 +333,9 @@ El script también avisa de errores y de desplazamiento lateral. Al entregar di 
 | Un globo queda escondido detrás del pelo | El orden de las capas, o está encima de otra pieza: muévelo |
 | Una mano se asoma debajo del busto, como muñón | Está en reposo y sigue dibujada. Ocúltala con `ve` mientras no actúa |
 | La línea adelgaza en una pieza | Va dentro de un grupo reducido. Súbele el grosor en proporción a la escala |
+| `rotate(NaN)` en la consola | Un reloj «todavía no» puesto en `Infinity`: `Math.sin(-Infinity)` es `NaN` y `0 * NaN` también. Usa un número grande (`1e9`) |
+| El dibujo empuja el texto fuera de la lámina | Se agregó sin quitar nada. Si entra un dibujo, el título baja de tamaño o cambia de lugar: se revisa la lámina completa, en ancho y en vertical |
+| Una lámina vecina se rompió | Compartía clases con la que se rehízo. Antes de borrar un estilo, busca quién más lo usa |
 | Se ve bien hecha y no dice nada | No hay nadie a quien le pase algo. Vuelve a «Lo que ya se probó» |
 | Todo se ve gris en oscuro | Se escribió un color fijo en vez de una variable |
 
@@ -293,7 +343,9 @@ Y tres cosas del motor: `forma` necesita siempre el mismo número de puntos que 
 
 ## 9. Antes de entregar
 
-- [ ] Hay alguien con cara, le pasa algo que le pasa a quien la mira, y el punto llega en el giro.
+- [ ] Hay alguien con cara, o un objeto donde vive el punto. Le pasa algo que le pasa a quien la mira.
+- [ ] Si son varias láminas, algo regresa de una a otra.
+- [ ] La lámina completa se ve bien con el dibujo puesto, en laptop y en celular.
 - [ ] Hay un remate, y a lo mucho dos morphs.
 - [ ] El guion está escrito arriba del código y cada plano hace una sola cosa.
 - [ ] El final coincide con el texto que acompaña.
@@ -305,4 +357,4 @@ Y tres cosas del motor: `forma` necesita siempre el mismo número de puntos que 
 
 ## 10. En el repositorio de Soma (studio)
 
-La galería vive también en `docs/soma-animation.html` (es la que está publicada) y hay que mantener las dos copias iguales. El motor está en `src/core/trazo.js` (copia exacta de `trazo.js`, se importa con `src/core/trazo-vivo.js`) y el reparto en `src/visita1/reparto-trazo.js` (de ahí sale `reparto.js`). Dentro de la app las clases del dibujo van bajo `svg.tv`. Ya lo usan la portada de la visita (`src/visita1/cortos-giro.js`, un corto por giro; el de comida es el cocinero) y «Antes de empezar» (`src/visita1/trazos.js`, el dueño que reacciona a cada compromiso; se revisa con `node scripts/acuerdo.cjs`). Las películas de pixel art, las viñetas de cada sección y el boil de tres dibujos del CRM son otra cosa: skill `animacion-soma`.
+La galería vive también en `docs/soma-animation.html` (es la que está publicada) y hay que mantener las dos copias iguales. El motor está en `src/core/trazo.js` (copia exacta de `trazo.js`, se importa con `src/core/trazo-vivo.js`) y el reparto en `src/visita1/reparto-trazo.js` (de ahí sale `reparto.js`). Dentro de la app las clases del dibujo van bajo `svg.tv`. Las láminas de las dos visitas están en `src/visita1/trazos-escenas.js` (se revisan con `node scripts/escena.cjs <puerto> <carpeta> <escena>`). Ya lo usan la portada de la visita (`src/visita1/cortos-giro.js`, la plantilla `corto(persona, cosa)` con seis familias; se revisan con `node scripts/cortos.cjs`) y «Antes de empezar» (`src/visita1/trazos.js`, el dueño que reacciona a cada compromiso; se revisa con `node scripts/acuerdo.cjs`). Las películas de pixel art, las viñetas de cada sección y el boil de tres dibujos del CRM son otra cosa: skill `animacion-soma`.

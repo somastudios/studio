@@ -2079,3 +2079,24 @@ textarea.v-in {
     width: calc(var(--u) * 8);
   }
 }
+
+/* «El siguiente paso»: con el calendario arriba, el título baja de tamaño para que todo quepa. */
+.vg .vg-h {
+  font-size: calc(var(--u) * 4.8);
+}
+
+.vg-tv {
+  width: calc(var(--u) * 17);
+}
+
+/* Diagnóstico en vertical: cada mitad mide lo que mide su contenido, una debajo de la otra. */
+@media (max-aspect-ratio: 1/1) {
+  .vd {
+    grid-auto-rows: max-content;
+  }
+
+  .vd-izq,
+  .vd-der {
+    min-height: auto;
+  }
+}

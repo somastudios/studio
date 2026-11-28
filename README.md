@@ -90,9 +90,10 @@ Durante una presentación: `M` abre el índice, `F` pantalla completa, `D` abre 
 - [x] CRM, animaciones: la cortina del punto entre secciones, una viñeta SVG de tres planos por sección y las cuatro películas de pixel art en «Hoy». El diseño de «Hoy» ya está en todo el CRM.
 - [ ] CRM, lo que falta: estados vacíos ilustrados, animación al guardar o registrar un pago, viñeta propia para el expediente, y llevar el mismo diseño a los diálogos, la presala y la pantalla de entrada.
 - [x] «Antes de empezar» en grande: se ve un compromiso a la vez, el texto entra por palabras y un dibujo de trazo vivo, de media pantalla, se transforma de uno a otro: etiqueta, reloj, globo (`src/visita1/trazos.js`). Es el modelo para las demás escenas.
-- [ ] Trazo vivo en el resto: «Lo que suele pasar», «Lo que entendimos», «Siguiente paso», «Gracias» y la segunda visita.
-- [ ] Animaciones de las visitas: revisar ritmo y transiciones escena por escena.
-- [ ] Vista en celular y en vertical de las escenas de las visitas: está resuelta de forma básica y no se ha probado. (El CRM y la presala ya se revisaron en celular y tableta: `node scripts/desborde.cjs <puerto> <carpeta>`.)
+- [x] Trazo vivo en las dos visitas (`src/visita1/trazos-escenas.js`): la lupa que encuentra la gotera en «Primero el problema», la maraña del dueño en «Lo que suele pasar» que se vuelve renglones en «Lo que entendimos», Alex anotando en «Antes de cerrar», una figura por paso en «Cómo trabajamos», el local que crece en «Alcance», el calendario en «Siguiente paso», y en la segunda visita la etiqueta, los iconos de pago y el dueño que decide. Cada una se fotografía con `node scripts/escena.cjs <puerto> <carpeta> <escena>`.
+- [x] Cortos de portada para las seis familias de giro (`src/visita1/cortos-giro.js`, `node scripts/cortos.cjs <puerto> <salida.png>`). El remate es el mismo en todas (toca la tableta y presume); falta darle uno propio a cada familia.
+- [ ] Animaciones de las visitas: el ritmo en vivo falta verlo con Alex, escena por escena. Sus veredictos se anotan en la skill `soma-animation`, sección «Lo que ya se probó».
+- [x] Vista en celular y en vertical de las escenas de la primera visita: revisada con `node scripts/recorrido.cjs <puerto> <carpeta> restaurante 390 800`. Falta la misma pasada en la segunda visita.
 
 **Por probar con cuenta real** (no se pudo desde el entorno donde se construyó)
 - [ ] Crear cuenta con el código de equipo e iniciar sesión.

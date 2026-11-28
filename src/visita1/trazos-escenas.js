@@ -683,7 +683,7 @@ export function agendaVivo(svg, { elegido = -1, hecho = false } = {}) {
   const celda = (i) => [48 + (i % 7) * 24, 100 + Math.floor(i / 7) * 36]
   let sel = elegido
   let ts = -9
-  let tl = hecho ? -9 : Infinity
+  let tl = hecho ? -9 : 1e9
   let sale = null
   let ultimo = celda(0)
 
@@ -732,7 +732,7 @@ export function agendaVivo(svg, { elegido = -1, hecho = false } = {}) {
       sale = [...ultimo]
       sel = i
       ts = t ?? ahora()
-      tl = Infinity
+      tl = 1e9
     },
     /** La cita quedó apartada. */
     listo(t) {
