@@ -9,6 +9,7 @@ import { esc, fecha } from '../app/util.js'
 import { icoNicho } from '../icons/render.js'
 import { escena, tx, linea } from './base.js'
 import { acuerdoVivo } from './trazos.js'
+import { sueleVivo } from './trazos-escenas.js'
 
 // Las tres primeras escenas de la visita: la portada con el nombre del negocio, el acuerdo
 // (por qué no hay que ponerse en guardia) y "lo que suele pasar" (el cliente señala lo suyo).
@@ -45,7 +46,7 @@ export const acuerdo = (E) =>
               <ul class="va-quienes">${quienes.map((x) => `<li><span class="t-name va-nombre">${esc(x.nombre)}</span><span class="t-body va-linea">${esc(x.linea || '')}</span></li>`).join('')}</ul>
             </footer>
           </div>
-          <div class="va-tv"><svg class="tv cine" viewBox="0 0 320 240" aria-hidden="true"></svg></div>
+          <div class="va-tv"><svg class="tv cine" viewBox="0 0 320 266" aria-hidden="true"></svg></div>
         </div>`
       const items = $$(el, '.va-item')
       const pasos = $$(el, '.va-paso')
@@ -143,6 +144,7 @@ export const suele = (E) =>
           if (!v) return
           ultimo = E.agregaPropio(v)
           lista()
+          $(el, '.vs-tv svg')._vivo?.pon(E.datos.marcados.length)
           posar()
         })
       }
@@ -158,16 +160,20 @@ export const suele = (E) =>
             <h2 class="t-display vs-h"><span class="ln">${words(T.titulo[0])}</span><span class="ln">${wordsDot(T.titulo[1])}</span></h2>
             <p class="t-body vs-intro">${tx(T.intro, { plural: E.plural, negocio: E.negocio })}</p>
             <p class="t-label vs-cuenta" aria-live="polite"></p>
+            <div class="vs-tv"><svg class="tv cine" viewBox="56 4 208 276" aria-hidden="true"></svg></div>
           </header>
           <div class="vs-der"><ul class="vs-lista" data-rueda></ul><div class="vs-pie"></div></div>
         </div>`
       lista()
+      const vivo = sueleVivo($(el, '.vs-tv svg'), E.datos.marcados.length)
+      $(el, '.vs-tv svg')._vivo = vivo
 
       on('.vs-item', (b) => {
         const si = E.alterna(b.dataset.p)
         b.setAttribute('aria-pressed', String(si))
         ultimo = si ? b.dataset.p : E.datos.marcados.at(-1) || null
         $(el, '.vs-cuenta').textContent = cuenta()
+        vivo.pon(E.datos.marcados.length)
         posar()
         if (si) dot.pulse(1.25)
       })
@@ -180,6 +186,7 @@ export const suele = (E) =>
       const tl = linea()
       rise(tl, $$(el, '.vs-h .wi'), 0, { stagger: 0.07 })
       fade(tl, [$(el, '.vs-intro'), $(el, '.vs-cuenta')], 0.4)
+      tl.fromTo($(el, '.vs-tv'), { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0, duration: 0.9, ease: 'expo.out' }, 0.5)
       tl.fromTo([...$$(el, '.vs-lista > li'), $(el, '.vs-pie')], { autoAlpha: 0, y: 18 }, { autoAlpha: 1, y: 0, duration: 0.7, ease: 'expo.out', stagger: 0.06 }, 0.45)
       return { tl, anchor: () => $(el, '.period') }
     },

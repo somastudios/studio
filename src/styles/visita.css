@@ -1773,3 +1773,89 @@ textarea.v-in {
 .tv .boca {
   fill: var(--tinta);
 }
+
+/* «Lo que suele pasar»: el dueño y su maraña, debajo del título. */
+.vs-cab {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.vs .vs-h {
+  font-size: calc(var(--u) * 5.2);
+}
+
+.vs-tv {
+  flex: 1 1 0;
+  min-height: 0;
+  margin-top: calc(var(--u) * 1.5);
+  display: flex;
+  align-items: flex-end;
+}
+
+.vs-tv svg {
+  height: 100%;
+  max-height: calc(var(--u) * 27);
+  width: auto;
+  max-width: 100%;
+  overflow: visible;
+}
+
+/* «Lo que entendimos»: el dibujo va encima de la ficha y se quita cuando termina. */
+.ve-der {
+  position: relative;
+  min-height: 0;
+  display: grid;
+}
+
+.ve-vivo {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.ve-vivo svg {
+  width: min(100%, calc(var(--u) * 50));
+  overflow: visible;
+}
+
+@media (max-aspect-ratio: 1/1) {
+  .vs-cab {
+    position: relative;
+  }
+
+  .vs-tv {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: calc(var(--u) * 15);
+    height: calc(var(--u) * 20);
+    margin: 0;
+  }
+}
+
+.ve-vivo svg {
+  transform: translateX(calc(var(--u) * 3));
+}
+
+/* En vertical la ficha y su título caben en el ancho. */
+@media (max-aspect-ratio: 1/1) {
+  .ve {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .ve .ve-h {
+    font-size: calc(var(--u) * 4.2);
+  }
+
+  .ve-der {
+    min-width: 0;
+  }
+
+  .ve-vivo svg {
+    transform: none;
+  }
+}

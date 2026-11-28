@@ -9,6 +9,7 @@ import { SOL } from '../content/soluciones.js'
 import { store } from '../data/store.js'
 import { esc, fecha, dia, sumaDias, telBonito, plantilla } from '../app/util.js'
 import { escena, tx, linea } from './base.js'
+import { entendidoVivo } from './trazos-escenas.js'
 
 // La segunda mitad de la visita: lo que no se dijo, hasta dónde quiere llegar, el expediente
 // a la vista, la fecha de la siguiente visita y la despedida.
@@ -131,7 +132,7 @@ export const expediente = (E) =>
     id: 'expediente',
     theme: 'paper',
     title: V1.expediente.nav,
-    pinta(el, { alEscribir }) {
+    pinta(el, { alEscribir, reduced }) {
       const T = V1.expediente
       const H = E.hallazgos()
       const vistos = H.filter((h) => h.estado !== 'mencionado')
@@ -146,6 +147,7 @@ export const expediente = (E) =>
             <div class="ve-sello"><svg viewBox="0 0 48 48" aria-hidden="true">${boil(P.circle(24, 24, 21, 16), { amp: 0.5, cls: 'draw', attrs: 'stroke-width="3.4"' })}</svg><i class="ve-a" data-dot></i><span class="t-label">${esc(T.sello)}</span></div>
             <label class="ve-falta"><span class="t-label">${esc(T.falta)}</span><textarea class="v-in" name="correccion" rows="2" placeholder="${esc(T.faltaPh)}">${esc(E.datos.correccion || '')}</textarea></label>
           </header>
+          <div class="ve-der">
           <article class="ve-ficha" data-rueda>
             <div class="ve-fcab"><span class="t-display ve-negocio">${esc(E.negocio)}</span><span class="t-label">${esc(pr.nicho_otro || E.nicho.nombre)} · ${esc(fecha(new Date(), 'completa'))}</span></div>
             <ol class="ve-lista">
@@ -166,18 +168,29 @@ export const expediente = (E) =>
             ${mencionados.length ? `<p class="ve-tambien"><span class="t-label">${esc(T.tambien)}</span> ${mencionados.map((h) => esc(h.titulo)).join(' · ')}</p>` : ''}
             ${pie.length ? `<p class="t-label ve-pie">${pie.map(esc).join(' · ')}</p>` : ''}
           </article>
+          <div class="ve-vivo"><svg class="tv cine" viewBox="0 0 320 200" aria-hidden="true"></svg></div>
+          </div>
         </div>`
+      // la maraña se vuelve renglones encima de la ficha, y luego queda la ficha de verdad
+      const vivo = reduced ? null : entendidoVivo($(el, '.ve-vivo svg'))
+      $(el, '.ve-vivo svg')._vivo = vivo
+      const A = vivo ? 2.25 : 0 // cuánto espera la ficha a que termine el dibujo
       alEscribir('[name="correccion"]', (c) => {
         E.datos.correccion = c.value
         E.guardaDatos()
       })
       const tl = linea()
       rise(tl, $$(el, '.ve-h .wi'), 0, { stagger: 0.07 })
-      tl.fromTo($(el, '.ve-ficha'), { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.9, ease: 'expo.out' }, 0.2)
-      tl.fromTo($$(el, '.ve-item'), { autoAlpha: 0, x: 18 }, { autoAlpha: 1, x: 0, duration: 0.7, ease: 'expo.out', stagger: 0.14 }, 0.5)
-      fade(tl, [$(el, '.ve-tambien'), $(el, '.ve-pie')].filter(Boolean), 0.9)
-      tl.fromTo($(el, '.ve-sello .boil'), { '--draw': 1.06 }, { '--draw': 0, duration: 1.1, ease: 'expo.inOut' }, 0.7)
-      fade(tl, [$(el, '.ve-sello span'), $(el, '.ve-falta')], 1.1)
+      if (vivo) {
+        tl.call(() => vivo.desde(), null, 0.15)
+        tl.fromTo($(el, '.ve-vivo'), { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.3 }, 0.1)
+        tl.to($(el, '.ve-vivo'), { autoAlpha: 0, y: 14, duration: 0.5, ease: 'power2.in' }, A + 0.75)
+      } else gsap.set($(el, '.ve-vivo'), { autoAlpha: 0 })
+      tl.fromTo($(el, '.ve-ficha'), { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.9, ease: 'expo.out' }, A + 0.2)
+      tl.fromTo($$(el, '.ve-item'), { autoAlpha: 0, x: 18 }, { autoAlpha: 1, x: 0, duration: 0.7, ease: 'expo.out', stagger: 0.14 }, A + 0.5)
+      fade(tl, [$(el, '.ve-tambien'), $(el, '.ve-pie')].filter(Boolean), A + 0.9)
+      tl.fromTo($(el, '.ve-sello .boil'), { '--draw': 1.06 }, { '--draw': 0, duration: 1.1, ease: 'expo.inOut' }, A + 0.7)
+      fade(tl, [$(el, '.ve-sello span'), $(el, '.ve-falta')], A + 1.1)
       return { tl, anchor: () => $(el, '.ve-a') }
     },
   })

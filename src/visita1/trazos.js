@@ -42,7 +42,7 @@ const arco = (a, b, p, alto) => {
 }
 
 // ── «Usted»: pelo corto de lado y camisa de cuello ──
-const DUENO = () =>
+export const DUENO = () =>
   gente('u', {
     pelo: T(P.suave([[116, 99], [115, 80], [124, 66], [140, 59], [157, 58], [171, 63], [182, 75], [185, 96], [179, 86], [168, 77], [152, 74], [136, 78], [125, 88]], true), { cls: 'ln cabello', amp: 0.7 }),
     pecho: T([P.poli([[137, 146], [146, 159], [150, 151]]), P.poli([[163, 146], [154, 159], [150, 151]]), P.linea(150, 159, 150, 210, 4)], { cls: 'ln fino', amp: 0.3 }),
@@ -50,7 +50,7 @@ const DUENO = () =>
   })
 const ESCONDIDA = [20, 80, 0] // la mano, fuera de cuadro
 const AL_DIBUJO = [3, -1.7] // hacia dónde mira para ver el dibujo
-const parpadea = (L, ...cuando) => cuando.reduce((a, c) => a * (1 - 0.92 * campana(L, c, 0.08)), 1)
+export const parpadea = (L, ...cuando) => cuando.reduce((a, c) => a * (1 - 0.92 * campana(L, c, 0.08)), 1)
 
 const PASOS = [
   {
