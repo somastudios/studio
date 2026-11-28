@@ -9,7 +9,7 @@ import { SOL } from '../content/soluciones.js'
 import { store } from '../data/store.js'
 import { esc, fecha, dia, sumaDias, telBonito, plantilla } from '../app/util.js'
 import { escena, tx, linea } from './base.js'
-import { fichaViva, alcanceVivo, rondaVivo, agendaVivo, graciasVivo } from './trazos-escenas.js'
+import { fichaViva, alcanceVivo, rondaVivo, agendaVivo } from './trazos-escenas.js'
 
 // La segunda mitad de la visita: lo que no se dijo, hasta dónde quiere llegar, el expediente
 // a la vista, la fecha de la siguiente visita y la despedida.
@@ -31,7 +31,7 @@ export const ronda = (E) =>
         .slice(0, 3)
       el.innerHTML = `
         <div class="scene-inner vr">
-          <header class="vr-cab"><div class="vr-tv"><svg class="tv cine" viewBox="62 38 196 192" aria-hidden="true"></svg></div>${titular(T.titulo, 'vr-h')}<p class="t-body vr-intro">${tx(T.intro, { plural: E.plural })}</p></header>
+          <header class="vr-cab"><div class="vr-tv"><svg class="tv cine" viewBox="0 0 240 200" aria-hidden="true"></svg></div>${titular(T.titulo, 'vr-h')}<p class="t-body vr-intro">${tx(T.intro, { plural: E.plural })}</p></header>
           <ol class="vr-lista">
             ${
               candidatos
@@ -50,10 +50,15 @@ export const ronda = (E) =>
             }
           </ol>
         </div>`
+      // la libreta anota cada respuesta: palomea lo que también le pasa y tacha lo que no
+      const svgL = $(el, '.vr-tv svg')
+      const libreta = rondaVivo(svgL, candidatos.map((p) => E.datos.ronda[p.id] ?? null))
+      svgL._vivo = libreta
       on('.vr-item [data-v]', (b) => {
         const li = b.closest('.vr-item')
         const pid = li.dataset.p
         const si = b.dataset.v === '1'
+        libreta.pon($$(el, '.vr-item').indexOf(li), si)
         E.datos.ronda[pid] = si
         E.guardaDatos()
         if (si) E.ponHallazgo(pid, { estado: 'mencionado', orden: 100 + Object.keys(E.datos.ronda).indexOf(pid) })
@@ -65,7 +70,6 @@ export const ronda = (E) =>
       rise(tl, $$(el, '.vr-h .wi'), 0, { stagger: 0.07 })
       fade(tl, $(el, '.vr-intro'), 0.4)
       tl.fromTo($$(el, '.vr-item'), { autoAlpha: 0, y: 22 }, { autoAlpha: 1, y: 0, duration: 0.8, ease: 'expo.out', stagger: 0.12 }, 0.45)
-      rondaVivo($(el, '.vr-tv svg'))
       tl.fromTo($(el, '.vr-tv'), { autoAlpha: 0, y: 20 }, { autoAlpha: 1, y: 0, duration: 0.9, ease: 'expo.out' }, 0.2)
       return { tl, anchor: () => $(el, '.period') }
     },
@@ -374,9 +378,9 @@ export const despedida = (E, { alLlegar, T = V1.cierre } = {}) =>
         <div class="scene-inner s9">
           <div class="s9-logo" aria-hidden="true">
             <svg viewBox="-100 -100 200 200">${boil(P.circle(0, 0, 89.75, 44), { amp: 0.42, cls: 'draw s9-ring' })}</svg>
+            <i class="s9-onda"></i><i class="s9-onda"></i>
             <i class="s9-dot" data-dot></i>
           </div>
-          <div class="s9-tv"><svg class="tv cine" viewBox="70 44 180 176" aria-hidden="true"></svg></div>
           <div class="s9-text">
             <h2 class="t-display s9-h"><span class="ln">${words(nombre ? `${T.gracias},` : T.gracias)}</span>${nombre ? `<span class="ln">${words(esc(nombre))}</span>` : ''}</h2>
             ${linea2 ? `<p class="vc-cita">${esc(linea2)}</p>` : ''}
@@ -388,10 +392,11 @@ export const despedida = (E, { alLlegar, T = V1.cierre } = {}) =>
           </div>
           <p class="t-label s9-lema">${esc(T.lema)}</p>
         </div>`
-      graciasVivo($(el, '.s9-tv svg'))
       const tl = linea()
       rise(tl, $$(el, '.s9-h .wi'), 0, { stagger: 0.09, duration: 1.15 })
-      tl.fromTo($(el, '.s9-tv'), { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0, duration: 0.9, ease: 'expo.out' }, 0.9)
+      // el punto vuelve a su aro: el aro se hunde, rebota y suelta dos ondas
+      tl.fromTo($(el, '.s9-logo svg'), { scale: 0.9 }, { scale: 1, duration: 1.3, ease: 'elastic.out(1.1, 0.38)', transformOrigin: '50% 50%' }, 1.25)
+      tl.fromTo($$(el, '.s9-onda'), { scale: 0.92, autoAlpha: 0.55 }, { scale: 1.45, autoAlpha: 0, duration: 1.2, ease: 'power2.out', stagger: 0.22, immediateRender: false }, 1.3)
       tl.fromTo($(el, '.s9-ring'), { '--draw': 1.06 }, { '--draw': 0, duration: 1.6, ease: 'expo.inOut' }, 0.1)
       fade(tl, [$(el, '.vc-cita'), $(el, '.s9-body'), ...$$(el, '.s9-contact li'), $(el, '.s9-foot'), $(el, '.s9-lema')].filter(Boolean), 0.55, { stagger: 0.08 })
       return { tl, anchor: () => $(el, '.s9-dot') }

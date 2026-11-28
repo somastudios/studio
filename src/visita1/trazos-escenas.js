@@ -586,7 +586,8 @@ const sobre = (pts, p) => {
   return va2(pts[i], pts[i + 1], f - i)
 }
 
-function figuraViva(svg, PASOS, { inicial = 0, r = 7, despues = '' } = {}) {
+function figuraViva(svg, PASOS, { inicial = 0, r = 7, despues = '', centro = [160, 100] } = {}) {
+  const vista = (k) => PASOS[k].vista || [centro[0], centro[1], 1]
   let de = inicial
   let a = inicial
   let t0 = null
@@ -596,7 +597,7 @@ function figuraViva(svg, PASOS, { inicial = 0, r = 7, despues = '' } = {}) {
   monta(svg, {
     dur: Infinity,
     cartel: 3,
-    svg: () => T(D(corre(PASOS[inicial].forma, 7, 7)), { cls: 'blq', n: 'sombra' }) + T(D(PASOS[inicial].forma), { cls: 'ln tapa', n: 'figura' }) + PASOS.map((p, k) => G('d' + k, p.svg())).join('') + despues + punto(r),
+    svg: () => G('cam', T(D(corre(PASOS[inicial].forma, 7, 7)), { cls: 'blq', n: 'sombra' }) + T(D(PASOS[inicial].forma), { cls: 'ln tapa', n: 'figura' }) + PASOS.map((p, k) => G('d' + k, p.svg())).join('') + despues + punto(r)),
     paso(q, t) {
       if (t0 === null) t0 = t
       const u = t - t0
@@ -627,6 +628,13 @@ function figuraViva(svg, PASOS, { inicial = 0, r = 7, despues = '' } = {}) {
       }
       pon(q('pt'), pos)
       ultimo = pos
+      // la cámara: cada paso tiene su encuadre; al llegar la figura, todo se sacude tantito
+      const v0 = vista(de)
+      const v1 = vista(a)
+      const m = cambia ? suave(tramo(u, 0.1, 0.9)) : 1
+      const z = mezcla(v0[2], v1[2], m)
+      camara(q('cam'), mezcla(v0[0], v1[0], m) + (cambia ? sacude(u, 0.9, 1.8) : 0), mezcla(v0[1], v1[1], m) + (cambia ? sacude(u, 0.92, 1.2) : 0), z, centro[0], centro[1])
+      q('cam').style.setProperty('--z', z.toFixed(3))
     },
   })
 
@@ -811,7 +819,7 @@ const METODO = [
 ]
 
 /** «Cómo trabajamos»: una figura por paso. El <svg> lleva viewBox="44 0 240 212". */
-export const metodoVivo = (svg, inicial = 0) => figuraViva(svg, METODO, { inicial })
+export const metodoVivo = (svg, inicial = 0) => figuraViva(svg, METODO, { inicial, centro: [164, 106] })
 
 // ── «¿Hasta dónde quiere llegar?» ───────────────────────────────────────────────────────────
 
@@ -823,19 +831,37 @@ const luzDe = (q, L, x, y, cuando, tam = 1) => {
   pon(q('luz'), { x, y, sx: tam * luz * (1 + 0.08 * Math.sin(L * 6)), r: L * 14, o: luz })
 }
 
+/** Una pieza que cae de arriba y rebota. */
+const cae = (el, L, cuando, alto = 46) => {
+  const p = rebota(tramo(L, cuando, cuando + 0.42))
+  pon(el, { y: -alto * (1 - p), o: L < cuando ? 0 : 1 })
+}
+/** Una pieza que brota desde su centro. */
+const brota = (el, L, cuando, ox, oy) => pon(el, { ox, oy, sx: Math.max(0, rebota(tramo(L, cuando, cuando + 0.32))) })
+/** El polvo que levanta la figura al asentarse. */
+const polvo = (q, L, x0, x1) => {
+  const g = golpe(L, 0.1, 0.55)
+  pon(q('polvoi'), { x: x0 - 10 * (1 - g), y: 190, o: g })
+  pon(q('polvod'), { x: x1 + 10 * (1 - g), y: 190, o: g })
+}
+
 const ALCANCE = [
   {
-    // Essential: un puesto. Lo justo, y ya atiende.
+    // Essential: un puesto. Lo justo, y ya atiende. Cae el toldo y se pone la barra.
     dur: 1e6,
+    vista: [160, 144, 1.55],
     forma: F_PUESTO,
     giro: vive,
     svg: () =>
-      T([0, 1, 2].map((i) => P.arco(116.3 + i * 36.7, 126, 18.3, 0, 180, 7)), { cls: 'ln tz', amp: 0.4, n: 'a0toldo' }) +
-      T(P.linea(112, 158, 208, 158, 4), { cls: 'ln tz', amp: 0.4, n: 'a0barra' }),
+      T([0, 1, 2].map((i) => P.arco(116.3 + i * 36.7, 126, 18.3, 0, 180, 7)), { cls: 'ln', amp: 0.4, n: 'a0toldo' }) +
+      T(P.linea(112, 158, 208, 158, 4), { cls: 'ln tz', amp: 0.4, n: 'a0barra' }) +
+      T([P.linea(136, 172, 136, 180, 2), P.linea(160, 170, 160, 180, 2), P.linea(184, 172, 184, 180, 2)], { cls: 'ln fino tenue tz', amp: 0.2, n: 'a0tabla' }),
     detalle(q, L) {
-      traza(q('a0toldo'), suave(tramo(L, 0.1, 0.7)))
-      traza(q('a0barra'), suave(tramo(L, 0.4, 0.9)))
+      cae(q('a0toldo'), L, 0.1, 30)
+      traza(q('a0barra'), suave(tramo(L, 0.45, 0.8)))
+      traza(q('a0tabla'), suave(tramo(L, 0.7, 1.0)))
       pon(q('luz'), { x: 160, y: 150, sx: 0, o: 0 })
+      polvo(q, L, 108, 212)
     },
     punto: (L) => {
       const b = brinco(tramo(L % 3.2, 0.2, 0.7), 9)
@@ -843,19 +869,23 @@ const ALCANCE = [
     },
   },
   {
-    // Advanced: el local completo, con toldo, puerta y ventana. El punto lo enciende.
+    // Advanced: el local completo. Cae el toldo, sube la puerta, brota la ventana y se enciende.
     dur: 1e6,
+    vista: [160, 106, 1.14],
     forma: F_LOCAL,
     giro: vive,
     svg: () =>
-      T([0, 1, 2, 3].map((i) => P.arco(101 + i * 39.3, 78, 19.6, 0, 180, 7)), { cls: 'ln tz', amp: 0.4, n: 'a1toldo' }) +
-      T(P.poli([[112, 192], [112, 132], [146, 132], [146, 192]]), { cls: 'ln tz', amp: 0.4, n: 'a1puerta' }) +
-      T(P.rect(166, 126, 50, 34, 2), { cls: 'ln fino tz', amp: 0.4, n: 'a1vent' }),
+      T([0, 1, 2, 3].map((i) => P.arco(101 + i * 39.3, 78, 19.6, 0, 180, 7)), { cls: 'ln', amp: 0.4, n: 'a1toldo' }) +
+      T(P.poli([[112, 192], [112, 132], [146, 132], [146, 192]]), { cls: 'ln', amp: 0.4, n: 'a1puerta' }) +
+      '<circle class="lleno" data-n="a1perilla" cx="139" cy="164" r="2.4"/>' +
+      G('a1vent', T(P.rect(166, 126, 50, 34, 2), { cls: 'ln fino', amp: 0.4 }) + T([P.linea(191, 126, 191, 160, 3), P.linea(166, 143, 216, 143, 3)], { cls: 'ln fino tenue', amp: 0.3 })),
     detalle(q, L) {
-      traza(q('a1toldo'), suave(tramo(L, 0.1, 0.8)))
-      traza(q('a1puerta'), suave(tramo(L, 0.4, 1.0)))
-      traza(q('a1vent'), suave(tramo(L, 0.6, 1.2)))
-      luzDe(q, L, 160, 28, 0.9, 0.8)
+      cae(q('a1toldo'), L, 0.1)
+      pon(q('a1puerta'), { ox: 129, oy: 192, sy: Math.max(0, rebota(tramo(L, 0.35, 0.75))) })
+      ve(q('a1perilla'), tramo(L, 0.75, 0.85))
+      brota(q('a1vent'), L, 0.6, 191, 143)
+      luzDe(q, L, 160, 28, 0.95, 0.8)
+      polvo(q, L, 80, 240)
     },
     punto: (L) => {
       const g = golpe(L, 0.6, 0.25)
@@ -863,23 +893,26 @@ const ALCANCE = [
     },
   },
   {
-    // Enterprise: dos pisos, letrero y todas las ventanas. La luz se ve desde lejos.
+    // Enterprise: dos pisos. Todo llega por partes: toldo, puerta doble, ventanas de abajo y,
+    // una por una, las de arriba. La luz se ve desde lejos.
     dur: 1e6,
+    vista: [160, 92, 1],
     forma: F_EDIFICIO,
     giro: vive,
     svg: () =>
-      T([0, 1, 2].map((i) => P.rect(106 + i * 38, 38, 26, 30, 2)), { cls: 'ln fino tz', amp: 0.4, n: 'a2arriba' }) +
-      T([0, 1, 2, 3].map((i) => P.arco(92.5 + i * 45, 86, 22.5, 0, 180, 7)), { cls: 'ln tz', amp: 0.4, n: 'a2toldo' }) +
-      T(P.poli([[140, 192], [140, 134], [180, 134], [180, 192]]), { cls: 'ln tz', amp: 0.4, n: 'a2puerta' }) +
-      T([P.rect(86, 130, 38, 34, 2), P.rect(196, 130, 38, 34, 2)], { cls: 'ln fino tz', amp: 0.4, n: 'a2vent' }) +
-      T(P.linea(160, 134, 160, 192, 3), { cls: 'ln fino tz', amp: 0.3, n: 'a2hoja' }),
+      [0, 1, 2].map((i) => G('a2a' + i, T(P.rect(106 + i * 38, 38, 26, 30, 2), { cls: 'ln fino', amp: 0.4 }) + T(P.linea(106 + i * 38, 53, 132 + i * 38, 53, 2), { cls: 'ln fino tenue', amp: 0.2 }))).join('') +
+      T([0, 1, 2, 3].map((i) => P.arco(92.5 + i * 45, 86, 22.5, 0, 180, 7)), { cls: 'ln', amp: 0.4, n: 'a2toldo' }) +
+      G('a2puerta', T(P.poli([[140, 192], [140, 134], [180, 134], [180, 192]]), { cls: 'ln', amp: 0.4 }) + T(P.linea(160, 134, 160, 192, 3), { cls: 'ln fino', amp: 0.3 })) +
+      G('a2vi', T(P.rect(86, 130, 38, 34, 2), { cls: 'ln fino', amp: 0.4 })) +
+      G('a2vd', T(P.rect(196, 130, 38, 34, 2), { cls: 'ln fino', amp: 0.4 })),
     detalle(q, L) {
-      traza(q('a2toldo'), suave(tramo(L, 0.1, 0.8)))
-      traza(q('a2puerta'), suave(tramo(L, 0.3, 0.9)))
-      traza(q('a2hoja'), suave(tramo(L, 0.7, 1.0)))
-      traza(q('a2vent'), suave(tramo(L, 0.5, 1.2)))
-      traza(q('a2arriba'), suave(tramo(L, 0.8, 1.6)))
-      luzDe(q, L, 160, 8, 1.1, 1.15)
+      cae(q('a2toldo'), L, 0.1)
+      pon(q('a2puerta'), { ox: 160, oy: 192, sy: Math.max(0, rebota(tramo(L, 0.3, 0.7))) })
+      brota(q('a2vi'), L, 0.55, 105, 147)
+      brota(q('a2vd'), L, 0.67, 215, 147)
+      ;[0, 1, 2].forEach((i) => brota(q('a2a' + i), L, 0.85 + i * 0.14, 119 + i * 38, 53))
+      luzDe(q, L, 160, 8, 1.3, 1.15)
+      polvo(q, L, 66, 254)
     },
     punto: (L) => {
       const g = golpe(L, 0.6, 0.25)
@@ -888,63 +921,113 @@ const ALCANCE = [
   },
 ]
 
-/** «¿Hasta dónde quiere llegar?»: el local crece con el nivel. viewBox="44 -22 240 232". */
+/** «¿Hasta dónde quiere llegar?»: el local se construye con el nivel. viewBox="44 -22 240 232". */
 export function alcanceVivo(svg, inicial = 0) {
-  return figuraViva(svg, ALCANCE, { inicial, despues: G('luz', corona('a-rayos', 7, 13, 23)) })
+  const lineas = (s) => rayos(s, [[0, 0, -9 * (s === 'pi' ? 1 : -1), -7], [0, 0, -12 * (s === 'pi' ? 1 : -1), 0], [0, 0, -8 * (s === 'pi' ? 1 : -1), 6]])
+  return figuraViva(svg, ALCANCE, { inicial, centro: [164, 94], despues: G('polvoi', lineas('pi')) + G('polvod', lineas('pd')) + G('luz', corona('a-rayos', 7, 13, 23)) })
 }
 
 // ── «Antes de cerrar» ───────────────────────────────────────────────────────────────────────
 
 /**
- * Alex escucha y anota: mira a quien habla, asiente, baja la vista a la libreta, escribe un
- * renglón y vuelve a mirar. Tres renglones y da vuelta a la hoja. viewBox="62 38 196 192".
+ * La libreta, en detalle. Una mano con lápiz espera a un lado, golpeteando. Cada respuesta
+ * trae la mano a su renglón: escribe, y luego palomea si «también le pasa» o tacha si no.
+ * La goma del lápiz es el punto azul. `valores` es lo ya contestado: true, false o null por
+ * renglón. Devuelve { pon(i, valor, t) }. viewBox="0 0 240 200".
  */
-export function rondaVivo(svg) {
-  const DUR = 6.4
-  const REN = [[134, 191, 176], [134, 201, 176], [134, 211, 160]] // x0, y, x1 de cada renglón
-  const CUANDO = [[1.6, 2.8], [4.2, 5.2], [5.25, 5.85]]
-  const M0 = muneca(0)
+export function rondaVivo(svg, valores = []) {
+  const N = Math.max(1, Math.min(3, valores.length || 3))
+  const Y = [68, 108, 148]
+  const REPOSO = [196, 176]
+  const est = Array.from({ length: N }, (_, i) => ({ v: valores[i] ?? null, t: -9 }))
+  const garabato = (y) => P.suave(Array.from({ length: 9 }, (_, k) => [78 + k * 12.5, y + (k % 2 ? -2.6 : 2.2) * (k && k < 8 ? 1 : 0.3)]))
+  let ultima = -1
+  let sale = REPOSO // dónde estaba la punta cuando le llegó trabajo
+
   monta(svg, {
-    dur: DUR,
-    cartel: 2.4,
+    dur: Infinity,
+    cartel: 2,
     svg: () =>
-      persona('a') +
-      T(P.poli([[124, 182], [184, 178], [188, 220], [128, 224]], true), { cls: 'blq', amp: 0.4 }) +
-      T(P.poli([[120, 178], [180, 174], [184, 216], [124, 220]], true), { cls: 'ln tapa', amp: 0.4 }) +
-      REN.map(([x0, y, x1], i) => T(P.linea(x0 - 4, y - 3 + i * 0.4, x1 - 4, y - 6 + i * 0.4, 4), { cls: 'ln fino tz', amp: 0.5, n: 'ap' + i })).join('') +
-      G('lapiz', T(P.linea(0, 0, 13, -17, 3), { cls: 'ln', amp: 0.2 })),
+      G(
+        'cam',
+        G(
+          'hoja',
+          T(P.rect(40, 32, 172, 156, 6), { cls: 'blq', amp: 0.5 }) +
+            T(P.rect(34, 26, 172, 156, 6), { cls: 'ln tapa', amp: 0.6 }) +
+            T(Array.from({ length: 9 }, (_, k) => P.arco(50 + k * 17.5, 26, 4.6, 150, 390, 6)), { cls: 'ln fino', amp: 0.2 }) +
+            T(P.linea(48, 46, 120, 46, 4), { cls: 'ln fino tenue', amp: 0.3 }) +
+            Array.from({ length: N }, (_, i) => {
+              const y = Y[i]
+              return (
+                T(P.rect(50, y - 8, 15, 15, 3), { cls: 'ln fino', amp: 0.25 }) +
+                T(P.linea(76, y + 10, 192, y + 10, 5), { cls: 'ln fino tenue', amp: 0.3 }) +
+                T(garabato(y), { cls: 'ln tz', amp: 0.5, n: 're' + i }) +
+                T(P.poli([[52, y], [56.5, y + 5], [67, y - 8]]), { cls: 'ln ln-azul tz', amp: 0.3, n: 'ok' + i }) +
+                T(P.poli([[72, y + 5], [110, y - 5], [146, y + 4], [184, y - 5]]), { cls: 'ln tz', amp: 0.4, n: 'ta' + i })
+              )
+            }).join(''),
+        ) +
+          // la mano con el lápiz: el origen es la punta
+          G(
+            'mano',
+            T(D(capsula([34, 14], [150, 150], 19)), { cls: 'ln tapa', amp: 0.5 }) +
+              T(D(capsula([3, -5], [29, -50], 6.4, 3)), { cls: 'ln tapa', amp: 0.25 }) +
+              T(P.poli([[3.6, -8.2], [0, 0], [6.6, -4.4]], true), { cls: 'ln lleno', amp: 0.1 }) +
+              `<g transform="translate(30 12) rotate(-58)">${manoSvg('lm')}</g>` +
+              T(P.linea(24.6, -45.4, 30.2, -42.2, 2), { cls: 'ln fino', amp: 0.1 }) +
+              '<circle class="azul" cx="30" cy="-51.5" r="4.6"/>',
+          ),
+      ),
     paso(q, t) {
-      // la punta del lápiz: en el renglón que toca, o descansando al margen
-      let punta = [REN[0][0] - 6, REN[0][1] - 2]
-      let escribe = 0
-      CUANDO.forEach(([a, b], i) => {
-        const p = tramo(t, a, b)
-        traza(q('ap' + i), suave(p) * (1 - suave(tramo(t, 6.0, 6.35))))
-        if (t >= a - 0.3) {
-          const [x0, y, x1] = REN[i]
-          punta = [mezcla(x0, x1, suave(p)) - 4 + (p > 0 && p < 1 ? 1.4 * Math.sin(t * 34) : 0), y - 3 - 3 * suave(p) + (p > 0 && p < 1 ? 1.2 * Math.cos(t * 41) : 0)]
+      let punta = [REPOSO[0], REPOSO[1] - 5 * (salto(tramo(t % 2.6, 0.2, 0.42)) + salto(tramo(t % 2.6, 0.46, 0.68)))]
+      let aprieta = 0
+      let tacha = 0
+      est.forEach((e, i) => {
+        const k = t - e.t
+        const y = Y[i]
+        const hay = e.v !== null
+        // 0 va al renglón · 0.3 escribe · 0.85 brinca a la marca · 0.95 palomea o tacha · 1.25 se va
+        traza(q('re' + i), hay ? suave(tramo(k, 0.3, 0.82)) : 0)
+        traza(q('ok' + i), e.v === true ? suave(tramo(k, 0.97, 1.22)) : 0)
+        traza(q('ta' + i), e.v === false ? suave(tramo(k, 0.97, 1.2)) : 0)
+        agita(q('re' + i), 1 + 1.5 * (k > 0.3 && k < 0.85 ? 1 : 0))
+        if (i !== ultima || k > 1.65 || !hay) return
+        const va = rebota(tramo(k, 0, 0.3))
+        const escribe = tramo(k, 0.3, 0.82)
+        const marca = e.v ? [[52, y], [56.5, y + 5], [67, y - 8]] : [[72, y + 5], [110, y - 5], [146, y + 4], [184, y - 5]]
+        let p = [mezcla(sale[0], 78, va), mezcla(sale[1], y, va)]
+        if (k >= 0.3) p = [mezcla(78, 178, suave(escribe)) + 0, y + 2.4 * Math.sin(k * 46) * (escribe < 1 ? 1 : 0)]
+        if (k >= 0.82) {
+          const b = brinco(tramo(k, 0.82, 0.97), 9)
+          p = [mezcla(178, marca[0][0], suave(tramo(k, 0.82, 0.97))), mezcla(y, marca[0][1], suave(tramo(k, 0.82, 0.97))) + b.dy]
         }
-        if (p > 0 && p < 1) escribe = 1
+        if (k >= 0.97) p = sobre(abierta(marca, 16), suave(tramo(k, 0.97, 1.21)))
+        if (k >= 1.25) {
+          const r = suave(tramo(k, 1.25, 1.65))
+          const fin = marca[marca.length - 1]
+          p = [mezcla(fin[0], REPOSO[0], r), mezcla(fin[1], REPOSO[1], r) - 12 * salto(r)]
+        }
+        punta = p
+        aprieta = k >= 0.3 && k < 1.22 ? 1 : 0
+        if (e.v === false) tacha = golpe(k, 1.0, 0.3)
       })
-      pon(q('lapiz'), { x: punta[0], y: punta[1] })
-      const abajo = suave(tramo(t, 1.3, 1.6)) * (1 - suave(tramo(t, 2.8, 3.1))) + suave(tramo(t, 3.9, 4.2)) * (1 - suave(tramo(t, 5.9, 6.2)))
-      const asiente = salto(tramo(t, 0.5, 0.95)) + salto(tramo(t, 3.3, 3.7))
-      const aja = campana(t, 3.5, 0.35)
-      actua(q, 'a', {
-        gira: 2.2 * abajo - 1.5 * (1 - abajo),
-        dy: 2.6 * asiente + 2.2 * abajo,
-        mira: [mezcla(3.2, -1.6, abajo), mezcla(-0.8, 3, abajo)],
-        abre: (1 - 0.3 * abajo) * (1 - 0.9 * campana(t, 1.32, 0.08)) * (1 - 0.9 * campana(t, 2.86, 0.08)) * (1 - 0.9 * campana(t, 3.94, 0.08)) * (1 - 0.9 * campana(t, 5.96, 0.08)),
-        cejas: [-2.2 * aja - 0.6 * (1 - abajo), -3 * aja, -2.2 * aja - 0.6 * (1 - abajo), 3 * aja],
-        boca: [0.2 * abajo, mezcla(0.75, 0.25, abajo), 0.3 * aja],
-        brazo: 0,
-        mano: [punta[0] + 14 - M0[0], punta[1] - 15 - M0[1], -62 + 3 * escribe * Math.sin(t * 34)],
-        pelo: -3 * salto(tramo(t, 0.56, 1.0)) + 3 * abajo - 3 * salto(tramo(t, 3.36, 3.8)),
-        lentes: [1.3 * abajo, 0],
-        resp: 0.012 * Math.sin(t * 1.9),
-      })
+      pon(q('mano'), { x: punta[0], y: punta[1], r: -4 * aprieta + 2 * Math.sin(t * 1.7) * (1 - aprieta) })
+      pon(q('hoja'), { ox: 120, oy: 104, r: -3 + 1.2 * tacha * Math.sin(t * 40) })
+      camara(q('cam'), 120 + 2.2 * tacha * Math.sin(t * 70), 100, 1, 120, 100)
     },
   })
+
+  return {
+    /** El renglón `i` quedó en `v` (true: también le pasa, false: no). */
+    pon(i, v, t) {
+      if (!est[i] || est[i].v === v) return
+      const tt = t ?? ahora()
+      // de dónde sale la mano: del reposo, o de donde la dejó el renglón anterior si iba de regreso
+      sale = REPOSO
+      est[i] = { v, t: tt }
+      ultima = i
+    },
+  }
 }
 
 // ── «El siguiente paso» ─────────────────────────────────────────────────────────────────────
@@ -1014,36 +1097,6 @@ export function agendaVivo(svg, { elegido = -1, hecho = false } = {}) {
       tl = t ?? ahora()
     },
   }
-}
-
-// ── «Gracias» ───────────────────────────────────────────────────────────────────────────────
-
-/** El dueño, ya sin maraña: sonríe con los ojos y asiente. viewBox="70 44 180 176". */
-export function graciasVivo(svg) {
-  monta(svg, {
-    dur: 4.6,
-    cartel: 1.2,
-    svg: () => DUENO(),
-    paso(q, t) {
-      const gusto = suave(tramo(t, 0.5, 0.9)) * (1 - suave(tramo(t, 2.9, 3.3)))
-      const asiente = salto(tramo(t, 1.0, 1.45)) + salto(tramo(t, 1.5, 1.95))
-      actua(q, 'u', {
-        gira: 2.5 * gusto + 1.2 * Math.sin(t * 1.37),
-        dy: 2.8 * asiente,
-        mira: [1.5, 0],
-        abre: parpadea(t, 0.3, 3.7),
-        feliz: gusto,
-        cejas: [-2 * gusto, 0, -2 * gusto, 0],
-        boca: [0, mezcla(0.8, 1.2, gusto), 0.25 * gusto],
-        brazo: 0,
-        mano: [20, 80, 0],
-        pelo: -3 * salto(tramo(t, 1.06, 1.5)) - 3 * salto(tramo(t, 1.56, 2.0)),
-        rubor: gusto,
-        resp: 0.012 * Math.sin(t * 1.8),
-      })
-      for (const x of ['um', 'uante', 'umanga']) ve(q(x), 0)
-    },
-  })
 }
 
 // ── Segunda visita ──────────────────────────────────────────────────────────────────────────

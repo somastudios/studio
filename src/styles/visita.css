@@ -2178,3 +2178,28 @@ textarea.v-in {
 .tv.cine .rim {
   stroke-width: 5;
 }
+
+/* «Antes de cerrar»: la libreta en detalle. «Gracias»: las ondas del punto al volver al aro. */
+.vr-tv {
+  width: calc(var(--u) * 26);
+}
+
+.s9-onda {
+  position: absolute;
+  inset: 5%;
+  border: calc(var(--u) * 0.3) solid currentColor;
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (max-aspect-ratio: 1/1) {
+  .vr-tv {
+    width: calc(var(--u) * 22);
+  }
+}
+
+/* El brazo de la libreta entra desde fuera del cuadro: lo que sale se corta. */
+.vr-tv svg {
+  overflow: hidden;
+}

@@ -66,7 +66,13 @@ const ESCENAS = {
       }
     },
     sel: '.vr-tv',
-    cuadros: (api) => [0.3, 0.75, 1.45, 2.0, 2.6, 3.0, 3.5, 4.1, 4.8, 5.6, 6.2].map((u) => [`${u}`, () => api.fija(640 + u)]),
+    cuadros: (api) => {
+      const c = [['reposo', () => api.fija(20.3)], ['golpetea', () => api.fija(20.6)]]
+      for (const [i, v] of [[0, true], [1, false]]) {
+        for (const u of [0.15, 0.5, 0.75, 0.9, 1.1, 1.25, 1.5]) c.push([`${i} ${v ? 'sí' : 'no'} · ${u}`, async () => (await api.vivo('pon', i, v, 100 * (i + 1)), api.fija(100 * (i + 1) + u))])
+      }
+      return c
+    },
   },
   agenda: {
     flechas: 6,
