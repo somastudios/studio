@@ -1936,8 +1936,8 @@
 .s1-tv {
   position: absolute;
   right: 0;
-  top: 19%;
-  width: 50%;
+  top: 16%;
+  width: 47%;
   pointer-events: none;
 }
 
@@ -2031,4 +2031,9 @@
     grid-column: 1 / -1;
     min-height: 0;
   }
+}
+
+/* El plano de detalle de «Primero el problema» agranda el mundo: lo que sale del cuadro se corta. */
+.s1-tv svg {
+  overflow: hidden;
 }

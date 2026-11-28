@@ -13,7 +13,7 @@ const ESCENAS = {
   premisa: {
     flechas: 5,
     sel: '.s1-tv',
-    cuadros: (api) => [0.3, 0.95, 1.3, 1.6, 2.0, 2.5, 3.3, 3.8, 4.3, 4.6, 5.4, 6.2, 7.0, 7.4, 7.9].map((u) => [`${u}`, async () => (await api.vivo('desde', 300), api.fija(300 + u))]),
+    cuadros: (api) => [0.5, 0.9, 1.2, 1.5, 2.0, 2.6, 3.0, 3.3, 3.6, 4.1, 4.6, 5.1, 5.6, 5.9, 6.3, 6.6, 7.0, 7.4, 7.9, 8.4, 8.8, 9.2, 9.6, 10.2, 10.8, 11.4].map((u) => [`${u}`, async () => (await api.vivo('desde', 300), api.fija(300 + u))]),
   },
   metodo: {
     flechas: 6,

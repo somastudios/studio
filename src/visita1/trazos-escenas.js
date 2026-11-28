@@ -356,102 +356,212 @@ const GANCHO = abierta([...Array.from({ length: 22 }, (_, i) => enAro(RQ, 200 + 
 const LENTE = Array.from({ length: NQ }, (_, i) => enAro(RQ, 200 + (360 * i) / (NQ - 1)))
 const MANGO = 122 // hacia dónde sale el mango de la lupa, en grados
 
+const lente = (R) => Array.from({ length: NQ }, (_, i) => enAro(R, 200 + (360 * i) / (NQ - 1)))
+// el palo del «!»: el gancho, enderezado
+const PALO = abierta([[0, -34], [0, 26]], NQ)
+const ZOOM = 3.2 // cuánto se acerca el plano de detalle
+const RL = 90 // el radio de la lente cuando llena el cuadro
+const GRIETA = [286, 100]
+const CHARCO = [286, 176]
+
+/** El local: piso, pared, toldo, letrero, puerta, ventana y, a la derecha, la gotera. */
+const local = (k) =>
+  T(P.linea(132, 177, 316, 177, 6), { cls: 'ln fino', amp: 0.5 }) +
+  T(P.rect(170, 84, 132, 93, 2), { cls: 'blq', amp: 0.6 }) +
+  T(P.rect(164, 78, 132, 99, 2), { cls: 'ln tapa', amp: 0.6 }) +
+  T(P.poli([[156, 80], [304, 80], [294, 56], [166, 56]], true), { cls: 'ln tapa', amp: 0.5 }) +
+  T([0, 1, 2, 3, 4].map((i) => P.arco(170.8 + i * 29.6, 80, 14.8, 0, 180, 7)), { cls: 'ln tapa', amp: 0.4 }) +
+  T([1, 2, 3, 4].map((i) => P.linea(166 + i * 25.6 + 2, 57, 156 + i * 29.6, 80, 3)), { cls: 'ln fino tenue', amp: 0.3 }) +
+  G(k + 'letrero', T([P.linea(214, 30, 214, 22, 2), P.linea(246, 30, 246, 22, 2)], { cls: 'ln fino', amp: 0.2 }) + T(P.rect(200, 30, 60, 18, 3), { cls: 'ln tapa', amp: 0.4 }) + T(P.suave([[210, 40], [218, 36], [226, 42], [234, 37], [242, 41], [250, 38]]), { cls: 'ln fino', amp: 0.3 })) +
+  T(P.rect(180, 118, 30, 59, 2), { cls: 'ln', amp: 0.5 }) +
+  '<circle class="lleno" cx="204" cy="150" r="2.2"/>' +
+  T(P.rect(224, 114, 52, 38, 2), { cls: 'ln', amp: 0.5 }) +
+  T([P.linea(250, 114, 250, 152, 3), P.linea(224, 133, 276, 133, 3)], { cls: 'ln fino tenue', amp: 0.3 }) +
+  T([P.linea(231, 121, 238, 128, 2), P.linea(257, 139, 266, 148, 2)], { cls: 'ln fino tenue', amp: 0.2, n: k + 'brillo' }) +
+  G(
+    k + 'fuga',
+    T(P.poli([[288, 84], [284, 90], [289, 95], [285, 100]]), { cls: 'ln fino', amp: 0.4 }) +
+      G(k + 'gota', T(P.suave([[0, -5], [2.6, -0.4], [2.2, 2.6], [0, 3.8], [-2.2, 2.6], [-2.6, -0.4]], true), { cls: 'ln fino tapa', amp: 0.15 })) +
+      T(D(elipseAb(CHARCO[0], CHARCO[1], 7, 1.8), true), { cls: 'ln fino', amp: 0.2, n: k + 'onda0' }) +
+      T(D(elipseAb(CHARCO[0], CHARCO[1], 7, 1.8), true), { cls: 'ln fino', amp: 0.2, n: k + 'onda1' }),
+  )
+function elipseAb(cx, cy, rx, ry, n = 12) {
+  return Array.from({ length: n }, (_, i) => [cx + rx * Math.cos((i / n) * TAU), cy + ry * Math.sin((i / n) * TAU)])
+}
+/** La gota: crece en la grieta, se suelta, cae y hace ondas en el charco. `u` va de 0 a 1.4. */
+function gotea(q, k, u) {
+  const crece = rebota(tramo(u, 0, 0.45))
+  const cae = acelera(tramo(u, 0.5, 0.92))
+  const y = mezcla(GRIETA[1] + 5, CHARCO[1] - 3, cae)
+  pon(q(k + 'gota'), { x: GRIETA[0] - 0.5, y, sx: crece * (1 - 0.25 * cae), sy: crece * (1 + 0.45 * cae), o: u > 0.92 || u < 0 ? 0 : 1 })
+  ;[0, 1].forEach((i) => {
+    const o = tramo(u, 0.92 + i * 0.12, 1.4)
+    forma(q(k + 'onda' + i), elipseAb(CHARCO[0], CHARCO[1], 3 + 14 * frena(o), 0.8 + 3 * frena(o)))
+    ve(q(k + 'onda' + i), o > 0 && o < 1 ? 1 - o : 0)
+  })
+  return y
+}
+
 /**
- * «Primero el problema». Un signo «?» frente a un local: su punto es el punto azul. El gancho
- * se cierra y queda una lupa, con el punto adentro mirando. La lupa revisa el letrero, la
- * ventana, y se detiene donde gotea: ahí estaba el problema. Regresa y vuelve a ser pregunta.
+ * «Primero el problema», en tres planos (10.9 s, en bucle).
+ *   1 · La pregunta   General. Un «?» frente al local; su punto es el punto azul. El punto se
+ *                     mete al gancho, el gancho se cierra y queda una lupa. Se acerca al local
+ *                     y la lente crece hasta llenar el cuadro: entramos a lo que ve.
+ *   2 · Busca         Detalle, a través de la lente. Sube al letrero, baja a la ventana, y de
+ *                     pronto la grieta: se frena en seco. Una gota crece, se suelta, la sigue
+ *                     hasta el charco y salpica.
+ *   3 · Aquí está     General. Salimos de la lente. La lupa se hace a un lado, el punto brinca
+ *                     a la grieta y la marca con un aro. El local se sacude. La lupa se abre,
+ *                     se endereza y queda un «!»: la pregunta ya tiene respuesta.
  * Devuelve { desde(t) }. El <svg> lleva viewBox="0 0 320 200".
  */
 export function premisaVivo(svg) {
-  const SALE = [70, 76] // dónde está el «?»
-  const PARADAS = [SALE, [196, 66], [238, 128], [276, 136]]
-  const GOTERA = [286, 112]
-  let t0 = 0
-  const va = (a, b, p) => [mezcla(a[0], b[0], p), mezcla(a[1], b[1], p)]
+  const SALE = [70, 80]
+  const FRENTE = [238, 112]
+  const A = [232, 48] // el letrero
+  const B = [250, 133] // la ventana
+  const Cg = [284, 98] // la grieta
+  const Dg = [286, 158] // el charco
+  const ASIDE = [124, 92] // a dónde se hace la lupa en el plano 3: al claro, para que el «!» se lea
+  const fino = (el, z) => el.style.setProperty('--z', z.toFixed(3))
+  const mascara = (n) => `<circle class="mascara" data-n="${n}" cx="160" cy="100" r="${RL + 100}"/>`
+  const aro = (n) => G(n, T(P.linea(...enAro(RQ, MANGO), ...enAro(RQ + 27, MANGO), 4), { cls: 'ln tz', amp: 0.4, n: n + 'mango' }) + T(D(GANCHO, false), { cls: 'ln', amp: 0.8, n: n + 'aro' }))
 
-  monta(svg, {
-    dur: 8.2,
-    cartel: 5.2,
+  const corto = {
+    cartel: 9.2,
+    abre: [70, 80],
+    cierra: [285, 98],
     t0: 0,
-    svg: () =>
-      // el local: piso, pared, toldo, letrero, puerta y ventana
-      T(P.linea(132, 177, 316, 177, 6), { cls: 'ln fino', amp: 0.5 }) +
-      T(P.rect(170, 84, 132, 93, 2), { cls: 'blq', amp: 0.6 }) +
-      T(P.rect(164, 78, 132, 99, 2), { cls: 'ln tapa', amp: 0.6 }) +
-      T(P.poli([[156, 80], [304, 80], [294, 56], [166, 56]], true), { cls: 'ln tapa', amp: 0.5 }) +
-      T([0, 1, 2, 3, 4].map((i) => P.arco(170.8 + i * 29.6, 80, 14.8, 0, 180, 7)), { cls: 'ln tapa', amp: 0.4 }) +
-      T([1, 2, 3, 4].map((i) => P.linea(166 + i * 25.6 + 2, 57, 156 + i * 29.6, 80, 3)), { cls: 'ln fino tenue', amp: 0.3 }) +
-      T(P.rect(200, 30, 60, 18, 3), { cls: 'ln tapa', amp: 0.4 }) +
-      T(P.suave([[210, 40], [218, 36], [226, 42], [234, 37], [242, 41], [250, 38]]), { cls: 'ln fino', amp: 0.3 }) +
-      T(P.rect(180, 118, 30, 59, 2), { cls: 'ln', amp: 0.5 }) +
-      '<circle class="lleno" cx="204" cy="150" r="2.2"/>' +
-      T(P.rect(224, 114, 52, 38, 2), { cls: 'ln', amp: 0.5 }) +
-      T([P.linea(250, 114, 250, 152, 3), P.linea(224, 133, 276, 133, 3)], { cls: 'ln fino tenue', amp: 0.3 }) +
-      // la gotera: la grieta, las gotas y el charco
-      G(
-        'fuga',
-        T(P.poli([[288, 86], [284, 93], [289, 99], [285, 107]]), { cls: 'ln fino', amp: 0.4 }) +
-          [0, 1, 2].map((i) => G('g' + i, T(P.suave([[0, -5], [2.6, -0.4], [2.2, 2.6], [0, 3.8], [-2.2, 2.6], [-2.6, -0.4]], true), { cls: 'ln fino tapa', amp: 0.15 }))).join('') +
-          T(P.elipse(286, 177.5, 9, 2.2, 10), { cls: 'ln fino tapa', amp: 0.2, n: 'charco' }),
-      ) +
-      T([P.linea(-8, -40, -12, -52, 3), P.linea(4, -42, 6, -55, 3), P.linea(16, -36, 24, -46, 3)], { cls: 'ln fino tz', amp: 0.3, n: 'aviso' }) +
-      // el «?» que se vuelve lupa
-      G('lupa', T(P.linea(...enAro(RQ, MANGO), ...enAro(RQ + 27, MANGO), 4), { cls: 'ln tz', amp: 0.4, n: 'mango' }) + T(D(GANCHO, false), { cls: 'ln', amp: 0.8, n: 'aro' })) +
-      punto(6.5),
-    paso(q, tt) {
-      const t = (((tt - t0) % 8.2) + 8.2) % 8.2
-      // 0 duda · 0.9 toma vuelo · 1.1 se cierra en lupa · 1.9 letrero · 3.0 ventana · 3.95 gotera
-      // 4.5 la encuentra · 6.7 regresa y vuelve a ser pregunta
-      const lupa = elastico(tramo(t, 1.1, 1.9)) * (1 - suave(tramo(t, 6.9, 7.7)))
-      const vuelo = salto(tramo(t, 0.86, 1.14))
-      let c = SALE
-      let hacia = [1, 0]
-      const tramos = [[1.9, 2.7, 0, 1], [3.0, 3.7, 1, 2], [3.95, 4.45, 2, 3]]
-      for (const [a, b, i, j] of tramos)
-        if (t >= a) {
-          c = va(PARADAS[i], PARADAS[j], suave(tramo(t, a, b)))
-          hacia = [PARADAS[j][0] - PARADAS[i][0], PARADAS[j][1] - PARADAS[i][1]]
-        }
-      if (t >= 6.7) c = va(PARADAS[3], SALE, suave(tramo(t, 6.7, 7.7)))
-      const halla = golpe(t, 4.47, 0.4)
-      const visto = suave(tramo(t, 4.45, 4.7)) * (1 - suave(tramo(t, 6.7, 7.2)))
-      const duda = 1 - suave(tramo(t, 0.86, 1.2)) + suave(tramo(t, 7.7, 8.1))
-      const mece = 2.2 * Math.sin(t * 2.3) * (0.4 + 0.6 * visto)
-      const x = c[0]
-      const y = c[1] + mece + 3 * vuelo
-      forma(q('aro'), mezclaPts(GANCHO, LENTE, Math.max(0, lupa)))
-      agita(q('aro'), 1 + 1.4 * salto(tramo(t, 1.1, 1.9)) + 2 * halla)
-      traza(q('mango'), suave(tramo(t, 1.45, 1.85)) * (1 - suave(tramo(t, 6.8, 7.2))))
-      pon(q('lupa'), { x, y, r: 7 * duda * Math.sin(t * 2.6 + 0.4) + 5 * halla * Math.sin((t - 4.47) * 30), sx: 1 + 0.07 * vuelo + 0.1 * halla, sy: 1 - 0.07 * vuelo + 0.1 * halla })
-      // el punto: abajo es el punto del «?»; adentro de la lente, mira hacia donde va
-      const m = Math.hypot(hacia[0], hacia[1]) || 1
-      const viaja = t > 1.9 && t < 4.45 ? 1 : 0
-      const mira = visto ? [5, 2 + 4 * Math.sin(t * 5.6)] : viaja ? [(8 * hacia[0]) / m, (8 * hacia[1]) / m] : [6 * Math.sin(t * 4.2), 0]
-      const adentro = suave(tramo(t, 1.15, 1.65)) * (1 - suave(tramo(t, 7.0, 7.6)))
-      const b = brinco(tramo(t, 1.15, 1.65), 20)
-      const b0 = brinco(tramo(t, 0.25, 0.7), 9)
-      const cae = brinco(tramo(t, 7.0, 7.6), 12)
-      pon(q('pt'), {
-        x: x + mira[0] * adentro,
-        y: y + mezcla(59, mira[1], adentro) + (t < 1.1 ? b0.dy : 0) + b.dy * (t < 1.7 ? 1 : 0) + (t > 7 ? cae.dy : 0),
-        sx: (t < 1.1 ? b0.sx : b.sx) * (1 + 0.25 * halla),
-        sy: (t < 1.1 ? b0.sy : b.sy) * (1 + 0.25 * halla),
-      })
-      // la gotera apenas se nota hasta que la lupa llega
-      ve(q('fuga'), mezcla(0.22, 1, visto))
-      ;[0, 1, 2].forEach((i) => {
-        const f = (t * 0.85 + i / 3) % 1
-        pon(q('g' + i), { x: GOTERA[0], y: GOTERA[1] + 62 * f * f, sx: Math.min(1, f * 6), o: f > 0.9 ? (1 - f) * 10 : 1 })
-      })
-      pon(q('charco'), { ox: 286, oy: 177.5, sx: 0.7 + 0.3 * Math.sin(t * 5.3) ** 2 })
-      pon(q('aviso'), { x, y })
-      traza(q('aviso'), suave(tramo(t, 4.5, 4.72)) * (1 - suave(tramo(t, 5.2, 5.6))))
-    },
-  })
-
+    planos: [
+      {
+        nombre: 'La pregunta',
+        dur: 3.5,
+        svg: () => G('p1mundo', local('p1')) + mascara('p1mas') + aro('p1') + punto(6.5, 'p1pt'),
+        paso(q, t) {
+          // 0.3 brinca el punto · 0.75 toma vuelo · 0.95 se cierra · 1.6 se acerca · 2.7 entra
+          const lupa = elastico(tramo(t, 0.95, 1.6))
+          const vuelo = salto(tramo(t, 0.72, 0.98))
+          const va = rebota(tramo(t, 1.6, 2.5))
+          const atras = salto(tramo(t, 2.45, 2.75))
+          const entra = Math.pow(suave(tramo(t, 2.7, 3.5)), 1.4)
+          const duda = 1 - suave(tramo(t, 0.72, 1.1))
+          const c = [mezcla(mezcla(SALE[0], FRENTE[0], va), 160, entra), mezcla(mezcla(SALE[1], FRENTE[1], va), 100, entra) + 2 * Math.sin(t * 2.3) * (1 - entra) + 3 * vuelo]
+          const R = mezcla(RQ * (1 - 0.08 * atras), RL, entra)
+          forma(q('p1aro'), entra > 0 ? lente(R) : mezclaPts(GANCHO, LENTE, Math.max(0, lupa)))
+          agita(q('p1aro'), 1 + 1.4 * salto(tramo(t, 0.95, 1.6)))
+          q('p1aro').style.strokeWidth = String(mezcla(3.1, 5, entra))
+          traza(q('p1mango'), suave(tramo(t, 1.2, 1.55)) * (1 - suave(tramo(t, 2.7, 3.0))))
+          pon(q('p1'), { x: c[0], y: c[1], r: 7 * duda * Math.sin(t * 2.6 + 0.4) - 6 * salto(tramo(t, 1.6, 2.1)), sx: 1 + 0.07 * vuelo, sy: 1 - 0.07 * vuelo })
+          // el punto: abajo es el punto del «?»; brinca, y luego se mete a la lente y mira al frente
+          const adentro = suave(tramo(t, 1.0, 1.45))
+          const b0 = brinco(tramo(t, 0.28, 0.7), 10)
+          const b = brinco(tramo(t, 1.0, 1.45), 20)
+          const s = mezcla(1, 9 / 6.5, entra)
+          pon(q('p1pt'), { x: c[0] + 8 * adentro * (1 - entra) * (t > 1.6 ? 1 : 0), y: c[1] + mezcla(59, 0, adentro) + (t < 0.9 ? b0.dy : b.dy), sx: s * (t < 0.9 ? b0.sx : b.sx), sy: s * (t < 0.9 ? b0.sy : b.sy) })
+          // el local: el letrero se mece cuando la lupa llega; la gotera apenas se nota
+          pon(q('p1letrero'), { ox: 230, oy: 22, r: 5 * golpe(t, 2.3, 1.1) * Math.sin((t - 2.3) * 9) })
+          ve(q('p1fuga'), 0.22)
+          gotea(q, 'p1', (t % 1.7) - 0.1)
+          // la cámara se mete: el mundo crece y su línea se adelgaza lo mismo, para que no engorde
+          const z = mezcla(1, ZOOM, entra)
+          camara(q('p1mundo'), mezcla(160, FRENTE[0] + 12, entra), mezcla(100, FRENTE[1] - 7, entra), z)
+          fino(q('p1mundo'), z)
+          ve(q('p1mas'), entra)
+        },
+      },
+      {
+        nombre: 'Busca',
+        dur: 4.0,
+        svg: () =>
+          G('p2mundo', local('p2')) +
+          mascara('p2mas') +
+          G('p2rim', T(P.circ(160, 100, RL, 36), { cls: 'ln rim', amp: 0.9 }) + T(P.arco(160, 100, RL - 13, 196, 236, 8), { cls: 'ln fino tenue', amp: 0.4 })) +
+          corona('p2ray', 9, 16, 30) +
+          punto(9, 'p2pt'),
+        paso(q, t) {
+          // 0.1 sube al letrero · 1.0 baja a la ventana · 1.95 se va a la grieta · 2.45 la encuentra
+          // 2.55 crece la gota · 3.05 se suelta y la sigue · 3.5 salpica
+          const p1 = suave(tramo(t, 0.1, 0.7))
+          const p2 = rebota(tramo(t, 1.0, 1.7))
+          const p3 = rebota(tramo(t, 1.95, 2.45))
+          const sigue = suave(tramo(t, 3.07, 3.5))
+          let c = [mezcla(FRENTE[0] + 12, A[0], p1), mezcla(FRENTE[1] - 7, A[1], p1)]
+          c = [mezcla(c[0], B[0], p2), mezcla(c[1], B[1], p2)]
+          c = [mezcla(c[0], Cg[0], p3), mezcla(c[1], Cg[1], p3)]
+          c = [mezcla(c[0], Dg[0], sigue), mezcla(c[1], Dg[1], sigue)]
+          const halla = golpe(t, 2.45, 0.45)
+          const salpica = golpe(t, 3.5, 0.4)
+          camara(q('p2mundo'), c[0] + sacude(t, 2.45, 0.9) + sacude(t, 3.5, 0.5), c[1] + 0.5 * Math.sin(t * 2.2), ZOOM)
+          fino(q('p2mundo'), ZOOM)
+          // lo que se va encontrando
+          pon(q('p2letrero'), { ox: 230, oy: 22, r: 4 * Math.sin(t * 3.1) * (1 - p2) })
+          ve(q('p2brillo'), 0.5 + 0.5 * Math.sin(t * 5))
+          ve(q('p2fuga'), mezcla(0.25, 1, suave(tramo(t, 2.4, 2.6))))
+          gotea(q, 'p2', t - 2.55)
+          // la lente: se aplasta al frenar y se sacude al encontrar
+          pon(q('p2rim'), { ox: 160, oy: 100, r: 2.5 * halla * Math.sin((t - 2.45) * 28), sx: 1 + 0.03 * halla - 0.02 * salpica, sy: 1 - 0.03 * halla + 0.02 * salpica })
+          // el punto es la pupila: mira hacia donde va, y se agranda cuando la ve
+          const mira = t < 0.7 ? [2, -9] : t < 1.0 ? [8 * Math.sin(t * 9), -2] : t < 1.7 ? [5, 9] : t < 1.95 ? [7 * Math.sin(t * 10), 2] : t < 2.45 ? [10, -6] : [0, 6 * sigue]
+          const g = 1 + 0.45 * halla + 0.25 * salpica
+          pon(q('p2pt'), { x: 160 + mira[0] * (1 - halla), y: 100 + mira[1] * (1 - halla), sx: g, sy: g })
+          pon(q('p2ray'), { x: 160, y: 100, sx: mezcla(0.7, 1.5, frena(tramo(t, 2.45, 2.9))), o: golpe(t, 2.45, 0.5) })
+        },
+      },
+      {
+        nombre: 'Aquí está',
+        dur: 4.2,
+        svg: () =>
+          G('p3mundo', local('p3') + G('p3onda', T(P.circ(0, 0, 13, 12), { cls: 'ln fino', amp: 0.3 })) + G('p3marca', T(P.circ(0, 0, 13, 14), { cls: 'ln ln-azul tz', amp: 0.4, n: 'p3mk' }))) +
+          mascara('p3mas') +
+          aro('p3') +
+          '<circle class="lleno" data-n="p3punto" cx="0" cy="0" r="4.6"/>' +
+          corona('p3ray', 8, 18, 30) +
+          punto(6.5, 'p3pt'),
+        paso(q, t) {
+          // 0 salimos de la lente · 0.85 se hace a un lado · 1.25 brinca el punto · 1.7 marca
+          // 1.9 la lupa se abre y se endereza · 2.5 ya es «!»
+          const sale = suave(tramo(t, 0, 0.85))
+          const z = mezcla(ZOOM, 1, Math.pow(sale, 0.8))
+          camara(q('p3mundo'), mezcla(Dg[0], 160, sale) + sacude(t, 1.7, 2.6), mezcla(Dg[1], 100, sale) + sacude(t, 1.72, 1.6), z)
+          fino(q('p3mundo'), z)
+          ve(q('p3mas'), 1 - sale)
+          ve(q('p3fuga'), 1)
+          gotea(q, 'p3', ((t + 0.6) % 1.6) - 0.1)
+          // la lupa: de llenar el cuadro a su tamaño, sobre la grieta; luego se hace a un lado
+          const aside = rebota(tramo(t, 0.85, 1.35))
+          const c = [mezcla(mezcla(160, Cg[0] - 6, sale), ASIDE[0], aside), mezcla(mezcla(100, Cg[1] + 16, sale), ASIDE[1], aside)]
+          const abre = suave(tramo(t, 1.9, 2.25))
+          const recta = elastico(tramo(t, 2.2, 2.9))
+          const R = mezcla(RL, RQ, Math.pow(sale, 0.7))
+          const pts = sale < 1 ? lente(R) : recta > 0 ? mezclaPts(GANCHO, PALO, recta) : mezclaPts(LENTE, GANCHO, abre)
+          forma(q('p3aro'), pts)
+          q('p3aro').style.strokeWidth = String(mezcla(5, 3.1, sale))
+          agita(q('p3aro'), 1 + 1.5 * salto(tramo(t, 1.9, 2.9)))
+          traza(q('p3mango'), suave(tramo(t, 0.5, 0.85)) * (1 - suave(tramo(t, 1.8, 2.05))))
+          const gusto = brinco(tramo(t, 3.0, 3.45), 9)
+          pon(q('p3'), { x: c[0], y: c[1] + gusto.dy, r: -8 * salto(tramo(t, 0.85, 1.2)) + 4 * golpe(t, 2.9, 0.5) * Math.sin((t - 2.9) * 22), sx: gusto.sx, sy: gusto.sy })
+          // el punto negro del «!» nace cuando el palo ya está derecho
+          pon(q('p3punto'), { x: c[0], y: c[1] + 40 + gusto.dy, sx: rebota(tramo(t, 2.7, 3.0)) })
+          // el punto azul sale de la lente, brinca a la grieta y la marca
+          const brinca = tramo(t, 1.25, 1.7)
+          const b = brinco(brinca, 46)
+          const pega = golpe(t, 1.7, 0.25)
+          const s = mezcla(9 / 6.5, 1, sale)
+          pon(q('p3pt'), { x: mezcla(c[0], GRIETA[0] - 1, suave(brinca)), y: mezcla(c[1], GRIETA[1] - 2, suave(brinca)) + b.dy + 2 * pega, sx: s * b.sx * (1 + 0.35 * pega), sy: s * b.sy * (1 - 0.3 * pega) })
+          pon(q('p3marca'), { x: GRIETA[0] - 1, y: GRIETA[1] - 2 })
+          traza(q('p3mk'), suave(tramo(t, 1.72, 2.1)))
+          const o = ((t - 1.75) % 1.1) / 1.1
+          pon(q('p3onda'), { x: GRIETA[0] - 1, y: GRIETA[1] - 2, sx: 1 + 1.3 * frena(o), o: t > 1.75 ? 0.7 * (1 - o) : 0 })
+          pon(q('p3ray'), { x: GRIETA[0] - 1, y: GRIETA[1] - 2, sx: mezcla(0.6, 1.2, frena(tramo(t, 1.7, 2.15))), o: golpe(t, 1.7, 0.5) })
+          pon(q('p3letrero'), { ox: 230, oy: 22, r: 6 * golpe(t, 1.7, 1.0) * Math.sin((t - 1.7) * 11) })
+        },
+      },
+    ],
+  }
+  monta(svg, corto)
   return {
     desde(t) {
-      t0 = t ?? ahora()
+      corto.t0 = t ?? ahora()
     },
   }
 }

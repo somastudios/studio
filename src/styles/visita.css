@@ -2159,3 +2159,22 @@ textarea.v-in {
     margin: calc(var(--u) * 1) 0 0;
   }
 }
+
+/* Planos de detalle: el mundo se agranda con la cámara y su línea se adelgaza lo mismo. */
+.tv.cine [style*='--z'] .ln {
+  stroke-width: calc(3.1px / var(--z, 1));
+}
+
+.tv.cine [style*='--z'] .fino {
+  stroke-width: calc(2.2px / var(--z, 1));
+}
+
+.tv .mascara {
+  fill: none;
+  stroke: var(--lamina);
+  stroke-width: 200;
+}
+
+.tv.cine .rim {
+  stroke-width: 5;
+}
