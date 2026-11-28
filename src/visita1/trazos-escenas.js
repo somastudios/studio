@@ -1,5 +1,5 @@
 import Trazo from '../core/trazo-vivo.js'
-import { actua, persona, muneca } from './reparto-trazo.js'
+import { actua, persona, muneca, mezclaPose } from './reparto-trazo.js'
 import { DUENO, parpadea } from './trazos.js'
 
 // Los dibujos de trazo vivo de las demás escenas de la visita. Cada función recibe un <svg>
@@ -769,4 +769,184 @@ export function graciasVivo(svg) {
       for (const x of ['um', 'uante', 'umanga']) ve(q(x), 0)
     },
   })
+}
+
+// ── Segunda visita ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * «Cómo se paga». Vuelve la etiqueta del primer día, la que el punto tachó. Ahora el punto sí
+ * escribe en ella: dibuja el signo de pesos, sube al ojal y la etiqueta se mece contenta.
+ * viewBox="92 -18 136 226".
+ */
+export function precioVivo(svg) {
+  const ESE = abierta([[180, 104], [160, 96], [141, 107], [158, 125], [180, 139], [160, 159], [139, 149]], 30)
+  const HOYO = [160, 66]
+  monta(svg, {
+    dur: 7,
+    cartel: 4,
+    svg: () =>
+      G(
+        'tag',
+        T(P.linea(160, -16, 160, 40, 4), { cls: 'ln fino', amp: 0.4 }) +
+          T(P.poli([[122, 86], [166, 46], [210, 86], [210, 202], [122, 202]], true), { cls: 'blq', amp: 0.5 }) +
+          T(P.poli([[116, 80], [160, 40], [204, 80], [204, 196], [116, 196]], true), { cls: 'ln tapa', amp: 0.6 }) +
+          T(P.circ(HOYO[0], HOYO[1], 6.5, 10), { cls: 'ln fino', amp: 0.25 }) +
+          T(P.suave(ESE), { cls: 'ln tz', amp: 0.5, n: 's1' }) +
+          T(P.linea(160, 86, 160, 170, 4), { cls: 'ln tz', amp: 0.4, n: 's2' }) +
+          T(P.linea(134, 182, 186, 182, 4), { cls: 'ln fino tz', amp: 0.4, n: 's3' }) +
+          punto(7),
+      ),
+    paso(q, t) {
+      const fin = 1 - suave(tramo(t, 6.2, 6.8))
+      traza(q('s1'), suave(tramo(t, 1.0, 1.9)) * fin)
+      traza(q('s2'), suave(tramo(t, 2.05, 2.4)) * fin)
+      traza(q('s3'), suave(tramo(t, 3.2, 3.6)) * fin)
+      const gusto = golpe(t, 3.0, 0.9)
+      pon(q('tag'), { ox: 160, oy: -16, r: 4 * Math.sin(t * 1.9) + 5 * gusto * Math.sin((t - 3) * 14) })
+      let pos
+      if (t < 0.5) pos = quieto(...HOYO)
+      else if (t < 1.0) pos = arco(HOYO, ESE[0], tramo(t, 0.5, 1.0), 18)
+      else if (t < 1.9) pos = quieto(...sobre(ESE, suave(tramo(t, 1.0, 1.9))))
+      else if (t < 2.05) pos = arco(ESE[ESE.length - 1], [160, 86], tramo(t, 1.9, 2.05), 6)
+      else if (t < 2.4) pos = quieto(160, mezcla(86, 170, suave(tramo(t, 2.05, 2.4))))
+      else if (t < 3.0) pos = arco([160, 170], HOYO, tramo(t, 2.4, 3.0), 30)
+      else pos = { x: HOYO[0], y: HOYO[1], sx: 1 + 0.3 * golpe(t, 3.0, 0.25), sy: 1 - 0.25 * golpe(t, 3.0, 0.25) }
+      pon(q('pt'), pos)
+    },
+  })
+}
+
+/**
+ * «Formas de pago»: tres iconos que hierven, uno por renglón. `svgs` son los tres <svg
+ * viewBox="0 0 64 48">, en orden: tarjeta, transferencia, efectivo.
+ */
+export function pagoVivo(svgs) {
+  const OBRAS = [
+    {
+      // la tarjeta: el punto recorre la banda
+      svg: () => T(P.rect(8, 9, 48, 30, 5), { cls: 'ln tapa', amp: 0.4 }) + T(P.linea(8, 19, 56, 19, 4), { cls: 'ln', amp: 0.3 }) + T(P.linea(14, 31, 30, 31, 3), { cls: 'ln fino tenue', amp: 0.2 }) + punto(3.4),
+      paso: (q, t) => pon(q('pt'), { x: mezcla(16, 48, suave(tramo(t % 3, 0.3, 1.5))) - 32 * suave(tramo(t % 3, 2.2, 2.9)), y: 31 }),
+    },
+    {
+      // la transferencia: el punto va de una flecha a la otra
+      svg: () =>
+        T([P.linea(10, 17, 50, 17, 4), P.poli([[43, 10], [51, 17], [43, 24]])], { cls: 'ln', amp: 0.35 }) + T([P.linea(54, 33, 14, 33, 4), P.poli([[21, 26], [13, 33], [21, 40]])], { cls: 'ln', amp: 0.35 }) + punto(3.4),
+      paso(q, t) {
+        const u = t % 3.2
+        const ida = suave(tramo(u, 0.2, 1.2))
+        const vuelta = suave(tramo(u, 1.8, 2.8))
+        pon(q('pt'), u < 1.5 ? { x: mezcla(12, 40, ida), y: 17, o: 1 - tramo(u, 1.3, 1.5) } : { x: mezcla(52, 24, vuelta), y: 33, o: tramo(u, 1.6, 1.8) * (1 - tramo(u, 3.0, 3.2)) })
+      },
+    },
+    {
+      // el efectivo: un billete, y el punto es la moneda que brinca
+      svg: () => T(P.rect(8, 12, 48, 26, 3), { cls: 'ln tapa', amp: 0.4 }) + T(P.circ(32, 25, 6.5, 9), { cls: 'ln fino', amp: 0.2 }) + T([P.linea(14, 18, 18, 18, 2), P.linea(46, 32, 50, 32, 2)], { cls: 'ln fino tenue', amp: 0.2 }) + punto(3.4),
+      paso(q, t) {
+        const b = brinco(tramo(t % 2.6, 0.2, 0.8), 10)
+        pon(q('pt'), { x: 32, y: 25 + b.dy, sx: b.sx, sy: b.sy })
+      },
+    },
+  ]
+  svgs.forEach((svg, i) => svg && OBRAS[i] && monta(svg, { dur: Infinity, cartel: 1, ...OBRAS[i] }))
+}
+
+/**
+ * «Su decisión». El dueño piensa, con la mano en la barbilla. Si dice que sí, baja la mano,
+ * sonríe y asiente, y a su lado se dibuja una palomita. Si lo va a pensar, aparece el reloj en
+ * pausa del primer día y él asiente tranquilo: usted marca el ritmo.
+ * Devuelve { elige(cual, t) } con cual = 'si' | 'pensar' | ''. viewBox="24 22 262 220".
+ */
+export function decisionVivo(svg, inicial = '') {
+  const C = [236, 76] // el centro de lo que se dibuja a su lado
+  let est = inicial
+  let te = -9
+  let pose = null
+  let poseSale = null
+
+  const posar = (t, u) => {
+    const idea = Math.sin(t * 0.9)
+    if (!est)
+      return {
+        gira: -3 + 1.5 * idea,
+        dy: 0,
+        mira: [2.4, -2.2 + 0.6 * idea],
+        abre: parpadea(t % 4.4, 1.2, 3.6),
+        feliz: 0,
+        cejas: [-2.4, -6, 0.4, 2],
+        boca: [0.7, 0.1, 0],
+        brazo: 0,
+        mano: [0, 0, 0],
+        pelo: 1.5 * idea,
+        rubor: 0,
+        resp: 0.012 * Math.sin(t * 1.8),
+      }
+    const si = est === 'si'
+    const asiente = salto(tramo(u, 0.35, 0.8)) + (si ? salto(tramo(u, 0.85, 1.3)) : 0)
+    const gusto = si ? suave(tramo(u, 0.3, 0.6)) * (1 - suave(tramo(u, 2.2, 2.6))) : 0
+    return {
+      gira: si ? 2.5 : -1.5,
+      dy: 2.8 * asiente,
+      mira: si ? [1.5, 0] : [3, -1.4],
+      abre: parpadea(u, 0.15, 3.2),
+      feliz: gusto,
+      cejas: [-2 * (si ? 1 : 0.4), 0, -2 * (si ? 1 : 0.4), 0],
+      boca: [0, si ? 1.2 : 0.75, 0.25 * gusto],
+      brazo: 0,
+      mano: [20, 80, 0],
+      pelo: -3 * salto(tramo(u, 0.4, 0.85)),
+      rubor: gusto,
+      resp: 0.012 * Math.sin(t * 1.8),
+    }
+  }
+
+  monta(svg, {
+    dur: Infinity,
+    cartel: 2,
+    svg: () =>
+      `<g transform="translate(-34 24)">${DUENO()}</g>` +
+      // pensando: tres bolitas que suben
+      [0, 1, 2].map((i) => G('bo' + i, T(P.circ(0, 0, 3 + i * 1.6, 7), { cls: 'ln fino', amp: 0.2 }))).join('') +
+      G(
+        'cosa',
+        T(P.circ(0, 0, 27, 16), { cls: 'ln tapa tz', amp: 0.5, n: 'aro' }) +
+          T(P.poli([[-12, 1], [-3, 11], [14, -10]]), { cls: 'ln tz', amp: 0.4, n: 'paloma' }) +
+          T([P.linea(0, 0, 0, -17, 3), P.linea(0, 0, 11, 6, 3)], { cls: 'ln fino tz', amp: 0.3, n: 'agujas' }) +
+          T([P.linea(38, -10, 38, 10, 3), P.linea(46, -10, 46, 10, 3)], { cls: 'ln tz', amp: 0.3, n: 'pausa' }),
+      ) +
+      punto(6.5),
+    paso(q, t) {
+      const u = t - te
+      const nueva = posar(t, u)
+      pose = poseSale && u < 0.5 ? mezclaPose(poseSale, nueva, suave(tramo(u, 0, 0.5))) : nueva
+      actua(q, 'u', pose)
+      const mano = Math.max(0, 1 - Math.hypot(pose.mano[0], pose.mano[1]) / 40)
+      for (const x of ['um', 'uante', 'umanga']) ve(q(x), mano)
+      // las bolitas de pensar
+      ;[0, 1, 2].forEach((i) => {
+        const f = (t * 0.45 + i / 3) % 1
+        pon(q('bo' + i), { x: mezcla(152, C[0] - 8, f), y: mezcla(108, C[1] + 6, f) - 10 * Math.sin(f * Math.PI), o: est ? 0 : Math.sin(f * Math.PI) })
+      })
+      // lo que se dibuja a su lado
+      const p = est ? suave(tramo(u, 0.25, 0.75)) : 0
+      pon(q('cosa'), { x: C[0], y: C[1] + 1.6 * Math.sin(t * 2), r: 3 * golpe(u, 0.75, 0.4) * Math.sin(u * 24) })
+      traza(q('aro'), p)
+      traza(q('paloma'), est === 'si' ? suave(tramo(u, 0.6, 0.95)) : 0)
+      traza(q('agujas'), est === 'pensar' ? suave(tramo(u, 0.6, 0.95)) : 0)
+      traza(q('pausa'), est === 'pensar' ? suave(tramo(u, 0.85, 1.15)) : 0)
+      // el punto: da vueltas mientras piensa y luego se queda de aviso en la esquina
+      const b = brinco(tramo(u, 0.2, 0.7), 22)
+      const ronda = { x: C[0] + 16 * Math.cos(t * 1.7), y: C[1] + 10 * Math.sin(t * 1.7), sx: 1, sy: 1 }
+      const aviso = { x: C[0] + 20, y: C[1] - 21 + b.dy, sx: b.sx, sy: b.sy }
+      pon(q('pt'), est ? aviso : ronda)
+    },
+  })
+
+  return {
+    elige(cual, t) {
+      if (cual === est) return
+      poseSale = pose ? JSON.parse(JSON.stringify(pose)) : null
+      est = cual
+      te = t ?? ahora()
+    },
+  }
 }

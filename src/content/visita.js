@@ -112,7 +112,8 @@ export const V1 = {
 }
 
 export const V2 = {
-  portada: { kicker: 'De vuelta en {negocio}', lema: 'Esto es lo que construimos.', sub: 'Hoy lo probará usted.', cta: 'Empezar', para: 'Lo construimos para' },
+  // cortoDesde: el corto del aro empieza en su último plano, «En orden»
+  portada: { kicker: 'De vuelta en {negocio}', lema: 'Esto es lo que construimos.', sub: 'Hoy lo probará usted.', cta: 'Empezar', para: 'Lo construimos para', cortoDesde: 7 },
   recap: {
     nav: 'Lo que nos contó',
     titulo: ['Lo que', 'nos contó'],

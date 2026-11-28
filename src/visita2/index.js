@@ -17,6 +17,7 @@ import { portada } from '../visita1/apertura.js'
 import { despedida } from '../visita1/cierre.js'
 import { conEspacios } from '../visita1/espacios.js'
 import { precioPlazo } from '../crm/cobranza.js'
+import { entendidoVivo, precioVivo, pagoVivo, decisionVivo } from '../visita1/trazos-escenas.js'
 
 // La segunda visita: recordar lo que dijo, dejarle probar su sistema y, ahora sí, hablar de precio.
 
@@ -58,11 +59,12 @@ export function vistaVisita2({ id }) {
     id: 'recap',
     theme: 'paper',
     title: V2.recap.nav,
-    pinta(el) {
+    pinta(el, { reduced }) {
       const T = V2.recap
       el.innerHTML = `
         <div class="scene-inner ve">
           <header class="ve-cab">${titular(T.titulo, 've-h wr-h')}<p class="t-body wr-intro">${primera?.inicio ? tx(T.intro, { fecha: fecha(primera.inicio, 'larga') }) : esc(T.sinFecha)}</p></header>
+          <div class="ve-der">
           <article class="ve-ficha" data-rueda>
             <div class="ve-fcab"><span class="t-display ve-negocio">${esc(E.negocio)}</span><span class="t-label">${esc(prospecto.nicho_otro || nicho.nombre)}</span></div>
             <ol class="ve-lista">
@@ -76,12 +78,21 @@ export function vistaVisita2({ id }) {
               }
             </ol>
           </article>
+          <div class="ve-vivo"><svg class="tv cine" viewBox="0 0 320 200" aria-hidden="true"></svg></div>
+          </div>
         </div>`
+      const vivo = reduced ? null : entendidoVivo($(el, '.ve-vivo svg'))
+      const A = vivo ? 2.25 : 0
       const tl = linea()
       rise(tl, $$(el, '.ve-h .wi'), 0, { stagger: 0.07 })
       fade(tl, $(el, '.wr-intro'), 0.4)
-      tl.fromTo($(el, '.ve-ficha'), { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.9, ease: 'expo.out' }, 0.2)
-      tl.fromTo($$(el, '.ve-item'), { autoAlpha: 0, x: 18 }, { autoAlpha: 1, x: 0, duration: 0.7, ease: 'expo.out', stagger: 0.16 }, 0.5)
+      if (vivo) {
+        tl.call(() => vivo.desde(), null, 0.15)
+        tl.fromTo($(el, '.ve-vivo'), { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.3 }, 0.1)
+        tl.to($(el, '.ve-vivo'), { autoAlpha: 0, y: 14, duration: 0.5, ease: 'power2.in' }, A + 0.75)
+      } else $(el, '.ve-vivo').style.visibility = 'hidden'
+      tl.fromTo($(el, '.ve-ficha'), { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.9, ease: 'expo.out' }, A + 0.2)
+      tl.fromTo($$(el, '.ve-item'), { autoAlpha: 0, x: 18 }, { autoAlpha: 1, x: 0, duration: 0.7, ease: 'expo.out', stagger: 0.16 }, A + 0.5)
       return { tl, anchor: () => $(el, '.period') }
     },
   })
@@ -152,7 +163,7 @@ export function vistaVisita2({ id }) {
       }
       el.innerHTML = `
         <div class="scene-inner wp">
-          <header class="wp-cab">${titular(T.titulo, 'wp-h')}<p class="t-body wp-intro">${esc(hay ? T.intro : T.sinPrecio)}</p>
+          <header class="wp-cab"><div class="wp-tv"><svg class="tv cine" viewBox="92 -18 136 226" aria-hidden="true"></svg></div>${titular(T.titulo, 'wp-h')}<p class="t-body wp-intro">${esc(hay ? T.intro : T.sinPrecio)}</p>
             ${hay && pr.prueba_dias ? `<p class="t-body wp-prueba">${tx(T.prueba, { dias: pr.prueba_dias })}</p>` : ''}</header>
           ${
             hay
@@ -178,8 +189,10 @@ export function vistaVisita2({ id }) {
         pintaPlazo()
         dot.pulse(1.2)
       })
+      precioVivo($(el, '.wp-tv svg'))
       const tl = linea()
       rise(tl, $$(el, '.wp-h .wi'), 0, { stagger: 0.07 })
+      tl.fromTo($(el, '.wp-tv'), { autoAlpha: 0, y: -20 }, { autoAlpha: 1, y: 0, duration: 0.9, ease: 'expo.out' }, 0.2)
       fade(tl, [$(el, '.wp-intro'), $(el, '.wp-prueba')].filter(Boolean), 0.4)
       if (hay) {
         tl.fromTo($$(el, '.wp-op'), { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.9, ease: 'expo.out', stagger: 0.15 }, 0.45)
@@ -198,7 +211,7 @@ export function vistaVisita2({ id }) {
       const T = V2.pago
       const b = store.ajuste('banco') || {}
       const datos = [b.banco, b.titular, b.clabe && `CLABE ${b.clabe}`, b.cuenta].filter(Boolean)
-      const fila = (n, x, extra = '') => `<li class="wg-item"><span class="t-label wg-n">${n}</span><div><p class="t-display wg-t">${esc(x.t)}</p><p class="t-body wg-d">${esc(x.d)}</p>${extra}</div></li>`
+      const fila = (n, x, extra = '') => `<li class="wg-item"><span class="wg-n"><svg class="tv cine wg-ico" viewBox="0 0 64 48" aria-hidden="true"></svg><span class="t-label">${n}</span></span><div><p class="t-display wg-t">${esc(x.t)}</p><p class="t-body wg-d">${esc(x.d)}</p>${extra}</div></li>`
       el.innerHTML = `
         <div class="scene-inner wg">
           <header>${titular(T.titulo, 'wg-h')}<p class="t-body wg-intro">${esc(T.intro)}</p></header>
@@ -208,6 +221,7 @@ export function vistaVisita2({ id }) {
             ${fila('03', T.efectivo)}
           </ol>
         </div>`
+      pagoVivo($$(el, '.wg-ico'))
       const tl = linea()
       rise(tl, $$(el, '.wg-h .wi'), 0, { stagger: 0.07 })
       fade(tl, $(el, '.wg-intro'), 0.4)
@@ -226,29 +240,50 @@ export function vistaVisita2({ id }) {
       const pr = propuesta()
       const opciones = T.opciones.filter((o) => (o.id === 'contado' ? pr?.precio_contado : o.id === 'mensual' ? pr?.precio_mensual : o.id === 'prueba' ? pr?.prueba_dias : true))
       let sel = pr?.modalidad || null
+      const SI = ['contado', 'mensual', 'prueba']
+      const cual = () => (!sel ? '' : SI.includes(sel) ? 'si' : 'pensar')
       el.innerHTML = `
-        <div class="scene-inner va wx">
-          <header class="va-cab">${titular(T.titulo, 'va-h')}<p class="va-somos">${esc(T.intro)}</p><p class="wx-listo" aria-live="polite">${sel ? esc(T.listo[sel] || '') : ''}</p></header>
-          <ol class="va-puntos">
-            ${opciones.map((o, i) => `<li><button type="button" class="va-punto" data-op="${o.id}" aria-pressed="${sel === o.id}"><i class="va-a"></i><span class="t-label va-n">${pad(i + 1)}</span><span class="va-tx"><span class="t-display va-t wx-t">${esc(o.t)}</span></span></button></li>`).join('')}
+        <div class="scene-inner wx">
+          <header class="wx-cab">
+            <div class="wx-tv"><svg class="tv cine" viewBox="24 22 262 220" aria-hidden="true"></svg></div>
+            ${titular(T.titulo, 'wx-h')}
+            <p class="t-body wx-intro">${esc(T.intro)}</p>
+            <p class="wx-listo" aria-live="polite">${sel ? esc(T.listo[sel] || '') : ''}</p>
+          </header>
+          <ol class="wx-ops">
+            ${opciones.map((o, i) => `<li><button type="button" class="wx-op" data-op="${o.id}" aria-pressed="${sel === o.id}"><span class="wx-aro"><i class="wx-a"></i></span><span class="t-label wx-n">${pad(i + 1)}</span><span class="t-display wx-t">${esc(o.t)}</span></button></li>`).join('')}
           </ol>
         </div>`
-      const ancla = () => $(el, '.va-punto[aria-pressed="true"] .va-a') || $(el, '.period')
-      on('[data-op]', (b) => {
+      const svg = $(el, '.wx-tv svg')
+      const vivo = decisionVivo(svg, cual())
+      svg._vivo = vivo
+      const ancla = () => $(el, '.wx-op[aria-pressed="true"] .wx-a') || $(el, '.period')
+      const elige = (b) => {
         sel = b.dataset.op
-        $$(el, '.va-punto').forEach((x) => x.setAttribute('aria-pressed', String(x === b)))
+        $$(el, '.wx-op').forEach((x) => x.setAttribute('aria-pressed', String(x === b)))
         $(el, '.wx-listo').textContent = T.listo[sel] || ''
+        vivo.elige(cual())
         if (pr) store.guardar('propuestas', { id: pr.id, modalidad: sel, estado: 'presentada' })
         visita = store.guardar('visitas', { id: visita.id, datos: { ...(visita.datos || {}), decision: T.opciones.find((o) => o.id === sel)?.t } })
         if (sel === 'pensar') store.guardar('prospectos', { id, proxima_accion: 'Dar seguimiento a la propuesta' })
         if (!deck.busy) dot.to(ancla(), { duration: 0.7, ease: 'expo.inOut' })
         dot.pulse(1.25)
-      })
+      }
+      on('[data-op]', elige)
+      // con las flechas ↑ ↓ se recorre la decisión sin tocar el ratón
+      const tecla = (e) => {
+        if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return false
+        const bs = $$(el, '.wx-op')
+        const k = bs.findIndex((x) => x.getAttribute('aria-pressed') === 'true')
+        elige(bs[Math.max(0, Math.min(bs.length - 1, k + (e.key === 'ArrowDown' ? 1 : k < 0 ? 1 : -1)))])
+        return true
+      }
       const tl = linea()
-      rise(tl, $$(el, '.va-h .wi'), 0, { stagger: 0.08 })
-      fade(tl, [$(el, '.va-somos'), $(el, '.wx-listo')], 0.4)
-      tl.fromTo($$(el, '.va-punto'), { autoAlpha: 0, x: 24 }, { autoAlpha: 1, x: 0, duration: 0.9, ease: 'expo.out', stagger: 0.1 }, 0.5)
-      return { tl, anchor: ancla }
+      rise(tl, $$(el, '.wx-h .wi'), 0, { stagger: 0.08 })
+      fade(tl, [$(el, '.wx-intro'), $(el, '.wx-listo')], 0.4)
+      tl.fromTo($(el, '.wx-tv'), { autoAlpha: 0, y: 20 }, { autoAlpha: 1, y: 0, duration: 0.9, ease: 'expo.out' }, 0.2)
+      tl.fromTo($$(el, '.wx-op'), { autoAlpha: 0, x: 24 }, { autoAlpha: 1, x: 0, duration: 0.9, ease: 'expo.out', stagger: 0.1 }, 0.5)
+      return { tl, anchor: ancla, key: tecla }
     },
   })
 

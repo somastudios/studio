@@ -316,7 +316,7 @@ export const portada = (E, T = V1.portada) =>
         tl.fromTo(meta, { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: 0.6, ease: 'power3.out' }, 1.6)
         // en el aro vacío se dibuja el giro, trazo por trazo, y luego cobra vida
         if (corto) {
-          tl.call(() => corto.desde(), null, 0.3)
+          tl.call(() => corto.desde(performance.now() / 1000 - (T.cortoDesde || 0)), null, 0.3)
           tl.fromTo(cine, { autoAlpha: 0, scale: 0.6 }, { autoAlpha: 1, scale: 1, duration: 0.9, ease: 'back.out(1.6)' }, 0.3)
         } else {
           tl.set(icono, { autoAlpha: 1 }, 0.3)
@@ -379,7 +379,7 @@ export const portada = (E, T = V1.portada) =>
         tl.fromTo(letrasN, { yPercent: 118 }, { yPercent: 0, duration: 1, ease: 'expo.out', stagger: 0.035 }, 0.3)
         tl.fromTo([rotulo, meta], { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: 0.6, ease: 'power3.out', stagger: 0.2 }, 0.5)
         if (corto) {
-          tl.call(() => corto.desde(), null, 0.3)
+          tl.call(() => corto.desde(performance.now() / 1000 - (T.cortoDesde || 0)), null, 0.3)
           tl.fromTo(cine, { autoAlpha: 0, scale: 0.6 }, { autoAlpha: 1, scale: 1, duration: 0.9, ease: 'back.out(1.6)' }, 0.3)
         } else tl.fromTo(trazos, { '--draw': 1.06 }, { '--draw': 0, duration: 0.6, ease: 'power2.inOut', stagger: 0.1 }, 0.5)
       }

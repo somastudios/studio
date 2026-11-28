@@ -1495,20 +1495,90 @@ textarea.v-in {
 }
 
 /* Su decisión */
-.wx .va-puntos {
-  gap: calc(var(--u) * 2);
+.wx {
+  display: grid;
+  grid-template-columns: calc(var(--u) * 30) 1fr;
+  column-gap: calc(var(--u) * 6);
+  align-items: center;
+}
+
+.wx-tv {
+  width: calc(var(--u) * 26);
+  margin-bottom: calc(var(--u) * 1);
+  pointer-events: none;
+}
+
+.wx-tv svg,
+.wp-tv svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+
+.wx-h {
+  font-size: calc(var(--u) * 5.6);
+}
+
+.wx-intro {
+  margin-top: calc(var(--u) * 1.4);
+  color: var(--fg-2);
+}
+
+.wx-ops {
+  display: grid;
+  gap: calc(var(--u) * 1.3);
+}
+
+.wx-op {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: center;
+  gap: calc(var(--u) * 1.6);
+  padding: calc(var(--u) * 1.7) calc(var(--u) * 2.2);
+  text-align: left;
+  color: var(--fg-2);
+  border: var(--stroke) solid var(--fg-4);
+  border-radius: calc(var(--u) * 2.4);
+  transition:
+    color 0.25s,
+    border-color 0.25s,
+    box-shadow 0.25s,
+    translate 0.25s;
+}
+
+.wx-op[aria-pressed='true'] {
+  color: var(--fg);
+  border-color: var(--fg);
+  box-shadow: 0 calc(var(--u) * 0.4) 0 var(--fg);
+  translate: 0 calc(var(--u) * -0.4);
+}
+
+.wx-op:focus-visible {
+  outline: none;
+  border-color: var(--fg);
+}
+
+.wx-aro {
+  position: relative;
+  width: calc(var(--u) * 2.1);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 var(--stroke) currentColor;
+}
+
+.wx-a {
+  position: absolute;
+  inset: 0;
+}
+
+.wx-n {
+  color: var(--fg-3);
 }
 
 .wx-t {
-  font-size: calc(var(--u) * 4.2);
-}
-
-.wx .va-a {
-  top: calc(var(--u) * 0.8);
-}
-
-.wx .va-n {
-  padding-top: calc(var(--u) * 1);
+  font-size: calc(var(--u) * 3.3);
+  line-height: 1.02;
 }
 
 .wx-listo {
@@ -1959,5 +2029,53 @@ textarea.v-in {
   .vd-tab.es-recien .vd-ta,
   .vd-tab.es-recien .vd-ta path {
     animation: none;
+  }
+}
+
+/* Segunda visita: la etiqueta de «Cómo se paga» y los iconos de «Formas de pago». */
+.wp-tv {
+  width: calc(var(--u) * 10);
+  margin-bottom: calc(var(--u) * 1.6);
+  pointer-events: none;
+}
+
+.wg-item {
+  grid-template-columns: calc(var(--u) * 9) 1fr;
+  align-items: center;
+}
+
+.wg-n {
+  display: grid;
+  gap: 0.3em;
+  padding-top: 0;
+}
+
+.wg-ico {
+  display: block;
+  width: calc(var(--u) * 6.4);
+  overflow: visible;
+}
+
+@media (hover: hover) {
+  .wx-op:hover {
+    color: var(--fg);
+  }
+}
+
+@media (max-aspect-ratio: 1/1) {
+  .wx {
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+    row-gap: calc(var(--u) * 3);
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+
+  .wx-tv {
+    width: calc(var(--u) * 20);
+  }
+
+  .wp-tv {
+    width: calc(var(--u) * 8);
   }
 }
