@@ -57,6 +57,48 @@ const ESCENAS = {
       await p.keyboard.press('ArrowDown')
     },
   },
+  ronda: {
+    flechas: 6,
+    antes: async (p) => {
+      for (let i = 0; i < 30 && !(await p.locator('.vr-tv svg').count()); i++) {
+        await p.keyboard.press('ArrowRight')
+        await p.waitForTimeout(1500)
+      }
+    },
+    sel: '.vr-tv',
+    cuadros: (api) => [0.3, 0.75, 1.45, 2.0, 2.6, 3.0, 3.5, 4.1, 4.8, 5.6, 6.2].map((u) => [`${u}`, () => api.fija(640 + u)]),
+  },
+  agenda: {
+    flechas: 6,
+    antes: async (p) => {
+      for (let i = 0; i < 30 && !(await p.locator('.vg-tv svg').count()); i++) {
+        await p.keyboard.press('ArrowRight')
+        await p.waitForTimeout(1500)
+      }
+    },
+    sel: '.vg-tv',
+    cuadros: (api) => [
+      ['busca 0.4', () => api.fija(0.4)],
+      ['busca 0.9', () => api.fija(0.9)],
+      ['elige 9 · 0.25', async () => (await api.fija(0.9), await api.vivo('elige', 9, 100), api.fija(100.25))],
+      ['0.55', () => api.fija(100.55)],
+      ['0.8', () => api.fija(100.8)],
+      ['1.5', () => api.fija(101.5)],
+      ['listo · 0.1', async () => (await api.vivo('listo', 200), api.fija(200.1))],
+      ['listo · 0.6', () => api.fija(200.6)],
+    ],
+  },
+  gracias: {
+    flechas: 6,
+    antes: async (p) => {
+      for (let i = 0; i < 40 && !(await p.locator('.s9-tv svg').count()); i++) {
+        await p.keyboard.press('ArrowRight')
+        await p.waitForTimeout(1500)
+      }
+    },
+    sel: '.s9-tv',
+    cuadros: (api) => [0.2, 0.8, 1.2, 1.7, 2.5, 3.5].map((u) => [`${u}`, () => api.fija(460 + u)]),
+  },
   suele: {
     flechas: 6,
     sel: '.vs-tv',

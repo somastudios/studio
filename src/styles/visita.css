@@ -1882,3 +1882,38 @@ textarea.v-in {
     width: calc(var(--u) * 20);
   }
 }
+
+/* Los dibujos de «Antes de cerrar», «El siguiente paso» y «Gracias». */
+.vr-tv,
+.vg-tv {
+  width: calc(var(--u) * 21);
+  margin-bottom: calc(var(--u) * 1.6);
+  pointer-events: none;
+}
+
+.vr-tv svg,
+.vg-tv svg,
+.s9-tv svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+
+.s9-tv {
+  position: absolute;
+  right: calc(var(--u) * 33);
+  bottom: calc(var(--u) * 4);
+  width: calc(var(--u) * 17);
+  pointer-events: none;
+}
+
+@media (max-aspect-ratio: 1/1) {
+  .vr-tv,
+  .vg-tv {
+    width: calc(var(--u) * 17);
+  }
+
+  .s9-tv {
+    display: none;
+  }
+}

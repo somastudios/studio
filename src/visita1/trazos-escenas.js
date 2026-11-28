@@ -1,5 +1,5 @@
 import Trazo from '../core/trazo-vivo.js'
-import { actua } from './reparto-trazo.js'
+import { actua, persona, muneca } from './reparto-trazo.js'
 import { DUENO, parpadea } from './trazos.js'
 
 // Los dibujos de trazo vivo de las demás escenas de la visita. Cada función recibe un <svg>
@@ -10,7 +10,7 @@ import { DUENO, parpadea } from './trazos.js'
 // nudo se vuelve los renglones de su expediente. Cómo se hace y cómo se revisa: skill
 // soma-animation.
 
-const { P, D, T, G, monta, remuestra, corre, corona, mezclaPts, tramo, mezcla, suave, salto, golpe, elastico, rebota, brinco, pon, traza, ve, forma, agita, punto } = Trazo
+const { P, D, T, G, monta, remuestra, corre, corona, mezclaPts, tramo, mezcla, suave, salto, golpe, campana, elastico, rebota, brinco, pon, traza, ve, forma, agita, punto } = Trazo
 
 const ahora = () => performance.now() / 1000
 const HEBRAS = 4
@@ -616,4 +616,157 @@ const ALCANCE = [
 /** «¿Hasta dónde quiere llegar?»: el local crece con el nivel. viewBox="44 -22 240 232". */
 export function alcanceVivo(svg, inicial = 0) {
   return figuraViva(svg, ALCANCE, { inicial, despues: G('luz', corona('a-rayos', 7, 13, 23)) })
+}
+
+// ── «Antes de cerrar» ───────────────────────────────────────────────────────────────────────
+
+/**
+ * Alex escucha y anota: mira a quien habla, asiente, baja la vista a la libreta, escribe un
+ * renglón y vuelve a mirar. Tres renglones y da vuelta a la hoja. viewBox="62 38 196 192".
+ */
+export function rondaVivo(svg) {
+  const DUR = 6.4
+  const REN = [[134, 191, 176], [134, 201, 176], [134, 211, 160]] // x0, y, x1 de cada renglón
+  const CUANDO = [[1.6, 2.8], [4.2, 5.2], [5.25, 5.85]]
+  const M0 = muneca(0)
+  monta(svg, {
+    dur: DUR,
+    cartel: 2.4,
+    svg: () =>
+      persona('a') +
+      T(P.poli([[124, 182], [184, 178], [188, 220], [128, 224]], true), { cls: 'blq', amp: 0.4 }) +
+      T(P.poli([[120, 178], [180, 174], [184, 216], [124, 220]], true), { cls: 'ln tapa', amp: 0.4 }) +
+      REN.map(([x0, y, x1], i) => T(P.linea(x0 - 4, y - 3 + i * 0.4, x1 - 4, y - 6 + i * 0.4, 4), { cls: 'ln fino tz', amp: 0.5, n: 'ap' + i })).join('') +
+      G('lapiz', T(P.linea(0, 0, 13, -17, 3), { cls: 'ln', amp: 0.2 })),
+    paso(q, t) {
+      // la punta del lápiz: en el renglón que toca, o descansando al margen
+      let punta = [REN[0][0] - 6, REN[0][1] - 2]
+      let escribe = 0
+      CUANDO.forEach(([a, b], i) => {
+        const p = tramo(t, a, b)
+        traza(q('ap' + i), suave(p) * (1 - suave(tramo(t, 6.0, 6.35))))
+        if (t >= a - 0.3) {
+          const [x0, y, x1] = REN[i]
+          punta = [mezcla(x0, x1, suave(p)) - 4 + (p > 0 && p < 1 ? 1.4 * Math.sin(t * 34) : 0), y - 3 - 3 * suave(p) + (p > 0 && p < 1 ? 1.2 * Math.cos(t * 41) : 0)]
+        }
+        if (p > 0 && p < 1) escribe = 1
+      })
+      pon(q('lapiz'), { x: punta[0], y: punta[1] })
+      const abajo = suave(tramo(t, 1.3, 1.6)) * (1 - suave(tramo(t, 2.8, 3.1))) + suave(tramo(t, 3.9, 4.2)) * (1 - suave(tramo(t, 5.9, 6.2)))
+      const asiente = salto(tramo(t, 0.5, 0.95)) + salto(tramo(t, 3.3, 3.7))
+      const aja = campana(t, 3.5, 0.35)
+      actua(q, 'a', {
+        gira: 2.2 * abajo - 1.5 * (1 - abajo),
+        dy: 2.6 * asiente + 2.2 * abajo,
+        mira: [mezcla(3.2, -1.6, abajo), mezcla(-0.8, 3, abajo)],
+        abre: (1 - 0.3 * abajo) * (1 - 0.9 * campana(t, 1.32, 0.08)) * (1 - 0.9 * campana(t, 2.86, 0.08)) * (1 - 0.9 * campana(t, 3.94, 0.08)) * (1 - 0.9 * campana(t, 5.96, 0.08)),
+        cejas: [-2.2 * aja - 0.6 * (1 - abajo), -3 * aja, -2.2 * aja - 0.6 * (1 - abajo), 3 * aja],
+        boca: [0.2 * abajo, mezcla(0.75, 0.25, abajo), 0.3 * aja],
+        brazo: 0,
+        mano: [punta[0] + 14 - M0[0], punta[1] - 15 - M0[1], -62 + 3 * escribe * Math.sin(t * 34)],
+        pelo: -3 * salto(tramo(t, 0.56, 1.0)) + 3 * abajo - 3 * salto(tramo(t, 3.36, 3.8)),
+        lentes: [1.3 * abajo, 0],
+        resp: 0.012 * Math.sin(t * 1.9),
+      })
+    },
+  })
+}
+
+// ── «El siguiente paso» ─────────────────────────────────────────────────────────────────────
+
+/**
+ * Una hoja de calendario con catorce días. El punto brinca de día en día, buscando. Cuando se
+ * elige uno, vuela a ese día y un aro lo aparta. Al agendar, palomita y la hoja da un saltito.
+ * Devuelve { elige(i, t), listo(t) }. viewBox="18 12 204 172".
+ */
+export function agendaVivo(svg, { elegido = -1, hecho = false } = {}) {
+  const celda = (i) => [48 + (i % 7) * 24, 100 + Math.floor(i / 7) * 36]
+  let sel = elegido
+  let ts = -9
+  let tl = hecho ? -9 : Infinity
+  let sale = null
+  let ultimo = celda(0)
+
+  monta(svg, {
+    dur: Infinity,
+    cartel: 2,
+    svg: () =>
+      G(
+        'hoja',
+        T(P.rect(36, 36, 180, 138, 5), { cls: 'blq', amp: 0.5 }) +
+          T(P.rect(30, 30, 180, 138, 5), { cls: 'ln tapa', amp: 0.6 }) +
+          T(P.linea(30, 66, 210, 66, 6), { cls: 'ln', amp: 0.5 }) +
+          T([P.linea(78, 20, 78, 42, 3), P.linea(162, 20, 162, 42, 3)], { cls: 'ln', amp: 0.3 }) +
+          T(P.linea(48, 50, 108, 50, 4), { cls: 'ln fino tenue', amp: 0.4 }) +
+          T(Array.from({ length: 14 }, (_, i) => P.circ(...celda(i), 6.5, 8)), { cls: 'ln fino tenue', amp: 0.3 }) +
+          G('aro', T(P.circ(0, 0, 13, 12), { cls: 'ln ln-azul tz', amp: 0.4, n: 'aro-l' })) +
+          T(P.poli([[176, 44], [184, 54], [200, 38]]), { cls: 'ln ln-azul tz', amp: 0.3, n: 'ok' }),
+      ) + punto(6.5),
+    paso(q, t) {
+      const u = t - ts
+      const v = t - tl
+      let pos
+      if (sel < 0) {
+        const k = Math.floor(t / 0.62) % 14
+        pos = arco(celda(k), celda((k + 1) % 14), tramo((t / 0.62) % 1, 0.3, 1), 11)
+      } else if (u < 0.5 && sale) pos = arco(sale, celda(sel), tramo(u, 0, 0.5), 24)
+      else {
+        const g = golpe(u, 0.5, 0.25)
+        const [x, y] = celda(sel)
+        pos = { x, y, sx: 1 + 0.3 * g, sy: 1 - 0.25 * g }
+      }
+      ultimo = [pos.x, pos.y]
+      const salta = golpe(v, 0, 0.35)
+      pon(q('hoja'), { ox: 120, oy: 168, y: -7 * salta, r: 2 * salta * Math.sin(v * 26), sy: 1 + 0.04 * salta })
+      pon(q('pt'), { ...pos, y: pos.y - 7 * salta })
+      if (sel >= 0) pon(q('aro'), { x: celda(sel)[0], y: celda(sel)[1] })
+      traza(q('aro-l'), sel < 0 ? 0 : suave(tramo(u, 0.45, 0.9)))
+      traza(q('ok'), suave(tramo(v, 0.1, 0.45)))
+    },
+  })
+
+  return {
+    /** Se eligió el día `i` (0 a 13), o ninguno con -1. */
+    elige(i, t) {
+      if (i === sel) return
+      sale = [...ultimo]
+      sel = i
+      ts = t ?? ahora()
+      tl = Infinity
+    },
+    /** La cita quedó apartada. */
+    listo(t) {
+      tl = t ?? ahora()
+    },
+  }
+}
+
+// ── «Gracias» ───────────────────────────────────────────────────────────────────────────────
+
+/** El dueño, ya sin maraña: sonríe con los ojos y asiente. viewBox="70 44 180 176". */
+export function graciasVivo(svg) {
+  monta(svg, {
+    dur: 4.6,
+    cartel: 1.2,
+    svg: () => DUENO(),
+    paso(q, t) {
+      const gusto = suave(tramo(t, 0.5, 0.9)) * (1 - suave(tramo(t, 2.9, 3.3)))
+      const asiente = salto(tramo(t, 1.0, 1.45)) + salto(tramo(t, 1.5, 1.95))
+      actua(q, 'u', {
+        gira: 2.5 * gusto + 1.2 * Math.sin(t * 1.37),
+        dy: 2.8 * asiente,
+        mira: [1.5, 0],
+        abre: parpadea(t, 0.3, 3.7),
+        feliz: gusto,
+        cejas: [-2 * gusto, 0, -2 * gusto, 0],
+        boca: [0, mezcla(0.8, 1.2, gusto), 0.25 * gusto],
+        brazo: 0,
+        mano: [20, 80, 0],
+        pelo: -3 * salto(tramo(t, 1.06, 1.5)) - 3 * salto(tramo(t, 1.56, 2.0)),
+        rubor: gusto,
+        resp: 0.012 * Math.sin(t * 1.8),
+      })
+      for (const x of ['um', 'uante', 'umanga']) ve(q(x), 0)
+    },
+  })
 }

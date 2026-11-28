@@ -9,7 +9,7 @@ import { SOL } from '../content/soluciones.js'
 import { store } from '../data/store.js'
 import { esc, fecha, dia, sumaDias, telBonito, plantilla } from '../app/util.js'
 import { escena, tx, linea } from './base.js'
-import { entendidoVivo, alcanceVivo } from './trazos-escenas.js'
+import { entendidoVivo, alcanceVivo, rondaVivo, agendaVivo, graciasVivo } from './trazos-escenas.js'
 
 // La segunda mitad de la visita: lo que no se dijo, hasta dónde quiere llegar, el expediente
 // a la vista, la fecha de la siguiente visita y la despedida.
@@ -31,7 +31,7 @@ export const ronda = (E) =>
         .slice(0, 3)
       el.innerHTML = `
         <div class="scene-inner vr">
-          <header class="vr-cab">${titular(T.titulo, 'vr-h')}<p class="t-body vr-intro">${tx(T.intro, { plural: E.plural })}</p></header>
+          <header class="vr-cab"><div class="vr-tv"><svg class="tv cine" viewBox="62 38 196 192" aria-hidden="true"></svg></div>${titular(T.titulo, 'vr-h')}<p class="t-body vr-intro">${tx(T.intro, { plural: E.plural })}</p></header>
           <ol class="vr-lista">
             ${
               candidatos
@@ -65,6 +65,8 @@ export const ronda = (E) =>
       rise(tl, $$(el, '.vr-h .wi'), 0, { stagger: 0.07 })
       fade(tl, $(el, '.vr-intro'), 0.4)
       tl.fromTo($$(el, '.vr-item'), { autoAlpha: 0, y: 22 }, { autoAlpha: 1, y: 0, duration: 0.8, ease: 'expo.out', stagger: 0.12 }, 0.45)
+      rondaVivo($(el, '.vr-tv svg'))
+      tl.fromTo($(el, '.vr-tv'), { autoAlpha: 0, y: 20 }, { autoAlpha: 1, y: 0, duration: 0.9, ease: 'expo.out' }, 0.2)
       return { tl, anchor: () => $(el, '.period') }
     },
   })
@@ -253,7 +255,7 @@ export const agenda = (E) =>
 
       el.innerHTML = `
         <div class="scene-inner vg">
-          <header class="vg-cab">${titular(T.titulo, 'vg-h')}<p class="t-body vg-intro">${tx(T.intro, { negocio: E.negocio })}</p><p class="vg-estado" aria-live="polite"></p></header>
+          <header class="vg-cab"><div class="vg-tv"><svg class="tv cine" viewBox="18 12 204 172" aria-hidden="true"></svg></div>${titular(T.titulo, 'vg-h')}<p class="t-body vg-intro">${tx(T.intro, { negocio: E.negocio })}</p><p class="vg-estado" aria-live="polite"></p></header>
           <form class="vg-cuerpo" novalidate>
             <div class="vg-bloque"><p class="t-label vg-k vg-k-dia">${esc(T.dia)}</p>
               <div class="vg-dias">${dias
@@ -284,6 +286,9 @@ export const agenda = (E) =>
         </div>`
       horas()
       pintaDecisor()
+      const cualDia = () => $$(el, '.vg-dia').findIndex((x) => x.getAttribute('aria-pressed') === 'true')
+      const vivo = agendaVivo($(el, '.vg-tv svg'), { elegido: cualDia(), hecho: !!previa })
+      $(el, '.vg-tv svg')._vivo = vivo
       if (previa) estado(previa.por_mensaje ? T.listoMsg : listo(previa.inicio), true)
 
       const guardaDecisor = () => {
@@ -307,6 +312,7 @@ export const agenda = (E) =>
         porMensaje = false
         if (selHora != null && ocupadas(selDia).has(selHora)) selHora = null
         $$(el, '.vg-dia').forEach((x) => x.setAttribute('aria-pressed', String(x === b)))
+        vivo.elige(cualDia())
         $(el, '.vg-msj').setAttribute('aria-pressed', 'false')
         horas()
         if (!deck.busy) dot.to(ancla(), { duration: 0.6, ease: 'expo.out' })
@@ -321,6 +327,7 @@ export const agenda = (E) =>
         if (porMensaje) {
           selDia = selHora = null
           $$(el, '.vg-dia').forEach((x) => x.setAttribute('aria-pressed', 'false'))
+          vivo.elige(-1)
           if (!deck.busy) dot.to(ancla(), { duration: 0.6, ease: 'expo.out' })
         }
         horas()
@@ -332,6 +339,7 @@ export const agenda = (E) =>
         const inicio = porMensaje ? null : new Date(`${selDia}T${String(selHora).padStart(2, '0')}:00:00`).toISOString()
         store.guardar('citas', { ...(previa ? { id: previa.id } : {}), prospecto_id: E.prospecto.id, tipo: 'visita2', inicio, minutos: 45, lugar: E.negocio, estado: 'pendiente', por_mensaje: porMensaje, quien: E.visita.presentadores || [] })
         estado(porMensaje ? T.listoMsg : listo(inicio), true)
+        vivo.listo()
         dot.pulse(1.3)
       }
       on('[data-agendar]', guardar)
@@ -344,6 +352,7 @@ export const agenda = (E) =>
       rise(tl, $$(el, '.vg-h .wi'), 0, { stagger: 0.07 })
       fade(tl, [$(el, '.vg-intro'), $(el, '.vg-estado')], 0.4)
       tl.fromTo($$(el, '.vg-dia'), { autoAlpha: 0, y: 14 }, { autoAlpha: 1, y: 0, duration: 0.5, ease: 'expo.out', stagger: 0.025 }, 0.4)
+      tl.fromTo($(el, '.vg-tv'), { autoAlpha: 0, y: 20 }, { autoAlpha: 1, y: 0, duration: 0.9, ease: 'expo.out' }, 0.2)
       fade(tl, [...$$(el, '.vg-bloque'), $(el, '.vg-ok')], 0.6, { stagger: 0.1 })
       return { tl, anchor: ancla }
     },
@@ -368,6 +377,7 @@ export const despedida = (E, { alLlegar, T = V1.cierre } = {}) =>
             <svg viewBox="-100 -100 200 200">${boil(P.circle(0, 0, 89.75, 44), { amp: 0.42, cls: 'draw s9-ring' })}</svg>
             <i class="s9-dot" data-dot></i>
           </div>
+          <div class="s9-tv"><svg class="tv cine" viewBox="70 44 180 176" aria-hidden="true"></svg></div>
           <div class="s9-text">
             <h2 class="t-display s9-h"><span class="ln">${words(nombre ? `${T.gracias},` : T.gracias)}</span>${nombre ? `<span class="ln">${words(esc(nombre))}</span>` : ''}</h2>
             ${linea2 ? `<p class="vc-cita">${esc(linea2)}</p>` : ''}
@@ -379,8 +389,10 @@ export const despedida = (E, { alLlegar, T = V1.cierre } = {}) =>
           </div>
           <p class="t-label s9-lema">${esc(T.lema)}</p>
         </div>`
+      graciasVivo($(el, '.s9-tv svg'))
       const tl = linea()
       rise(tl, $$(el, '.s9-h .wi'), 0, { stagger: 0.09, duration: 1.15 })
+      tl.fromTo($(el, '.s9-tv'), { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0, duration: 0.9, ease: 'expo.out' }, 0.9)
       tl.fromTo($(el, '.s9-ring'), { '--draw': 1.06 }, { '--draw': 0, duration: 1.6, ease: 'expo.inOut' }, 0.1)
       fade(tl, [$(el, '.vc-cita'), $(el, '.s9-body'), ...$$(el, '.s9-contact li'), $(el, '.s9-foot'), $(el, '.s9-lema')].filter(Boolean), 0.55, { stagger: 0.08 })
       return { tl, anchor: () => $(el, '.s9-dot') }
