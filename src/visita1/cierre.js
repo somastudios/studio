@@ -9,7 +9,7 @@ import { SOL } from '../content/soluciones.js'
 import { store } from '../data/store.js'
 import { esc, fecha, dia, sumaDias, telBonito, plantilla } from '../app/util.js'
 import { escena, tx, linea } from './base.js'
-import { entendidoVivo, alcanceVivo, rondaVivo, agendaVivo, graciasVivo } from './trazos-escenas.js'
+import { fichaViva, alcanceVivo, rondaVivo, agendaVivo, graciasVivo } from './trazos-escenas.js'
 
 // La segunda mitad de la visita: lo que no se dijo, hasta dónde quiere llegar, el expediente
 // a la vista, la fecha de la siguiente visita y la despedida.
@@ -188,26 +188,25 @@ export const expediente = (E) =>
           <div class="ve-vivo"><svg class="tv cine" viewBox="0 0 320 200" aria-hidden="true"></svg></div>
           </div>
         </div>`
-      // la maraña se vuelve renglones encima de la ficha, y luego queda la ficha de verdad
-      const vivo = reduced ? null : entendidoVivo($(el, '.ve-vivo svg'))
-      $(el, '.ve-vivo svg')._vivo = vivo
-      const A = vivo ? 2.25 : 0 // cuánto espera la ficha a que termine el dibujo
       alEscribir('[name="correccion"]', (c) => {
         E.datos.correccion = c.value
         E.guardaDatos()
       })
       const tl = linea()
       rise(tl, $$(el, '.ve-h .wi'), 0, { stagger: 0.07 })
-      if (vivo) {
-        tl.call(() => vivo.desde(), null, 0.15)
-        tl.fromTo($(el, '.ve-vivo'), { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.3 }, 0.1)
-        tl.to($(el, '.ve-vivo'), { autoAlpha: 0, y: 14, duration: 0.5, ease: 'power2.in' }, A + 0.75)
-      } else gsap.set($(el, '.ve-vivo'), { autoAlpha: 0 })
-      tl.fromTo($(el, '.ve-ficha'), { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.9, ease: 'expo.out' }, A + 0.2)
-      tl.fromTo($$(el, '.ve-item'), { autoAlpha: 0, x: 18 }, { autoAlpha: 1, x: 0, duration: 0.7, ease: 'expo.out', stagger: 0.14 }, A + 0.5)
-      fade(tl, [$(el, '.ve-tambien'), $(el, '.ve-pie')].filter(Boolean), A + 0.9)
-      tl.fromTo($(el, '.ve-sello .boil'), { '--draw': 1.06 }, { '--draw': 0, duration: 1.1, ease: 'expo.inOut' }, A + 0.7)
-      fade(tl, [$(el, '.ve-sello span'), $(el, '.ve-falta')], A + 1.1)
+// la madeja cae sobre la ficha y cada hilo se vuelve una fila; luego baja el sello
+      const viva = fichaViva(el, tl, { reduced })
+      if (viva) {
+        fade(tl, [$(el, '.ve-tambien'), $(el, '.ve-pie')].filter(Boolean), viva.fin - 0.4)
+        tl.fromTo($(el, '.ve-sello .boil'), { '--draw': 1.06 }, { '--draw': 0, duration: 0.9, ease: 'expo.inOut' }, viva.sello - 0.2)
+        fade(tl, [$(el, '.ve-sello span'), $(el, '.ve-falta')], viva.sello + 0.3)
+      } else {
+        tl.fromTo($(el, '.ve-ficha'), { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.9, ease: 'expo.out' }, 0.2)
+        tl.fromTo($$(el, '.ve-item'), { autoAlpha: 0, x: 18 }, { autoAlpha: 1, x: 0, duration: 0.7, ease: 'expo.out', stagger: 0.14 }, 0.5)
+        fade(tl, [$(el, '.ve-tambien'), $(el, '.ve-pie')].filter(Boolean), 0.9)
+        tl.fromTo($(el, '.ve-sello .boil'), { '--draw': 1.06 }, { '--draw': 0, duration: 1.1, ease: 'expo.inOut' }, 0.7)
+        fade(tl, [$(el, '.ve-sello span'), $(el, '.ve-falta')], 1.1)
+      }
       return { tl, anchor: () => $(el, '.ve-a') }
     },
   })

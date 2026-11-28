@@ -17,7 +17,7 @@ import { portada } from '../visita1/apertura.js'
 import { despedida } from '../visita1/cierre.js'
 import { conEspacios } from '../visita1/espacios.js'
 import { precioPlazo } from '../crm/cobranza.js'
-import { entendidoVivo, precioVivo, pagoVivo, decisionVivo } from '../visita1/trazos-escenas.js'
+import { fichaViva, precioVivo, pagoVivo, decisionVivo } from '../visita1/trazos-escenas.js'
 
 // La segunda visita: recordar lo que dijo, dejarle probar su sistema y, ahora sí, hablar de precio.
 
@@ -81,18 +81,13 @@ export function vistaVisita2({ id }) {
           <div class="ve-vivo"><svg class="tv cine" viewBox="0 0 320 200" aria-hidden="true"></svg></div>
           </div>
         </div>`
-      const vivo = reduced ? null : entendidoVivo($(el, '.ve-vivo svg'))
-      const A = vivo ? 2.25 : 0
       const tl = linea()
       rise(tl, $$(el, '.ve-h .wi'), 0, { stagger: 0.07 })
       fade(tl, $(el, '.wr-intro'), 0.4)
-      if (vivo) {
-        tl.call(() => vivo.desde(), null, 0.15)
-        tl.fromTo($(el, '.ve-vivo'), { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.3 }, 0.1)
-        tl.to($(el, '.ve-vivo'), { autoAlpha: 0, y: 14, duration: 0.5, ease: 'power2.in' }, A + 0.75)
-      } else $(el, '.ve-vivo').style.visibility = 'hidden'
-      tl.fromTo($(el, '.ve-ficha'), { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.9, ease: 'expo.out' }, A + 0.2)
-      tl.fromTo($$(el, '.ve-item'), { autoAlpha: 0, x: 18 }, { autoAlpha: 1, x: 0, duration: 0.7, ease: 'expo.out', stagger: 0.16 }, A + 0.5)
+if (!fichaViva(el, tl, { reduced })) {
+        tl.fromTo($(el, '.ve-ficha'), { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.9, ease: 'expo.out' }, 0.2)
+        tl.fromTo($$(el, '.ve-item'), { autoAlpha: 0, x: 18 }, { autoAlpha: 1, x: 0, duration: 0.7, ease: 'expo.out', stagger: 0.16 }, 0.5)
+      }
       return { tl, anchor: () => $(el, '.period') }
     },
   })

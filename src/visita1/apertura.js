@@ -160,7 +160,7 @@ export const suele = (E) =>
             <h2 class="t-display vs-h"><span class="ln">${words(T.titulo[0])}</span><span class="ln">${wordsDot(T.titulo[1])}</span></h2>
             <p class="t-body vs-intro">${tx(T.intro, { plural: E.plural, negocio: E.negocio })}</p>
             <p class="t-label vs-cuenta" aria-live="polite"></p>
-            <div class="vs-tv"><svg class="tv cine" viewBox="56 4 208 276" aria-hidden="true"></svg></div>
+            <div class="vs-tv"><svg class="tv cine" viewBox="0 0 240 260" aria-hidden="true"></svg></div>
           </header>
           <div class="vs-der"><ul class="vs-lista" data-rueda></ul><div class="vs-pie"></div></div>
         </div>`

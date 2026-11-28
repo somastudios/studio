@@ -2114,3 +2114,48 @@ textarea.v-in {
     align-content: start;
   }
 }
+
+/* La madeja. En «Lo que entendimos» el dibujo mide exactamente lo que la ficha. */
+.tv .ln-claro {
+  stroke: var(--lamina);
+}
+
+.ve-vivo {
+  display: block;
+}
+
+.ve-der .ve-vivo svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform: none;
+  overflow: visible;
+}
+
+.vs-tv svg {
+  max-height: calc(var(--u) * 30);
+}
+
+/* «Lo que suele pasar» en vertical: el carrete y su madeja van a la derecha del texto, debajo
+   del título, para que al crecer no lo tapen. */
+@media (max-aspect-ratio: 1/1) {
+  .vs-cab {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) calc(var(--u) * 17);
+    column-gap: calc(var(--u) * 2);
+    align-items: start;
+  }
+
+  .vs-cab .vs-h {
+    grid-column: 1 / -1;
+  }
+
+  .vs-tv {
+    position: static;
+    grid-column: 2;
+    grid-row: 2 / span 2;
+    width: auto;
+    height: calc(var(--u) * 18.4);
+    margin: calc(var(--u) * 1) 0 0;
+  }
+}

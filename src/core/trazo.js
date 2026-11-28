@@ -138,6 +138,22 @@
   const mezclaPts = (A, B, p) => A.map((a, i) => [a[0] + (B[i][0] - a[0]) * p, a[1] + (B[i][1] - a[1]) * p])
   const corre = (A, dx, dy) => A.map(([x, y]) => [x + dx, y + dy])
   const D = (pts, closed = true) => ({ pts, closed })
+  /** El enredo: e = 1 es la madeja, e = 0 un círculo. `fase` lo hace retorcerse. */
+  function madeja(cx, cy, R, e, fase, n = 110) {
+    return Array.from({ length: n }, (_, i) => {
+      const a = (i / n) * TAU
+      const mx = 0.62 * Math.sin(2 * a + 0.3 + fase * 0.6) + 0.42 * Math.sin(7 * a + 1.3 + fase)
+      const my = 0.62 * Math.cos(3 * a + 0.5 - fase * 0.5) + 0.42 * Math.cos(5 * a + 2.1 + fase * 0.8)
+      return [cx + R * ((1 - e) * Math.sin(a) + e * 1.12 * mx), cy + R * (-(1 - e) * Math.cos(a) + e * 1.12 * my)]
+    })
+  }
+  /** Una nube de pensamiento, de radio r. */
+  const nube = (cx, cy, r, n = 63) =>
+    Array.from({ length: n }, (_, i) => {
+      const a = (i / n) * TAU
+      const lobulo = 0.9 + 0.15 * Math.abs(Math.sin(a * 3.5 + 0.4))
+      return [cx + Math.sin(a) * r * lobulo * 1.08, cy - Math.cos(a) * r * lobulo]
+    })
 
   /** Por cada punto: por dónde pasa la línea ahí y cuánto puede moverse. */
   function nudosDe(pts, closed) {
@@ -383,7 +399,7 @@
 
   global.Trazo = {
     // formas y trazos
-    P, D, T, G, elipsePts, circulo, capsula, remuestra, rectPts, mezclaPts, corre, bezier,
+    P, D, T, G, elipsePts, circulo, capsula, remuestra, rectPts, mezclaPts, corre, bezier, madeja, nube,
     // tiempo
     tope, tramo, mezcla, suave, frena, acelera, rebota, elastico, salto, golpe, campana, brinco, sacude,
     // mover

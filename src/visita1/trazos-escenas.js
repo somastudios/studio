@@ -10,7 +10,7 @@ import { DUENO, parpadea } from './trazos.js'
 // nudo se vuelve los renglones de su expediente. Cómo se hace y cómo se revisa: skill
 // soma-animation.
 
-const { P, D, T, G, monta, remuestra, corre, corona, mezclaPts, tramo, mezcla, suave, salto, golpe, campana, elastico, rebota, brinco, pon, traza, ve, forma, agita, punto } = Trazo
+const { P, D, T, G, monta, remuestra, corre, capsula, madeja, corona, rayos, manoSvg, mezclaPts, tramo, mezcla, suave, frena, acelera, salto, golpe, campana, elastico, rebota, brinco, sacude, pon, camara, traza, ve, forma, agita, punto } = Trazo
 
 const ahora = () => performance.now() / 1000
 const HEBRAS = 4
@@ -30,139 +30,304 @@ function marana(cx, cy, R) {
 const recta = (x0, x1, y) => Array.from({ length: M }, (_, j) => [mezcla(x0, x1, j / (M - 1)), y])
 const hebras = (H, cls) => H.map((h, k) => T(D(h, false), { cls, amp: 1.1, n: 'h' + k })).join('')
 
+const tramito = (x0, x1, y, n = 8) => Array.from({ length: n }, (_, i) => [mezcla(x0, x1, i / (n - 1)), y])
+
 /**
- * «Lo que suele pasar». El dueño está tranquilo; cada problema que marca le agrega vueltas a la
- * maraña y él se va apurando: las cejas, la boca, una gota de sudor y, con tres, la mano a la
- * barbilla. Si desmarca, se afloja. Devuelve { pon(n, t) } para avisarle cuántos lleva.
- * El <svg> lleva viewBox="56 4 208 276".
+ * «Lo que suele pasar». Un carrete de hilo, limpio, con el punto al lado. Cada problema que el
+ * cliente marca: el carrete se encoge, suelta un hilo que sale disparado, da un tirón y se
+ * enreda arriba en una madeja que crece. El carrete brinca y adelgaza, saltan migas, la cámara
+ * se sacude y el punto se asusta. Con tres, la madeja ya es un lío y le sale un «?». Si
+ * desmarca, la madeja se afloja y encoge. Devuelve { pon(n, t) }. viewBox="0 0 240 260".
  */
 export function sueleVivo(svg, cuantos = 0) {
-  const NUDO = marana(172, 62, 46)
+  const C = [120, 96]
+  const radio = (v) => (v < 1 ? 34 * Math.max(0, v) : 26 + 8 * Math.min(v, 6))
   let n = cuantos
-  let desde = cuantos // cuántos «se veían» cuando cambió
-  let tk = -9 // cuándo cambió
+  let desde = cuantos
+  let tk = -9
   let sube = true
+  let giro = 0 // lo que ya se ha retorcido con cada cambio
 
   monta(svg, {
     dur: Infinity,
     cartel: 2,
-    svg: () => G('nudo', hebras(NUDO, 'ln tz')) + `<g transform="translate(10 66)">${DUENO()}</g>`,
+    svg: () =>
+      G(
+        'cam',
+        T(P.linea(12, 244, 228, 244, 6), { cls: 'ln fino', amp: 0.5 }) +
+          T(D(tramito(120, 120, 150, 10), false), { cls: 'ln fino', amp: 0.5, n: 'hilo' }) +
+          G(
+            'car',
+            T(P.poli([[104, 204], [144, 204], [144, 242], [104, 242]], true), { cls: 'blq', amp: 0.4, n: 'csombra' }) +
+              T(P.poli([[98, 198], [142, 198], [142, 236], [98, 236]], true), { cls: 'ln tapa', amp: 0.4, n: 'cuerpo' }) +
+              [0, 1, 2, 3].map((i) => T(D(tramito(98, 142, 204 + i * 8, 4), false), { cls: 'ln fino tenue', amp: 0.3, n: 'vu' + i })).join('') +
+              T(P.elipse(120, 236, 31, 7, 14), { cls: 'ln tapa', amp: 0.4 }) +
+              T(P.elipse(120, 198, 31, 7, 14), { cls: 'ln tapa', amp: 0.4 }) +
+              T(P.elipse(120, 198, 8, 2.2, 8), { cls: 'ln fino', amp: 0.15 }),
+          ) +
+          G('migas', rayos('mig', [[-62, -38, -54, -32], [66, 44, 58, 38], [-68, 40, -60, 35], [0, -70, 0, -61], [58, -52, 52, -46]])) +
+          T(D(madeja(C[0], C[1], 34, 1, 0)), { cls: 'ln', n: 'lio' }) +
+          G('duda', T(P.suave([[-7, -9], [-6, -15], [0, -18], [6, -15], [6, -9], [1, -4], [0, 2]]), { cls: 'ln', amp: 0.4, n: 'signo' }) + '<circle class="lleno" cx="0" cy="10" r="2.6"/>') +
+          punto(7),
+      ),
     paso(q, t) {
       const k = t - tk
-      const nv = mezcla(desde, n, suave(tramo(k, 0, 0.55)))
-      const lleno = Math.min(1, nv / 6)
-      const s = Math.min(1, nv / 4) // qué tan apurado está
-      const susto = sube ? golpe(k, 0.05, 0.45) : 0
-      const alivio = sube ? 0 : salto(tramo(k, 0.1, 1))
-      // la maraña: se dibuja por hebras, hierve más entre más grande y se mece
-      NUDO.forEach((_, i) => {
-        traza(q('h' + i), tramo(lleno, i / HEBRAS, (i + 1) / HEBRAS))
-        agita(q('h' + i), 1 + 1.5 * s + 2.2 * susto)
+      // 0 se encoge · 0.12 sale el hilo · 0.3 el tirón · 0.9 ya quedó
+      const nv = mezcla(desde, n, rebota(tramo(k, 0.26, 0.9)))
+      const vuelo = sube ? salto(tramo(k, 0, 0.24)) : 0
+      const tiron = sube ? salto(tramo(k, 0.14, 0.52)) : 0
+      const afloja = sube ? 0 : salto(tramo(k, 0.05, 0.8))
+      const pega = sube ? golpe(k, 0.3, 0.5) : 0
+      const R = radio(nv) * (1 - 0.14 * tiron + 0.06 * afloja)
+      const lio = q('lio')
+      forma(lio, madeja(C[0], C[1], Math.max(0.5, R), Math.min(1, 0.42 + 0.2 * nv), giro + t * (0.5 + 0.18 * Math.min(nv, 6)) + 4.5 * suave(tramo(k, 0.1, 0.7)) * (sube ? 1 : -1)))
+      ve(lio, nv > 0.03 ? 1 : 0)
+      agita(lio, 1 + 0.25 * Math.min(nv, 5) + 1.8 * tiron)
+      // el hilo va del carrete a la madeja: flojo, y tieso con el tirón
+      const arriba = C[1] + R * 0.8
+      forma(q('hilo'), Array.from({ length: 10 }, (_, i) => {
+        const p = i / 9
+        return [120 + 7 * (1 - tiron) * Math.sin(p * 6.3 + t * 2.2) * Math.sin(p * Math.PI), mezcla(192, arriba, p)]
+      }))
+      ve(q('hilo'), nv > 0.03 ? 1 : 0)
+      // el carrete: adelgaza con cada hilo que suelta, se encoge antes y brinca con el tirón
+      const a = 22 - 2.5 * Math.min(nv, 6)
+      forma(q('cuerpo'), [[120 - a, 198], [120 + a, 198], [120 + a, 236], [120 - a, 236]])
+      forma(q('csombra'), [[126 - a, 204], [126 + a, 204], [126 + a, 242], [126 - a, 242]])
+      const corre8 = 26 * suave(tramo(k, 0.1, 0.7)) * (sube ? 1 : -1)
+      ;[0, 1, 2, 3].forEach((i) => {
+        const y = 202 + ((((i * 8 + corre8 + giro * 3) % 32) + 32) % 32)
+        forma(q('vu' + i), tramito(120 - a, 120 + a, y, 4).map(([x, yy], j) => [x, yy + (j - 1.5) * 0.8]))
       })
-      pon(q('nudo'), { ox: 172, oy: 62, r: 5 * s * Math.sin(t * 1.4) + 6 * susto * Math.sin(k * 26) })
-      // usted
-      const barbilla = suave(tramo(nv, 2.4, 3))
-      const g = (t % 2.8) / 1.1
-      actua(q, 'u', {
-        gira: 3.5 * s + 1.2 * (1 - s) * Math.sin(t * 1.1),
-        dy: 2.2 * s - 2.8 * susto + 1.4 * alivio,
-        sy: 1 - 0.02 * alivio,
-        mira: [mezcla(3, 1.4, s), mezcla(0.2, -2.6, s)],
-        abre: (1 + 0.45 * susto) * parpadea(t % 4.2, 1.1, 3.4),
-        cejas: [-1.2 * s - 3 * susto, -13 * s, -1.2 * s - 3 * susto, 13 * s],
-        boca: [0, mezcla(0.75, -0.95, s), 0.3 * susto + 0.25 * alivio],
-        brazo: 0,
-        mano: [mezcla(20, 0, barbilla), mezcla(80, 0, barbilla), 0],
-        pelo: -4 * susto + 2 * alivio,
-        gota: nv >= 1.6 && g <= 1 ? g : -1,
-        resp: 0.012 * Math.sin(t * (1.8 + 1.6 * s)) - 0.03 * alivio,
-      })
-      for (const x of ['um', 'uante', 'umanga']) ve(q(x), barbilla)
+      const b = brinco(tramo(k, 0.3, 0.64), sube ? 8 : 0)
+      const sy = (1 - 0.1 * vuelo) * b.sy
+      pon(q('car'), { ox: 120, oy: 243, y: b.dy, r: 3.5 * pega * Math.sin(k * 30), sx: (1 + 0.08 * vuelo) * b.sx, sy })
+      // migas, el «?» y la sacudida
+      pon(q('migas'), { ox: C[0], oy: C[1], r: -t * 26, sx: Math.max(0.3, R / 52), o: 0.7 * pega })
+      const hay = rebota(tramo(nv, 2.5, 3))
+      const rr = radio(nv)
+      pon(q('duda'), { x: Math.min(214, C[0] + rr * 0.92 + 12), y: Math.max(26, C[1] - rr * 0.86), r: 12 + 6 * tiron * Math.sin(t * 30), sx: Math.max(0, hay) })
+      agita(q('signo'), 1 + 2 * tiron)
+      // el punto, en el piso: mira hacia arriba y brinca hacia atrás con cada tirón
+      const s = brinco(tramo(k, 0.3, 0.72), sube ? 14 : 5)
+      const mira = Math.min(1, nv / 3)
+      pon(q('pt'), { x: 46 - 8 * (sube ? salto(tramo(k, 0.3, 0.72)) : 0), y: 236 + s.dy + 1.2 * Math.sin(t * 2.1) * (1 - mira), sx: s.sx * (1 - 0.08 * mira), sy: s.sy * (1 + 0.12 * mira) })
+      camara(q('cam'), 120 + (sube ? sacude(k, 0.3, 2.6) : 0), 130 + (sube ? sacude(k, 0.32, 1.6) : 0), 1, 120, 130)
     },
   })
 
   return {
-    /** Ahora lleva `k` problemas marcados. `t` (opcional) es el segundo del reloj, para revisar. */
-    pon(k, t) {
-      if (k === n) return
+    /** Ahora lleva `c` problemas marcados. `t` (opcional) es el segundo del reloj, para revisar. */
+    pon(c, t) {
+      if (c === n) return
       const tt = t ?? ahora()
-      desde = mezcla(desde, n, suave(tramo(tt - tk, 0, 0.55)))
-      sube = k > n
-      n = k
+      desde = mezcla(desde, n, rebota(tramo(tt - tk, 0.26, 0.9)))
+      giro += 4.5 * (sube ? 1 : -1) * suave(tramo(tt - tk, 0.1, 0.7))
+      sube = c > n
+      n = c
       tk = tt
     },
   }
 }
 
+/** Cuándo pasa cada cosa en «Lo que entendimos», según cuántas filas tenga la ficha. */
+export function tiemposFicha(K) {
+  const paso = Math.min(0.46, 1.5 / K)
+  const filas = Array.from({ length: K }, (_, i) => 1.6 + i * paso)
+  const sello = filas[K - 1] + 0.42
+  return { paso, filas, sello, fin: sello + 1.75 }
+}
+
 /**
- * «Esto es lo que entendimos». El dueño llega con su maraña. El punto baja, toma la punta, jala,
- * y el nudo se estira hasta quedar en cuatro renglones. Él suelta el aire y asiente. Va encima
- * de la ficha y dura 2.6 s: después la escena lo desvanece y queda el expediente de verdad.
- * Devuelve { desde(t) } para arrancarlo. El <svg> lleva viewBox="0 0 320 200".
+ * «Lo que entendimos». Va encima de la ficha de verdad, con sus mismas medidas. La madeja cae
+ * sobre la ficha vacía y rebota. El punto llega, toma la punta y le da un tirón. Luego corre
+ * por cada fila sacando el hilo, derecho: la madeja se va quedando sin hilo y baja a la fila
+ * siguiente. Cuando ya no queda nada, baja una mano con el sello, toma vuelo y estampa.
+ * `arma({ alto, filas: [[x0, y, x1]], sello: [x, y] })` le da las medidas (el ancho siempre
+ * es 320) y `desde(t)` lo arranca.
  */
 export function entendidoVivo(svg) {
-  const NUDO = marana(206, 64, 40)
-  const REN = [0, 1, 2, 3].map((k) => recta(150, k === 3 ? 246 : 300, 44 + k * 32))
-  const PUNTA = NUDO[3][M - 1]
-  const FIN = REN[3][M - 1]
-  let t0 = Infinity
+  const MAXF = 6
+  let cfg = null
+  let t0 = 1e9
+  let tm = null
 
   monta(svg, {
     dur: Infinity,
-    cartel: 2.4,
-    svg: () => hebras(NUDO, 'ln') + `<g transform="translate(-76 24)">${DUENO()}</g>` + punto(6.5),
+    cartel: 3,
+    svg: () =>
+      G(
+        'cam',
+        Array.from({ length: MAXF }, (_, i) => T(D(tramito(0, 10, 0), false), { cls: 'ln tz', amp: 0.5, n: 'f' + i })).join('') +
+          G('migas', rayos('mig', [[-56, -40, -48, -34], [58, 38, 50, 32], [-60, 36, -52, 30], [0, -64, 0, -55], [52, -46, 46, -40]])) +
+          T(D(madeja(0, 0, 40, 1, 0)), { cls: 'ln', n: 'lio' }) +
+          G('marca', T(P.circ(0, 0, 13, 16), { cls: 'azul', amp: 0.6 }) + T(P.poli([[-5.8, 0.6], [-1.8, 4.9], [6.4, -4.7]]), { cls: 'ln ln-claro tz', amp: 0.3, n: 'ok' })) +
+          corona('ray', 9, 22, 34) +
+          punto(6.5) +
+          // el sello y la mano que lo empuña: el origen es la base del sello
+          G(
+            'sello',
+            T(D(capsula([4, -52], [24, -260], 18)), { cls: 'ln tapa', amp: 0.5 }) +
+              T(D(capsula([0, -8], [0, -24], 9, 3)), { cls: 'ln tapa', amp: 0.3 }) +
+              T(P.rect(-18, -10, 36, 10, 3.5), { cls: 'ln tapa', amp: 0.4 }) +
+              T(P.linea(-14, -5.2, 14, -5.2, 3), { cls: 'ln fino tenue', amp: 0.2 }) +
+              `<g transform="translate(1 -50) rotate(184)">${manoSvg('sm')}</g>`,
+          ),
+      ),
     paso(q, t) {
-      const u = Math.max(0, t - t0)
-      // 0.35 baja el punto · 0.95 toma vuelo · 1.1 jala · 1.95 suelta el aire · 2.3 asiente
-      const estira = suave(tramo(u, 1.1, 1.95))
-      let punta = PUNTA
-      NUDO.forEach((h, k) => {
-        const pts = mezclaPts(h, REN[k], elastico(tramo(u, 1.1 + k * 0.06, 1.95 + k * 0.06)))
-        forma(q('h' + k), pts)
-        agita(q('h' + k), mezcla(2.2, 0.5, estira) + 1.5 * golpe(u, 1.1, 0.3))
-        if (k === 3) punta = pts[M - 1]
-      })
-      // el punto
-      if (u < 0.95) {
-        const p = tramo(u, 0.35, 0.95)
-        const j = brinco(p, 30)
-        pon(q('pt'), { x: mezcla(318, PUNTA[0], suave(p)), y: mezcla(-12, PUNTA[1], suave(p)) + j.dy, sx: j.sx, sy: j.sy })
-      } else if (u < 1.1) {
-        const v = salto(tramo(u, 0.95, 1.1))
-        pon(q('pt'), { x: PUNTA[0] - 5 * v, y: PUNTA[1] + 2 * v, sx: 1 - 0.14 * v, sy: 1 + 0.14 * v })
-      } else {
-        const fin = suave(tramo(u, 1.9, 2.2))
-        pon(q('pt'), { x: mezcla(punta[0], FIN[0] + 9, fin), y: mezcla(punta[1], FIN[1], fin) })
+      const fuera = { x: -400, y: -400, o: 0 }
+      if (!cfg) {
+        for (const n of ['lio', 'migas', 'marca', 'ray', 'pt', 'sello']) pon(q(n), fuera)
+        return
       }
-      // usted: apurado, se sorprende con el jalón, suelta el aire, sonríe y asiente
-      const s = 1 - suave(tramo(u, 1.25, 1.95))
-      const susto = golpe(u, 1.12, 0.5)
-      const alivio = suave(tramo(u, 1.95, 2.35))
-      const suspiro = salto(tramo(u, 1.9, 2.5))
-      const asiente = salto(tramo(u, 2.35, 2.75))
-      actua(q, 'u', {
-        gira: 3.5 * s - 2 * alivio,
-        dy: 2.2 * s - 2.8 * susto + 1.5 * suspiro + 2.6 * asiente,
-        sy: 1 - 0.02 * suspiro,
-        mira: [mezcla(3.4, 2.6, s), mezcla(-0.4, -2.4, s)],
-        abre: (1 + 0.5 * susto) * parpadea(u, 0.5, 2.05),
-        cejas: [-1.2 * s - 4 * susto - 1.5 * alivio, -13 * s, -1.2 * s - 4 * susto - 1.5 * alivio, 13 * s],
-        boca: [0, mezcla(-0.95, 1.1, alivio), 0.4 * susto + 0.35 * suspiro],
-        brazo: 0,
-        mano: [20, 80, 0],
-        pelo: -5 * susto + 3 * suspiro - 3 * asiente,
-        gota: -1,
-        resp: 0.014 * Math.sin(u * 3) * s - 0.035 * suspiro,
+      const u = Math.max(0, t - t0)
+      const K = cfg.filas.length
+      const R0 = Math.min(58, cfg.alto * 0.36)
+      const centro = [160, Math.min(cfg.alto * 0.5, cfg.filas[0][1] + R0 * 0.6)]
+      const inicio = (i) => [cfg.filas[i][0] - 2, cfg.filas[i][1]]
+      // 0 cae · 0.45 llega el punto · 0.9 tirón · 1.3 baja a la primera fila · luego una por una
+      const cae = acelera(tramo(u, 0, 0.42))
+      const pega = golpe(u, 0.42, 0.3)
+      const tiron = salto(tramo(u, 0.9, 1.3))
+      // dónde está la madeja y cuánto hilo le queda
+      let c = [centro[0], mezcla(-R0 * 1.4, centro[1], cae) - 9 * salto(tramo(u, 0.42, 0.7))]
+      let queda = 1
+      for (let i = 0; i < K; i++) {
+        const a = tm.filas[i]
+        const va = suave(tramo(u, a - 0.3, a))
+        const de = i === 0 ? centro : inicio(i - 1)
+        if (u >= a - 0.3) c = [mezcla(de[0], inicio(i)[0], va), mezcla(de[1], inicio(i)[1], va) - 10 * salto(tramo(u, a - 0.3, a)) * (i ? 1 : 0)]
+        const saca = suave(tramo(u, a, a + 0.36))
+        queda = Math.min(queda, 1 - (i + saca) / K)
+        const [x0, y, x1] = cfg.filas[i]
+        forma(q('f' + i), tramito(x0, x1, y))
+        traza(q('f' + i), saca)
+        ve(q('f' + i), 1 - suave(tramo(u, a + 0.42, a + 0.66)))
+        agita(q('f' + i), mezcla(1.8, 0.5, saca))
+      }
+      for (let i = K; i < MAXF; i++) ve(q('f' + i), 0)
+      const R = R0 * Math.pow(Math.max(0, queda), 0.6) * (1 - 0.14 * tiron)
+      const lio = q('lio')
+      pon(lio, { x: c[0], y: c[1] + 4 * pega, sx: R / 40 * (1 + 0.14 * pega), sy: (R / 40) * (1 - 0.16 * pega) })
+      forma(lio, madeja(0, 0, 40, 1, u * (1.6 + 2.6 * tiron) + 6 * (1 - queda)))
+      ve(lio, R > 1 ? 1 : 0)
+      lio.style.strokeWidth = (3.1 * 40) / Math.max(12, R) > 9 ? '9' : String((3.1 * 40) / Math.max(12, R))
+      agita(lio, 2 + 1.4 * tiron)
+      pon(q('migas'), { x: centro[0], y: centro[1], r: -u * 26, sx: R0 / 46, o: 0.7 * Math.max(pega, golpe(u, 1.1, 0.4)) })
+      // el punto: llega, jala, y luego saca cada fila corriendo de izquierda a derecha
+      const S = cfg.sello
+      const punta = [centro[0] - R0 * 0.75, centro[1] + R0 * 0.7]
+      let pos
+      if (u < 0.9) {
+        const p = tramo(u, 0.45, 0.9)
+        const b = brinco(p, 26)
+        pos = { x: mezcla(330, punta[0], suave(p)), y: mezcla(-14, punta[1], suave(p)) + b.dy, sx: b.sx, sy: b.sy }
+      } else if (u < tm.filas[0] - 0.3) pos = { x: punta[0] - 9 * tiron, y: punta[1] + 7 * tiron, sx: 1 + 0.2 * tiron, sy: 1 - 0.16 * tiron }
+      else {
+        pos = { x: punta[0], y: punta[1], sx: 1, sy: 1 }
+        for (let i = 0; i < K; i++) {
+          const a = tm.filas[i]
+          const [x0, y, x1] = cfg.filas[i]
+          const de = i === 0 ? punta : [cfg.filas[i - 1][2], cfg.filas[i - 1][1]]
+          if (u >= a - 0.3) {
+            const p = tramo(u, a - 0.3, a)
+            const b = brinco(p, 16)
+            const saca = suave(tramo(u, a, a + 0.36))
+            pos = { x: mezcla(mezcla(de[0], x0, suave(p)), x1, saca), y: mezcla(de[1], y, suave(p)) + b.dy, sx: b.sx * (1 + 0.25 * salto(saca)), sy: b.sy * (1 - 0.18 * salto(saca)) }
+          }
+        }
+        if (u >= tm.sello) {
+          const p = tramo(u, tm.sello, tm.sello + 0.4)
+          const b = brinco(p, 22)
+          const ult = cfg.filas[K - 1]
+          pos = { x: mezcla(ult[2], S[0], suave(p)), y: mezcla(ult[1], S[1], suave(p)) + b.dy, sx: b.sx, sy: b.sy }
+        }
+      }
+      // la mano con el sello: llega, toma vuelo, estampa y se va
+      const ts = tm.sello + 0.15
+      const v = u - ts
+      const llega = frena(tramo(v, 0, 0.6))
+      const vuelo = salto(tramo(v, 0.62, 0.9))
+      const baja = acelera(tramo(v, 0.88, 1.02))
+      const sella = golpe(v, 1.02, 0.26)
+      const quita = rebota(tramo(v, 1.3, 1.68))
+      const sefue = acelera(tramo(v, 1.75, 2.3))
+      const sy = 1 + (v < 1.02 ? 0.1 * baja : 0) - 0.1 * sella
+      pon(q('sello'), {
+        x: S[0] + mezcla(mezcla(mezcla(46, 14, llega), 0, baja), 50, sefue) + 8 * quita * (1 - sefue),
+        y: S[1] + mezcla(mezcla(mezcla(-190, -50, llega) - 13 * vuelo, 2, baja) - 62 * quita, -230, sefue),
+        r: mezcla(10, 0, llega) - 5 * vuelo + 7 * quita,
+        sx: 2 - sy,
+        sy,
+        o: v < 0 ? 0 : 1,
       })
-      for (const x of ['um', 'uante', 'umanga']) ve(q(x), 0)
+      const ya = v >= 1.02
+      pon(q('marca'), { x: S[0], y: S[1], r: -10, o: ya ? 1 : 0 })
+      traza(q('ok'), suave(tramo(v, 1.5, 1.85)))
+      pon(q('ray'), { x: S[0], y: S[1], sx: mezcla(0.6, 1.2, frena(tramo(v, 1.02, 1.5))), o: golpe(v, 1.02, 0.5) })
+      pon(q('pt'), { ...pos, o: ya ? 0 : 1 })
+      camara(q('cam'), 160 + sacude(u, 0.42, 2.4) + sacude(v, 1.02, 3), cfg.alto / 2 + sacude(u, 0.43, 1.6), 1, 160, cfg.alto / 2)
     },
   })
 
   return {
+    arma(c) {
+      cfg = c
+      tm = tiemposFicha(c.filas.length)
+    },
     desde(t) {
       t0 = t ?? ahora()
     },
   }
+}
+
+/**
+ * Enlaza la ficha de una lámina (`.ve-der` con `.ve-ficha`, sus `.ve-item` y `.ve-vivo svg`)
+ * con su animación: mide la ficha cuando la lámina entra, arranca el dibujo y hace aparecer
+ * cada fila de verdad justo cuando su hilo termina de salir. Devuelve cuándo termina (en
+ * segundos de la línea de tiempo `tl`), o 0 si no hubo animación.
+ */
+export function fichaViva(el, tl, { reduced = false } = {}) {
+  const der = el.querySelector('.ve-der')
+  const caja = der?.querySelector('.ve-vivo')
+  const svg = caja?.querySelector('svg')
+  const ficha = der?.querySelector('.ve-ficha')
+  const items = [...el.querySelectorAll('.ve-item')].filter((x) => x.querySelector('.ve-t')).slice(0, 6)
+  if (reduced || !svg || !ficha || !items.length) {
+    if (caja) caja.style.visibility = 'hidden'
+    return 0
+  }
+  const vivo = entendidoVivo(svg)
+  svg._vivo = vivo
+  const tm = tiemposFicha(items.length)
+  const E = 0.25 // cuándo arranca dentro de la línea de tiempo
+  const medir = () => {
+    const r = ficha.getBoundingClientRect()
+    if (!r.width) return
+    const k = 320 / r.width
+    const alto = r.height * k
+    svg.setAttribute('viewBox', `0 0 320 ${alto.toFixed(1)}`)
+    const filas = items.map((it) => {
+      const tEl = it.querySelector('.ve-t')
+      const b = tEl.getBoundingClientRect()
+      const rango = document.createRange()
+      rango.selectNodeContents(tEl)
+      const ancho = Math.min(b.width, rango.getBoundingClientRect().width || b.width)
+      const x0 = (b.left - r.left) * k
+      return [x0, (b.top + Math.min(b.height, 30) / 2 - r.top) * k, Math.min(300, x0 + Math.max(60, ancho * k))]
+    })
+    vivo.arma({ alto, filas, sello: [286, Math.max(26, alto - 30)] })
+  }
+  tl.call(() => {
+    medir()
+    vivo.desde()
+  }, null, E)
+  tl.fromTo(caja, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.2 }, 0.05)
+  tl.fromTo(ficha, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.4 }, 0)
+  items.forEach((it, i) => tl.fromTo(it, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.3 }, E + tm.filas[i] + 0.44))
+  const fin = E + tm.fin
+  tl.to(caja, { autoAlpha: 0, duration: 0.35 }, fin)
+  return { fin, filas: tm.filas.map((x) => E + x), sello: E + tm.sello + 1.17 }
 }
 
 // ── «Primero el problema» ──────────────────────────────────────────────────────────────────

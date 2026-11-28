@@ -106,6 +106,7 @@ const ESCENAS = {
       const c = []
       for (const k of [0, 1, 2, 3, 4, 6]) {
         c.push([`${k} · 0.2`, async () => (await api.vivo('pon', k, 100 * k + 50), api.fija(100 * k + 50.2))])
+        c.push([`${k} · 0.36`, () => api.fija(100 * k + 50.36)])
         c.push([`${k} · 1.6`, () => api.fija(100 * k + 51.6)])
       }
       c.push(['6→3 · 0.5', async () => (await api.vivo('pon', 3, 900), api.fija(900.5))])
@@ -127,9 +128,9 @@ const ESCENAS = {
       }
     },
     sel: '.ve-der',
-    quieto: ['.ve-vivo', '.ve-ficha'],
+    quieto: ['.ve-vivo', '.ve-ficha', 0.25],
     todo: true,
-    cuadros: (api) => [0.2, 0.7, 0.95, 1.08, 1.25, 1.45, 1.7, 2.0, 2.3, 2.6].map((u) => [`${u}`, async () => (await api.vivo('desde', 500), api.fija(500 + u))]),
+    cuadros: (api) => [0.2, 0.44, 0.7, 1.1, 1.5, 1.75, 2.0, 2.3, 2.6, 2.95, 3.3, 3.75, 4.0, 4.3, 4.7].map((u) => [`${u}`, async () => (await api.vivo('desde', 500), api.fija(500 + u))]),
   },
 }
 
@@ -172,7 +173,8 @@ const ESCENAS = {
     await p.waitForTimeout(4500)
     await p.evaluate(([ver, tapar]) => {
       window.__gsap.set(document.querySelector(ver), { autoAlpha: 1, y: 0 })
-      window.__gsap.set(document.querySelector(tapar), { autoAlpha: 0.12 })
+      window.__gsap.set(document.querySelector(tapar), { autoAlpha: 1 })
+      window.__gsap.set(document.querySelectorAll('.ve-item'), { autoAlpha: 0.15 })
     }, E.quieto)
   }
   const celdas = []
