@@ -2203,3 +2203,143 @@ textarea.v-in {
 .vr-tv svg {
   overflow: hidden;
 }
+
+/* ───────────────────────── Piezas con UI Soma ─────────────────────────
+   Lo que se toca en las visitas se levanta del papel, igual que en el CRM: degradado, borde
+   claro, filo de luz arriba, canto y sombra. Los valores salen de la skill ui-soma (Blanco para
+   las láminas de papel, Negro para las de tinta). La pieza elegida sube y enseña su canto. */
+[data-theme='paper'] {
+  --p-alto: #f8f6f0;
+  --p-bajo: #ebe8df;
+  --p-borde: rgb(255 255 255 / 0.88);
+  --p-luz: #fff;
+  --p-som: 5 5 6;
+  --p-amb: 0.2;
+  --p-pri-a: #2d2e36;
+  --p-pri-b: #050506;
+  --p-pri-s: #000;
+  --p-pri-tx: #efece4;
+  --p-pri-borde: #3a3b44;
+}
+
+[data-theme='ink'] {
+  --p-alto: #24252c;
+  --p-bajo: #17181d;
+  --p-borde: rgb(255 255 255 / 0.07);
+  --p-luz: rgb(255 255 255 / 0.1);
+  --p-som: 0 0 0;
+  --p-amb: 0.6;
+  --p-pri-a: #fbfaf6;
+  --p-pri-b: #e6e2d8;
+  --p-pri-s: #9d998e;
+  --p-pri-tx: #050506;
+  --p-pri-borde: #fff;
+}
+
+.v-chip,
+.vg-dia,
+.vl-forma,
+.wx-op {
+  border: 1px solid var(--p-borde);
+  background: linear-gradient(180deg, var(--p-alto), var(--p-bajo));
+  box-shadow:
+    inset 0 1px 0 var(--p-luz),
+    0 1px 1.5px rgb(var(--p-som) / 0.1),
+    0 8px 15px -6px rgb(var(--p-som) / var(--p-amb));
+  transition:
+    transform 0.14s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.14s cubic-bezier(0.2, 0.8, 0.2, 1),
+    background 0.18s,
+    color 0.18s,
+    border-color 0.18s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.v-chip:active,
+.vg-dia:active,
+.vl-forma:active,
+.wx-op:active {
+  transform: translateY(1.5px);
+  box-shadow:
+    inset 0 1px 0 var(--p-luz),
+    0 1px 1px rgb(var(--p-som) / 0.12);
+}
+
+/* la píldora elegida es el botón principal: tinta con canto */
+.v-chip[aria-pressed='true'] {
+  border-color: var(--p-pri-borde);
+  background: linear-gradient(180deg, var(--p-pri-a), var(--p-pri-b));
+  color: var(--p-pri-tx);
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.22),
+    0 3px 0 var(--p-pri-s),
+    0 4px 1.5px rgb(var(--p-som) / 0.1),
+    0 10px 15px -6px rgb(var(--p-som) / 0.5);
+}
+
+/* la tarjeta elegida conserva su superficie: sube y enseña el canto en tinta */
+.vg-dia,
+.vl-forma {
+  border-radius: calc(var(--u) * 1.4);
+}
+
+.vg-dia[aria-pressed='true'],
+.vl-forma[aria-pressed='true'],
+.wx-op[aria-pressed='true'] {
+  border-color: var(--fg);
+  color: var(--fg);
+  translate: none;
+  transform: translateY(-3px);
+  box-shadow:
+    inset 0 1px 0 var(--p-luz),
+    0 3px 0 var(--fg),
+    0 4px 1.5px rgb(var(--p-som) / 0.1),
+    0 12px 18px -6px rgb(var(--p-som) / calc(var(--p-amb) + 0.15));
+}
+
+.v-chip:focus-visible,
+.vg-dia:focus-visible,
+.vl-forma:focus-visible,
+.wx-op:focus-visible {
+  outline: 3px solid var(--color-blue);
+  outline-offset: 3px;
+}
+
+@media (hover: hover) {
+  .v-chip:not([aria-pressed='true']):hover,
+  .vg-dia:not([aria-pressed='true']):hover,
+  .vl-forma:not([aria-pressed='true']):hover,
+  .wx-op:not([aria-pressed='true']):hover {
+    border-color: var(--p-borde);
+    color: var(--fg);
+    box-shadow:
+      inset 0 1px 0 var(--p-luz),
+      0 1px 1.5px rgb(var(--p-som) / 0.12),
+      0 12px 19px -6px rgb(var(--p-som) / calc(var(--p-amb) + 0.06));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v-chip,
+  .vg-dia,
+  .vl-forma,
+  .wx-op {
+    transition: none;
+  }
+}
+
+/* La tarjeta negra de la membresía vive en una lámina de papel: sus piezas son de tinta. */
+.wp-op--m {
+  --p-alto: #24252c;
+  --p-bajo: #17181d;
+  --p-borde: rgb(255 255 255 / 0.07);
+  --p-luz: rgb(255 255 255 / 0.1);
+  --p-som: 0 0 0;
+  --p-amb: 0.6;
+  --p-pri-a: #fbfaf6;
+  --p-pri-b: #e6e2d8;
+  --p-pri-s: #9d998e;
+  --p-pri-tx: #050506;
+  --p-pri-borde: #fff;
+}
